@@ -6,6 +6,7 @@
  * xpelan04   Pelantova Lucie
  * xmrlik00   Vit Mrlik
  * xpapla00   Andrei Paplauski
+ *
  */
 
 #include <stdio.h>
