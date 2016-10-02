@@ -1,6 +1,3 @@
-
-// LEXER
-
 int lexer(string *buffer){
 
     int state = 0; // stav automatu
@@ -85,16 +82,16 @@ int lexer(string *buffer){
 
         state = 3; // zustan tady a res identifikatory a klicova slova
 
-        if (c == '.') dot_count++; // evidujeme nalezenou tecku
+        if (c == '.' && dot_count == 0) dot_count++; // evidujeme nalezenou tecku
 
-        if (c == '.' && dot_count > 0 ) return LEX_ERROR; break; // pokud se objevi dalsi tecka jedna se o neplatny identifikator,
+        else if (c == '.' && dot_count > 0 ) return LEX_ERROR; break; // pokud se objevi dalsi tecka jedna se o neplatny identifikator,
 
         strAddChar(buffer, c); // dokud se jedna o identifikator nebo klicove slovo, naplnuj strukturu
         }
 
-	    else {// struktura naplnena, nasleduje prazdne misto nebo nepovoleny znak
+	    else {// struktura naplnena, nasleduje prazdne misto nebo nepovoleny znak nebo zacatek zavorky
 
-        if (!isalnum(c) && c != '_' && c != '$' && c != '.') return LEX_ERROR; break; // pokud se neobjevi prazdne misto ale nejaky nepovoleny znak je to error
+        if (!isspace(c) && !isalnum(c) && c != '_' && c != '$' && c != '.' && c != '(' && c!= ')' && c!= '{' && c!= '}' && c!= '=' && c!= '+' && c!= '-' && c!= '*' && c!= '/' && c!= '<' && c!= '>' && c!='!' && c!= ';') return LEX_ERROR; break; // pokud se neobjevi prazdne misto nebo zavorky nebo operatory ale nejaky nepovoleny znak je to error
 
         ungetc(c, source); // POZOR! Je potreba vratit posledni nacteny znak
 
@@ -123,7 +120,7 @@ int lexer(string *buffer){
 
     case 4: // RETEZCOVY LITERAL
 
-        if (c != '"' && c!= '/'){ // dokud sme v retezci a nejsou pouzity specialni znaky jako /n /"
+        if (c != '"' && c!= '\x5C'){ // dokud sme v retezci a nejsou pouzity specialni znaky jako \n \"
 
          strAddChar(buffer, c); // tak normalne naplnuj strukturu
 
@@ -132,7 +129,7 @@ int lexer(string *buffer){
          state = 4; // a zustan tady
         }
 
-        else if (c == '/'){ // bude nasledovat specialni znak
+        else if (c == '\x5C'){ // bude nasledovat specialni znak
 
          strAddChar(buffer, c); // nahraj lomitko do struktury
 
@@ -225,7 +222,7 @@ int lexer(string *buffer){
 
     case 7: // DESETINNY LITERAL S EXPONENTEM
 
-        if (c == '+' || (c == '-' && sign_count == 0)){ // nasleduje nepovinne znamenko
+        if ((c == '+' || c == '-') && sign_count == 0){ // nasleduje nepovinne znamenko
 
          sign_count = 1; // bylo pouzito nepovinne znamenko
 
@@ -274,6 +271,7 @@ int lexer(string *buffer){
      else if (quote_count == 1 && c == '/') state = 1; // jedna se o jednoradkovy komentar
      else if (quote_count == 1 && c == '*') state = 2; // jedna se o blokovy komentar
      else return LEX_ERROR; break;
+
   } // konec switche
  } // konec while
 } // konec funkce
