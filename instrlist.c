@@ -3,8 +3,9 @@
 void listInit(tListOfInstr *L){
 
 	L->first = NULL;
-	L->last = NULL;
 	L->active = NULL;
+	L->last = NULL;
+	
 }
 
 void listFree(tListOfInstr *L){
