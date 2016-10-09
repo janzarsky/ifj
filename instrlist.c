@@ -28,7 +28,7 @@ void listInsertLast(tListOfInstr *L, tInstr I){
 		exit(99);
 	}
 
-	item->tInstr = I;
+	item->instruction = I;
 	item->nextItem = NULL;
 
 	if(L->first != NULL){
@@ -64,4 +64,9 @@ tInstr *listGetData(tListOfInstr *L)
   }
   else return &(L->active->Instruction);
 
+}
+
+void listGoto(tListOfInstr *L, tListItem *gotoInstr)
+{
+  L->active =  gotoInstr;
 }
