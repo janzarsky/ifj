@@ -70,3 +70,8 @@ void listGoto(tListOfInstr *L, tListItem *gotoInstr)
 {
   L->active =  gotoInstr;
 }
+
+void * listGetPointerLast(tListOfInstr *L, tListItem *gotoInstr)
+{
+	return (void *)L->last;
+}
