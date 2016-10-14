@@ -13,6 +13,7 @@ int lexer(string *buffer){
     int less_count = 0; // kontrolla jestli je na vstupu <
     int great_count = 0; // kontrola jestli je na vstupu >
     int excl_count = 0;  // kontrola jestli je na vstupu !
+    int eq_count   = 0; // kontrola jestli je na vstupu = 
 
     strClear(buffer); // vymazat soucasny obsah stringu
 
@@ -51,12 +52,14 @@ int lexer(string *buffer){
 	 else if (c == '(') return LEFT_BRACKET;
 	 else if (c == ')') return RIGHT_BRACKET;
 	 else if (c == ';') return SEMICOLON;
+         else if (c == ',') return COMMA; 
 
      else if (c == '*') return MUL;
 	 else if (c == '+') { plus_count = 1; state = 8;}
 	 else if (c == '-') { minus_count = 1; state = 8;}
 	 else if (c == '<') { less_count = 1; state = 8;}
 	 else if (c == '>') { great_count = 1; state = 8;}
+         else if (c == '=') { eq_count = 1; state = 8;} 
 	 else return LEX_ERROR;
      break;
 
@@ -114,6 +117,8 @@ int lexer(string *buffer){
    else if (strCmpConstStr(buffer, "true") == 0) return TRUE;
    else if (strCmpConstStr(buffer, "void") == 0) return VOID;
    else if (strCmpConstStr(buffer, "while") == 0) return WHILE;
+   else if (strCmpConstStr(buffer, "Main") == 0) return MAIN;
+   else if (strCmpConstStr(buffer, "run") == 0) return RUN;
 
 	    else return ID;
         } break;
@@ -267,6 +272,8 @@ int lexer(string *buffer){
      else if (great_count == 1 && c == '=') return GREAT_EQ;
      else if (great_count == 1 && c != '=') {ungetc(c, source); return GREAT; } // vrat neplatny znak, je to vetsi nez
      else if (excl_count == 1 && c == '=')  return N_EQUAL;
+     else if (eq_count == 1 && c != '=')    {ungetc(c, source); return EQUAL; } // vrat neplatny znak, je to rovnitko
+     else if (eq_count == 1 && c == '=')    return ASSIGN; // vrat operator == 
      else if (quote_count == 1 && (c != '/' || c != '*')) {ungetc(c, source); return DIV; } // nejedna se o komentar ale o operator deleni
      else if (quote_count == 1 && c == '/') state = 1; // jedna se o jednoradkovy komentar
      else if (quote_count == 1 && c == '*') state = 2; // jedna se o blokovy komentar
