@@ -1,0 +1,61 @@
+
+terminaly: FALSE TRUE LEFT_VINCULUM RIGHT_VINCULUM LEFT_BRACKET RIGHT_BRACKET SEMICOLON MUL BREAK CLASS CONTINUE BOOLEAN DO DOUBLE ELSE FOR IF INT RETURN STRING STATIC 
+VOID WHILE ID STRING_LITERAL INT_LITERAL DOUBLE_LITERAL INC PLUS DEC MINUS LESS_EQ LESS GREAT_EQ GREAT N_EQUAL DIV COMMA EQUAL ASSIGN
+
+non-terminaly: <prog> <st-list> <stat> <item> <item-list> <item-dec> <func> <equal> <const>
+
+
+rules:  
+	<prog>	
+		1) <prog> 	   -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list> RIGHT_VINCULUM RIGHT_VINCULUM
+		2) <prog>      -> CLASS ID LEFT_VINCULUM <st-list> // declaration of clas
+		3) <prog>      -> STATIC <func-dec>	//declaration and initialization of function
+	
+
+	<st-list>
+		1) <st-list>   -> RETURN <stat> RIGHT_VINCULUM //end of main function
+		2) <st-list>   -> WHILE LEFT_BRACKET <stat> RIGHT_BRACKET <st-list> //cycle while
+		3) <st-list>   -> IF LEFT_BRACKET <stat> RIGHT_BRACKET <st-list> ELSE <st-list> //if-else statement
+		4) <st-list>   -> <stat> <st-list> // sequence of statements
+		5) <st-list>   -> RIGHT_VINCULUM	// end of sequence
+		6) <st-list>   -> ID EQUAL <equal> <st-list> // equalence
+		7) <st-list>   -> LEFT_VINCULUM <st-list> // start of sequence
+
+	<equal>	
+		1) <equal>	   -> <const> SEMICOLON //inicialization on const
+		2) <equal>	   -> <stat> //inicialization on statemen
+		3) <equal>	   -> ID SEMICOLON //inicialization on variable
+
+	<stat>  
+		1) <stat> 	   -> <func> RIGHT_BRACKET SEMICOLON	//call function
+		2) <stat> 	   -> LEFT_BRACKET <stat> RIGHT_BRACKET SEMICOLON // ( stat ) ;
+		3) <stat> 	   -> STATIC <item> <item-dec>	// declaration of global var
+		4) <stat> 	   -> <item> <item-dec> 	// declaration of local var
+
+	<func>  
+		1) <func>	   -> ID LEFT_BRACKET <item-list>	//id + parameteres of function
+
+	<item-dec>
+		1) <item-dec>  -> SEMICOLON	//end if declaration
+		2) <item-dec>  -> EQUAL <equal>	// inicialization
+
+	<func-dec>
+		1) <func-dec>  -> VOID ID LEFT_BRACKET <item-list> LEFT_VINCULUM <st-list>	//declaration and initialization of void function
+		2) <func-dec>  -> <item> LEFT_BRACKET <item-list> LEFT_VINCULUM <st-list>	//declaration and initialization of non-void function
+
+	<item>
+		1) <item> 	   -> INT ID 
+		2) <item> 	   -> DOUBLE ID
+		3) <item> 	   -> STRING ID
+
+	<const>
+		4) <const> 	   -> INT_LITERAL // constant int
+		5) <const> 	   -> DOUBLE_LITERAL // constant double
+		6) <const> 	   -> STRING_LITERAL // constant string
+
+	<item-list>
+		1) <item-list> -> COMMA <item> <item-list> // middle of sequence of parameters
+		2) <item-list> -> RIGHT_BRACKET // end of sequance of parameters
+		3) <item-list> -> <item> <item-list> // start of sequence of parameters
+
+	
