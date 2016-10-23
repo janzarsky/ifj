@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "instrlist.h"
 
 void listInit(tListOfInstr *L){
@@ -62,7 +64,7 @@ tInstr *listGetData(tListOfInstr *L)
     printf("Chyba, zadna instrukce neni aktivni");
     exit(99);
   }
-  else return &(L->active->Instruction);
+  else return &(L->active->instruction);
 
 }
 
@@ -71,7 +73,7 @@ void listGoto(tListOfInstr *L, tListItem *gotoInstr)
   L->active =  gotoInstr;
 }
 
-void * listGetPointerLast(tListOfInstr *L, tListItem *gotoInstr)
+void *listGetPointerLast(tListOfInstr *L, tListItem *gotoInstr)
 {
 	return (void *)L->last;
 }

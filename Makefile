@@ -3,10 +3,13 @@ PROGRAMS = ifj
 
 all: $(PROGRAMS)
 
-ifj: main.o
+ifj: main.o instrlist.o
 	gcc $(CFLAGS) $^ -o $@
 
 main.o: main.c
+	gcc $(CFLAGS) -c $^ -o $@
+
+instrlist.o: instrlist.c
 	gcc $(CFLAGS) -c $^ -o $@
 
 clean:

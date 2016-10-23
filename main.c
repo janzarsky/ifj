@@ -10,9 +10,34 @@
  */
 
 #include <stdio.h>
+#include "instrlist.h"
 
 int main(int argc, char** argv) {
-    printf("It's working!\n");
+    if (argc != 2) {
+        return 99;
+    }
+
+    FILE *source_file;
+
+    if ((source_file = fopen(argv[1], "r")) == NULL) {
+        return 99;
+    }
+
+    // set source file
+
+    // initialize table of symbols
+
+    tListOfInstr list_of_instr;
+    listInit(&list_of_instr);
+
+    // parse file
+    // check error code
+
+    // interpret program
+
+    // free table of symbols
+    // free instruction list
+    fclose(source_file);
 
     return 0;
 }
