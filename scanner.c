@@ -1,5 +1,19 @@
-int lexer(string *buffer){
+#include <stdio.h>
+#include <ctype.h>
 
+#include "scanner.h"
+#include "instrlist.h"
+
+int get_token(FILE* source){
+    fprintf(stderr, "DEBUG: Function get_token\n");
+
+    int c = fgetc(source);
+
+    fprintf(stderr, "DEBUG: read character '%c'\n", c);
+
+    return c;
+
+/*
     int state = 0; // stav automatu
     int c; // promenna pro znak
 
@@ -77,7 +91,9 @@ int lexer(string *buffer){
 
         else if (c == '/' && star_count == 1) state = 0; // konec blokoveho komentare, vrat se na zacatek do nuly
 
-        else if (c == EOF) return LEX_ERROR; break; // Testuj neukonceny komentar???!!
+        else if (c == EOF) return LEX_ERROR; // Testuj neukonceny komentar???!!
+
+        break;
 
     case 3: // IDENTIFIKATORY, KLICOVA SLOVA
 
@@ -281,4 +297,7 @@ int lexer(string *buffer){
 
   } // konec switche
  } // konec while
+
+ */
 } // konec funkce
+

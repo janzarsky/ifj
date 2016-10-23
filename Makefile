@@ -1,15 +1,13 @@
 CFLAGS = -pedantic -Wall -Wextra
-PROGRAMS = ifj
+SOURCES=$(wildcard *.c)
+OBJECTS=$(SOURCES:.c=.o)
 
-all: $(PROGRAMS)
+all: ifj
 
-ifj: main.o instrlist.o
+ifj: $(OBJECTS)
 	gcc $(CFLAGS) $^ -o $@
 
-main.o: main.c
-	gcc $(CFLAGS) -c $^ -o $@
-
-instrlist.o: instrlist.c
+%.o: %.c
 	gcc $(CFLAGS) -c $^ -o $@
 
 clean:

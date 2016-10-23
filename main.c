@@ -10,34 +10,36 @@
  */
 
 #include <stdio.h>
+
 #include "instrlist.h"
+#include "parser.h"
 
 int main(int argc, char** argv) {
     if (argc != 2) {
         return 99;
     }
 
-    FILE *source_file;
+    FILE *source;
 
-    if ((source_file = fopen(argv[1], "r")) == NULL) {
+    if ((source = fopen(argv[1], "r")) == NULL) {
         return 99;
     }
 
-    // set source file
-
     // initialize table of symbols
 
-    tListOfInstr list_of_instr;
-    listInit(&list_of_instr);
+    tListOfInstr ilist;
+    listInit(&ilist);
 
-    // parse file
+    // table of symbols == NULL (no table implemented yet)
+    int parse_result = parse(&ilist, NULL, source);
+
     // check error code
 
-    // interpret program
+    // interpret code
 
     // free table of symbols
     // free instruction list
-    fclose(source_file);
+    fclose(source);
 
     return 0;
 }

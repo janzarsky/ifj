@@ -1,6 +1,23 @@
+#include <stdio.h>
+
+#include "parser.h"
 
 // PARSER PRO POVINNOU TRIDU MAIN A POVINNOU FUNKCI RUN (WIP)
 
+int parse(tListOfInstr * ilist, void * symtab , FILE* source) {
+    fprintf(stderr, "DEBUG: Function parse\n");
+
+    int token;
+    
+    do {
+        token = get_token(source);
+    
+        fprintf(stderr, "DEBUG: got token %d\n", token);
+    } while (token != -1);
+    
+    return 42;
+}
+/*
 int class_main(){ // parser pro povinnou tridu main
 
      token = lexer(&attr);
@@ -316,5 +333,4 @@ int double_declare_parser(){ // parser ktery kontroluje spravny syntax inicializ
     default: return SYNTAX_ERROR; break;
 
     }         
-           
-           
+*/  
