@@ -12,6 +12,7 @@ void st_insert(symtab_t *st, symtab_elem_t elem) {
 }
 
 void st_print_element(symtab_elem_t elem) {
+    printf("DEBUG:   id: '%s'\n", elem.id);
     printf("DEBUG:   element type (0=variable, 1=function, 2=class): %d\n", (int) elem.elem_type);
     printf("DEBUG:   data type (0=int, 1=double, 2=string, 3=void): %d\n", (int) elem.data_type);
 

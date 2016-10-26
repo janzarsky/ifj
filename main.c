@@ -15,6 +15,33 @@
 #include "parser.h"
 #include "symtab.h"
 
+//DEBUG
+void test_symtab(symtab_t *symtab) {
+    st_print(symtab);
+
+    symtab_elem_t elem;
+
+    elem.id = "supervar";
+    elem.elem_type = ST_ELEMTYPE_VAR;
+    elem.data_type = ST_DATATYPE_INT;
+    elem.value.ival = 42;
+    st_insert(symtab, elem);
+
+    elem.id = "doublevar";
+    elem.elem_type = ST_ELEMTYPE_VAR;
+    elem.data_type = ST_DATATYPE_DOUBLE;
+    elem.value.dval = 42.42e42;
+    st_insert(symtab, elem);
+
+    elem.id = "somestring";
+    elem.elem_type = ST_ELEMTYPE_VAR;
+    elem.data_type = ST_DATATYPE_STRING;
+    elem.value.strval = "asdf";
+    st_insert(symtab, elem);
+
+    st_print(symtab);
+}
+
 int main(int argc, char** argv) {
     if (argc != 2) {
         return 99;
@@ -30,27 +57,8 @@ int main(int argc, char** argv) {
     symtab_t *symtab = malloc(sizeof(symtab_t));
     st_init(symtab);
 
-    // DEBUG
-    st_print(symtab);
-
-    symtab_elem_t elem;
-    
-    elem.elem_type = ST_ELEMTYPE_VAR;
-    elem.data_type = ST_DATATYPE_INT;
-    elem.value.ival = 42;
-    st_insert(symtab, elem);
-
-    elem.elem_type = ST_ELEMTYPE_VAR;
-    elem.data_type = ST_DATATYPE_DOUBLE;
-    elem.value.dval = 42.42e42;
-    st_insert(symtab, elem);
-
-    elem.elem_type = ST_ELEMTYPE_VAR;
-    elem.data_type = ST_DATATYPE_STRING;
-    elem.value.strval = "asdf";
-    st_insert(symtab, elem);
-
-    st_print(symtab);
+    //DEBUG
+    test_symtab(symtab);
 
     tListOfInstr *ilist = malloc(sizeof(tListOfInstr));
     listInit(ilist);

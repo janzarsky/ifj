@@ -21,6 +21,7 @@ typedef union {
 } st_value_t;
 
 typedef struct {
+    char *id;
     st_elemtype_t elem_type;
     st_datatype_t data_type;
     st_value_t value;
