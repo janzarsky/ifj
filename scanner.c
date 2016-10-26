@@ -3,7 +3,6 @@
 
 #include "scanner.h"
 #include "instrlist.h"
-#include "symtab.h"
 
 int get_token(FILE* source){
     fprintf(stderr, "DEBUG: Function get_token\n");
