@@ -5,16 +5,19 @@
 #include "instrlist.h"
 #include "symtab.h"
 
-int get_token(FILE* source){
-    fprintf(stderr, "DEBUG: Function get_token\n");
+#include "string.h"
 
-    int c = fgetc(source);
+FILE *source;
+int token; 
+string attr; 
 
-    fprintf(stderr, "DEBUG: read character '%c'\n", c);
+void setSourceFile(FILE *f)
+{
+  source = f;
+}
 
-    return c;
+int lexer(string *buffer){
 
-/*
     int state = 0; // stav automatu
     int c; // promenna pro znak
 
@@ -28,13 +31,13 @@ int get_token(FILE* source){
     int less_count = 0; // kontrolla jestli je na vstupu <
     int great_count = 0; // kontrola jestli je na vstupu >
     int excl_count = 0;  // kontrola jestli je na vstupu !
-    int eq_count   = 0; // kontrola jestli je na vstupu = 
+    int eq_count   = 0; // kontrola jestli je na vstupu =
 
     strClear(buffer); // vymazat soucasny obsah stringu
 
     while(1){ // cyklus nacitani znaku
 
-    c = getc(source); // nacteni znaku ze souboru
+   if( (c = getc(source)) == EOF ) {return END_OF_FILE; break;} // nacteni znaku ze souboru
 
     switch (state){ // automat pro zpracovani znaku ze vstupu
 
@@ -45,6 +48,8 @@ int get_token(FILE* source){
       else if (c == '/') { quote_count = 1; state = 8; }// bude bud komentar a nebo se jedna o operator deleni, nejdriv zkontrolovat jestli je to deleni ve stavu 8
 
       else if (isalpha(c) || c == '_' || c == '$'){ // jedna se o indentifikator nebo klicove slovo
+
+       // printf("jetoznak jdu do 3\n"); // TEST
 
 	    strAddChar(buffer, c); // nahraj znak do struktury
 	    state = 3; // preskoc do casu kde se budou resit identifikatory atd.
@@ -62,19 +67,20 @@ int get_token(FILE* source){
         state = 5;
 	 }                    // OSTATNI ZNAKY
 
-	 else if (c == '{') return LEFT_VINCULUM;
-	 else if (c == '}') return RIGHT_VINCULUM;
-	 else if (c == '(') return LEFT_BRACKET;
-	 else if (c == ')') return RIGHT_BRACKET;
-	 else if (c == ';') return SEMICOLON;
-         else if (c == ',') return COMMA; 
+	 else if (c == '{') {  return LEFT_VINCULUM; }
+	 else if (c == '}') {  return RIGHT_VINCULUM; }
+	 else if (c == '(') {  return LEFT_BRACKET; }
+	 else if (c == ')') {  return RIGHT_BRACKET; }
+	 else if (c == ';') {  return SEMICOLON; }
+	 else if (c == ',') {  return COMMA; }
 
-     else if (c == '*') return MUL;
+     else if (c == '*' && quote_count == 0) { return MUL; }
 	 else if (c == '+') { plus_count = 1; state = 8;}
 	 else if (c == '-') { minus_count = 1; state = 8;}
 	 else if (c == '<') { less_count = 1; state = 8;}
 	 else if (c == '>') { great_count = 1; state = 8;}
-         else if (c == '=') { eq_count = 1; state = 8;} 
+	 else if (c == '=') { eq_count = 1; state = 8;}
+	 else if (c == '!') { excl_count = 1; state = 8;}
 	 else return LEX_ERROR;
      break;
 
@@ -84,15 +90,17 @@ int get_token(FILE* source){
 
         if (c == '\n') state = 0; // konec radku a teda i komentare ???
 
+        break;
+
     case 2: // BLOKOVY KOMENTAR
 
-        if (c != '*') state = 2; // uvnitr blokoveho komentare, ignoruj
+        if (c != '*' && c!= '/') { state = 2;} // uvnitr blokoveho komentare, ignoruj
 
-        else if (c == '*') {star_count = 1; state = 2;} // eviduj hvezdicku a zustan tady
+        else if (c == '*') { star_count = 1; state = 2;} // eviduj hvezdicku a zustan tady
 
-        else if (c == '/' && star_count == 1) state = 0; // konec blokoveho komentare, vrat se na zacatek do nuly
+        else if (c == '/' && star_count == 1) { star_count = 0; state = 0;} // konec blokoveho komentare, vrat se na zacatek do nuly
 
-        else if (c == EOF) return LEX_ERROR; // Testuj neukonceny komentar???!!
+        else if (c == EOF) {return LEX_ERROR;} // Testuj neukonceny komentar???!!
 
         break;
 
@@ -100,44 +108,45 @@ int get_token(FILE* source){
 
         if (isalnum(c) || c == '_' || c == '$' || c == '.'){ // pridana tecka jako znak pouzivany pro plne kvalifikovany identifikator
 
-        state = 3; // zustan tady a res identifikatory a klicova slova
-
         if (c == '.' && dot_count == 0) dot_count++; // evidujeme nalezenou tecku
 
-        else if (c == '.' && dot_count > 0 ) return LEX_ERROR; break; // pokud se objevi dalsi tecka jedna se o neplatny identifikator,
+        else if (c == '.' && dot_count > 0 ) {return LEX_ERROR; break;} // pokud se objevi dalsi tecka jedna se o neplatny identifikator,
 
         strAddChar(buffer, c); // dokud se jedna o identifikator nebo klicove slovo, naplnuj strukturu
+
+        state = 3; // zustan tady a res identifikatory a klicova slova
+
         }
 
 	    else {// struktura naplnena, nasleduje prazdne misto nebo nepovoleny znak nebo zacatek zavorky
 
-        if (!isspace(c) && !isalnum(c) && c != '_' && c != '$' && c != '.' && c != '(' && c!= ')' && c!= '{' && c!= '}' && c!= '=' && c!= '+' && c!= '-' && c!= '*' && c!= '/' && c!= '<' && c!= '>' && c!='!' && c!= ';') return LEX_ERROR; break; // pokud se neobjevi prazdne misto nebo zavorky nebo operatory ale nejaky nepovoleny znak je to error
+        if (!isspace(c) && !isalnum(c) && c != '_' && c != '$' && c != '.' && c != '(' && c!= ')' && c!= '{' && c!= '}' && c!= '=' && c!= '+' && c!= '-' && c!= '*' && c!= '/' && c!= '<' && c!= '>' && c!='!' && c!= ';' && c != ',') { return LEX_ERROR; break; } // pokud se neobjevi prazdne misto nebo zavorky nebo operatory ale nejaky nepovoleny znak je to error
 
         ungetc(c, source); // POZOR! Je potreba vratit posledni nacteny znak
 
-        // kontrola, zda se nejedna o klicove slovo
+        // kontrola, zda se nejedna o klicove slovo nebo treba povinnou vestavenou fci
 
-	    if (strCmpConstStr(buffer, "boolean") == 0) return BOOLEAN;
-   else if (strCmpConstStr(buffer, "break") == 0) return BREAK;
-   else if (strCmpConstStr(buffer, "class") == 0) return CLASS;
-   else if (strCmpConstStr(buffer, "continue") == 0) return CONTINUE;
-   else if (strCmpConstStr(buffer, "do") == 0) return DO;
-   else if (strCmpConstStr(buffer, "double") == 0) return DOUBLE;
-   else if (strCmpConstStr(buffer, "else") == 0) return ELSE;
-   else if (strCmpConstStr(buffer, "false") == 0) return FALSE;
-   else if (strCmpConstStr(buffer, "for") == 0) return FOR;
-   else if (strCmpConstStr(buffer, "if") == 0) return IF;
-   else if (strCmpConstStr(buffer, "int") == 0) return INT;
-   else if (strCmpConstStr(buffer, "return") == 0) return RETURN;
-   else if (strCmpConstStr(buffer, "String") == 0) return STRING;
-   else if (strCmpConstStr(buffer, "static") == 0) return STATIC;
-   else if (strCmpConstStr(buffer, "true") == 0) return TRUE;
-   else if (strCmpConstStr(buffer, "void") == 0) return VOID;
-   else if (strCmpConstStr(buffer, "while") == 0) return WHILE;
-   else if (strCmpConstStr(buffer, "Main") == 0) return MAIN;
-   else if (strCmpConstStr(buffer, "run") == 0) return RUN;
+	    if (strCmpConstStr(buffer, "boolean") == 0) { return BOOLEAN;}
+   else if (strCmpConstStr(buffer, "break") == 0) { return BREAK; }
+   else if (strCmpConstStr(buffer, "class") == 0) { return CLASS;}
+   else if (strCmpConstStr(buffer, "continue") == 0) { return CONTINUE;}
+   else if (strCmpConstStr(buffer, "do") == 0) { return DO; }
+   else if (strCmpConstStr(buffer, "double") == 0) { return DOUBLE;}
+   else if (strCmpConstStr(buffer, "else") == 0) { return ELSE;}
+   else if (strCmpConstStr(buffer, "false") == 0) {return FALSE;}
+   else if (strCmpConstStr(buffer, "for") == 0) {return FOR;}
+   else if (strCmpConstStr(buffer, "if") == 0) {return IF;}
+   else if (strCmpConstStr(buffer, "int") == 0) {return INT;}
+   else if (strCmpConstStr(buffer, "return") == 0) {return RETURN;}
+   else if (strCmpConstStr(buffer, "String") == 0) {return STRING;}
+   else if (strCmpConstStr(buffer, "static") == 0) {return STATIC;}
+   else if (strCmpConstStr(buffer, "true") == 0) {return TRUE;}
+   else if (strCmpConstStr(buffer, "void") == 0) {return VOID;}
+   else if (strCmpConstStr(buffer, "while") == 0) {return WHILE;}
+   else if (strCmpConstStr(buffer, "Main") == 0) { return MAIN;}
+   else if (strCmpConstStr(buffer, "run") == 0) {return RUN; }
 
-	    else return ID;
+	    else {return ID;}
         } break;
 
     case 4: // RETEZCOVY LITERAL
@@ -185,17 +194,24 @@ int get_token(FILE* source){
          state = 5; // a zustan tady
         }
 
-        else if (!isdigit(c) && c != ';' && c != '.' && c != 'e' && c != 'E'){ // pokud nasleduje znak jiny nez ; ktery signalizuje konec zadavani literalu nebo tecka signalizujici des. cislo nebo exponent, je to error
+        else if (!isdigit(c) && c != ';' && c != '.' && c != 'e' && c != 'E' && !isspace(c) && c != ')' && c != '+' && c != '-' && c != '/' && c != '*' && c != '!'){ // pokud nasleduje znak jiny nez ; ktery signalizuje konec zadavani literalu nebo tecka signalizujici des. cislo nebo exponent, je to error
 
           return LEX_ERROR; break;
         }
 
         else if (c == ';'){
 
-          ungetc(c, source); // konec celeho cisla, vracime ; zpatky, zpracujem pak
+          ungetc(c, source); // konec celeho cisla, vracime ; nebo volny zpatky, zpracujem pak
 
           return INT_LITERAL; // a vrati se celociselny literal
 
+        }
+
+        else if (isspace(c) || c == ')'){ // nasleduje volne misto, konec zadavani cisla, cislo muze byt zprava v zavorce! DOPLNIT DO FLOATU!!!!
+
+          ungetc(c, source);
+
+          return INT_LITERAL; // a vrati se celociselny literal
         }
 
         else if(c == '.') { // bude se jednat o desetinny literal ve kterem se nachazi desetinna cast
@@ -229,7 +245,7 @@ int get_token(FILE* source){
          state = 7;
         }
 
-        else if (!isdigit(c) && c != ';' && c != 'e' && c != 'E'){ // pokud nasleduje znak jiny nez ; ktery signalizuje konec zadavani literalu a nebo exponent, je to error
+        else if (!isdigit(c) && c != ';' && c != 'e' && c != 'E' && !isspace(c) && c != ')' && c != '+' && c != '-' && c != '/' && c != '*' && c != '!'){ // pokud nasleduje znak jiny nez ; ktery signalizuje konec zadavani literalu a nebo exponent, je to error
 
           return LEX_ERROR; break;
         }
@@ -240,7 +256,17 @@ int get_token(FILE* source){
 
           return DOUBLE_LITERAL; // a vrati se desetinny literal bez exponentu
 
-        } break;
+        }
+
+        else if (isspace(c) || c == ')'){
+
+        ungetc(c, source);
+
+        return DOUBLE_LITERAL; // a vrati se celociselny literal
+
+        }
+
+        break;
 
     case 7: // DESETINNY LITERAL S EXPONENTEM
 
@@ -280,25 +306,23 @@ int get_token(FILE* source){
 
     case 8: // OPERATORY, SLOZENE OPERATORY, ROZPOZNAVANI ZACATKU KOMENTARU
 
-          if (plus_count == 1 && c == '+')  return INC;
+          if (plus_count == 1 && c == '+')  { return INC; }
      else if (plus_count == 1 && c != '+')  {ungetc(c, source); return PLUS;} // vrat neplatny znak, je to plus
-     else if (minus_count == 1 && c == '-') return DEC;
-     else if (minus_count == 1 && c != '-') {ungetc(c, source); return MINUS;} // vrat neplatny znak, je to minus
-     else if (less_count == 1 && c == '=')  return LESS_EQ;
+     else if (minus_count == 1 && c == '-') { return DEC; }
+     else if (minus_count == 1 && c != '-') {ungetc(c, source);  return MINUS;} // vrat neplatny znak, je to minus
+     else if (less_count == 1 && c == '=')  { return LESS_EQ;}
      else if (less_count == 1 && c != '=')  {ungetc(c, source); return LESS; } // vrat neplatny znak, je to mensi nez
-     else if (great_count == 1 && c == '=') return GREAT_EQ;
+     else if (great_count == 1 && c == '=') {return GREAT_EQ;}
      else if (great_count == 1 && c != '=') {ungetc(c, source); return GREAT; } // vrat neplatny znak, je to vetsi nez
-     else if (excl_count == 1 && c == '=')  return N_EQUAL;
+     else if (excl_count == 1 && c == '=')  {return N_EQUAL;}
      else if (eq_count == 1 && c != '=')    {ungetc(c, source); return EQUAL; } // vrat neplatny znak, je to rovnitko
-     else if (eq_count == 1 && c == '=')    return ASSIGN; // vrat operator == 
-     else if (quote_count == 1 && (c != '/' || c != '*')) {ungetc(c, source); return DIV; } // nejedna se o komentar ale o operator deleni
+     else if (eq_count == 1 && c == '=')    {return ASSIGN;} // vrat operator ==
+     else if (quote_count == 1 && c != '/' && c != '*') {ungetc(c, source); return DIV; } // nejedna se o komentar ale o operator deleni
      else if (quote_count == 1 && c == '/') state = 1; // jedna se o jednoradkovy komentar
-     else if (quote_count == 1 && c == '*') state = 2; // jedna se o blokovy komentar
+     else if (quote_count == 1 && c == '*') {state = 2;} // jedna se o blokovy komentar
      else return LEX_ERROR; break;
 
   } // konec switche
  } // konec while
-
- */
 } // konec funkce
 
