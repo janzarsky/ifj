@@ -4,7 +4,7 @@
 
 // PARSER PRO POVINNOU TRIDU MAIN A POVINNOU FUNKCI RUN (WIP)
 
-int parse(tListOfInstr * ilist, void * symtab , FILE* source) {
+int parse(tListOfInstr * ilist, symtab_t * symtab , FILE* source) {
     fprintf(stderr, "DEBUG: Function parse\n");
 
     int token;

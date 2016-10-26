@@ -13,6 +13,7 @@
 
 #include "instrlist.h"
 #include "parser.h"
+#include "symtab.h"
 
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -26,12 +27,36 @@ int main(int argc, char** argv) {
     }
 
     // initialize table of symbols
+    symtab_t *symtab = malloc(sizeof(symtab_t));
+    st_init(symtab);
 
-    tListOfInstr ilist;
-    listInit(&ilist);
+    // DEBUG
+    st_print(symtab);
+
+    symtab_elem_t elem;
+    
+    elem.elem_type = ST_ELEMTYPE_VAR;
+    elem.data_type = ST_DATATYPE_INT;
+    elem.value.ival = 42;
+    st_insert(symtab, elem);
+
+    elem.elem_type = ST_ELEMTYPE_VAR;
+    elem.data_type = ST_DATATYPE_DOUBLE;
+    elem.value.dval = 42.42e42;
+    st_insert(symtab, elem);
+
+    elem.elem_type = ST_ELEMTYPE_VAR;
+    elem.data_type = ST_DATATYPE_STRING;
+    elem.value.strval = "asdf";
+    st_insert(symtab, elem);
+
+    st_print(symtab);
+
+    tListOfInstr *ilist = malloc(sizeof(tListOfInstr));
+    listInit(ilist);
 
     // table of symbols == NULL (no table implemented yet)
-    int parse_result = parse(&ilist, NULL, source);
+    int parse_result = parse(ilist, symtab, source);
 
     // check error code
 
