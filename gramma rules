@@ -2,15 +2,19 @@
 terminaly: FALSE TRUE LEFT_VINCULUM RIGHT_VINCULUM LEFT_BRACKET RIGHT_BRACKET SEMICOLON MUL BREAK CLASS CONTINUE BOOLEAN DO DOUBLE ELSE FOR IF INT RETURN STRING STATIC 
 VOID WHILE ID STRING_LITERAL INT_LITERAL DOUBLE_LITERAL INC PLUS DEC MINUS LESS_EQ LESS GREAT_EQ GREAT N_EQUAL DIV COMMA EQUAL ASSIGN
 
-non-terminaly: <prog> <st-list> <stat> <item> <item-list> <item-dec> <func> <equal> <const> <func-dec>
+non-terminaly: <prog> <st-list>  <item-dec> <func> <equal> <const> <type> <func-args> <func-args-list> <return-args> <math-expr> <bool-expr> <class-dec>
 
 
 rules:  
 	<prog>	
 		1) <prog> 	   -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM
-		2) <prog>      -> CLASS ID LEFT_VINCULUM <st-list> // declaration of clas
+		2) <prog>      -> CLASS ID LEFT_VINCULUM <class-dec> // declaration of clas
 		3) <prog>      -> STATIC <func-dec>	//declaration and initialization of function
 	
+	<class-dec>
+		1) STATIC <type> ID SEMICOLON <class-dec>
+		2) RIGHT_VINCULUM
+		3) STATIC [<type>/VOID] ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>
 
 	<st-list>
 		1) <st-list>   -> RETURN <return-args> <st-list> //return in function
@@ -48,11 +52,6 @@ rules:
 		1) <item-dec>  -> STATIC <type> ID EQUAL <equal>(MUST return something OR we must give some data to this func)
 		2) <item-dec>  -> <type> ID EQUAL <equal>(MUST return something OR we must give some data to this func)
 
-	<func-dec>
-		1) <func-dec>  -> VOID ID LEFT_BRACKET <item-list> LEFT_VINCULUM <st-list>	//declaration and initialization of void function
-		2) <func-dec>  -> <item> LEFT_BRACKET <item-list> LEFT_VINCULUM <st-list>	//declaration and initialization of non-void function
-
-
 	<const>
 		1) <const> 	   -> INT_LITERAL // constant int
 		2) <const> 	   -> DOUBLE_LITERAL // constant double
@@ -65,5 +64,8 @@ rules:
 		4) <return-args> -> <math-expr> SEMICOLON
 
 	<math-expr>
-		1) <bool-expr>(will return only true or false)
-		2)  SMTH like x+4*2/1+0+(2+4)/5 ... //FIXME
+		1) <math-expr> -> <bool-expr>(will return only true or false)
+		2) <math-expr> ->  SMTH like x+4*2/1+0+(2+4)/5 ... //FIXME
+	
+	<bool-expr>
+		1)
