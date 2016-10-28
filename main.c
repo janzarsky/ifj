@@ -10,6 +10,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "instrlist.h"
 #include "parser.h"
@@ -64,6 +65,7 @@ int main(int argc, char** argv) {
     listInit(ilist);
 
     // table of symbols == NULL (no table implemented yet)
+    setSourceFile(source);
     int parse_result = parse(ilist, symtab, source);
 
     // check error code

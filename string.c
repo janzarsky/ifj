@@ -6,6 +6,13 @@
 #include <malloc.h>
 #include "string.h"
 
+typedef struct string_struct
+{
+  char* str;		// misto pro dany retezec ukonceny znakem '\0'
+  int length;		// skutecna delka retezce
+  int allocSize;	// velikost alokovane pameti
+} string;
+
 #define STR_LEN_INC 8
 // konstanta STR_LEN_INC udava, na kolik bytu provedeme pocatecni alokaci pameti
 // pokud nacitame retezec znak po znaku, pamet se postupne bude alkokovat na
