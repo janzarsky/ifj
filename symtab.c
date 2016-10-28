@@ -3,6 +3,49 @@
 
 #include "symtab.h"
 
+/*#include "stable.h"
+
+
+
+void tableInit(tSymbolTable *T)
+// funkce inicializuje tabulku symbolu
+{
+
+  if (T = malloc(sizeof(tTableItem)*TABLE_SIZE) == NULL) return -1;
+
+  T->first = NULL;
+}
+
+
+unsigned int hash_function(const char *str, unsigned htab_size) {
+
+    unsigned int h = 0;
+
+    const unsigned char *p;
+
+    for(p = (const unsigned char *)str; *p != '\0'; p++)
+        h = 65599*h + *p;
+
+    return h % htab_size;
+}
+
+
+void symbol_init(tTableItem **I, int idx){
+
+    *I->bool = 0;
+    *I->nextItem = NULL;
+    *I->data->varType = -1;
+    *I->data->varValue = -1;
+
+    *I->key->str = '\0';
+    *I->key->length = -1;
+    *I->key->allocSize = -1;
+    *I->key->type = -1;
+
+
+
+}*/
+
 void st_init(symtab_t *st) {
    st->size = 0; 
 }

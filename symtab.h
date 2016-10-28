@@ -1,6 +1,40 @@
 #ifndef _SYMTAB_H
 #define _SYMTAB_H
+/*
+#define T_INT    1
+#define T_DOUBLE 2
+#define T_STRING 3
 
+#define TABLE_SIZE 1000
+
+
+typedef struct
+{
+  int varType;  // typ dane promenne, v nasem pripade vzdy int
+  union varValue; // pro ruzne typy nutnost resit pomoci unie
+} tData;
+
+
+union varValue {
+   int i;
+   float f;
+   char *s;
+};
+
+typedef struct tableItem
+{
+  string key;                  // klic, podle ktereho se bude vyhledavat = nazev identifikatoru
+  tData data;                  // data, ktera jsou ke klici pridruzena
+  struct tableItem *nextItem;  // ukazatel na dalsi prvek tabulky symbol
+  bool free;
+} tTableItem;
+
+typedef struct
+{
+  struct tableItem *table_items[];
+} SymbolTable;
+
+*/
 typedef enum {
     ST_ELEMTYPE_VAR,
     ST_ELEMTYPE_FUN,
