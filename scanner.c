@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#include "scanner.h"
 #include "instrlist.h"
-
 #include "string.h"
+#include "scanner.h"
 
 FILE *source;
 int token; 

@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "parser.h"
+#include "string.h"
 
 // PARSER PRO POVINNOU TRIDU MAIN A POVINNOU FUNKCI RUN (WIP)
 
@@ -8,12 +9,14 @@ int parse(tListOfInstr * ilist, symtab_t * symtab , FILE* source) {
     fprintf(stderr, "DEBUG: Function parse\n");
 
     int token;
+    string attr;
+    strInit(&attr);
     
     do {
-        token = get_token(source);
+        token = lexer(&attr);
     
         fprintf(stderr, "DEBUG: got token %d\n", token);
-    } while (token != -1);
+    } while (token != END_OF_FILE && token != LEX_ERROR);
     
     return 42;
 }

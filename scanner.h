@@ -1,4 +1,7 @@
-////HLAVICKOVY SOUBOR PRO SCANER////
+#include "string.h"
+
+#ifndef _SCANNER_H
+#define _SCANNER_H
 
 //identifikator
 #define ID       0
@@ -68,3 +71,5 @@
 //hlavicka funkce simulujici lexikalni analyzator
 void setSourceFile(FILE *f);
 int lexer(string *buffer);
+
+#endif
