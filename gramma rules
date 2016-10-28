@@ -36,12 +36,12 @@ rules:
 		4) <equal>	   -> <math-expr> SEMICOLON//mathematic expression
 
 	<func-args>
-		1) <func-args> -> [INT/DOUBLE/SRING] ID <func-args-list>
-		2) <func-args> -> RIGHT_BRACKET
+		1) <func-args> -> RIGHT_BRACKET
+		2) <func-args> -> [INT/DOUBLE/SRING] ID <func-args-list>
 
 	<func-args-list>
-		1) <func-args-list> -> COMMA [INT/DOUBLE/SRING] ID <func-args-list>
-		2) <func-args-list> -> RIGHT_BRACKET
+		1) <func-args-list> -> RIGHT_BRACKET
+		2) <func-args-list> -> COMMA [INT/DOUBLE/SRING] ID <func-args-list>
 
 
 	<const>
