@@ -2,19 +2,20 @@
 terminaly: FALSE TRUE LEFT_VINCULUM RIGHT_VINCULUM LEFT_BRACKET RIGHT_BRACKET SEMICOLON MUL BREAK CLASS CONTINUE BOOLEAN DO DOUBLE ELSE FOR IF INT RETURN STRING STATIC 
 VOID WHILE ID STRING_LITERAL INT_LITERAL DOUBLE_LITERAL INC PLUS DEC MINUS LESS_EQ LESS GREAT_EQ GREAT N_EQUAL DIV COMMA EQUAL ASSIGN
 
-non-terminaly: <prog> <st-list> <equal> <const> <func-args> <func-args-list> <return-args> <math-expr> <bool-expr> <class-dec>
+non-terminaly: <prog> <st-list> <equal> <func-var> <func-args> <func-args-list> <func-params> <func-params-list> <return-args> <math-expr> <bool-expr> <class-dec> 
 
 
 rules:  
 	<prog>	
 		1) <prog> 	   -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM
 		2) <prog>      -> CLASS ID LEFT_VINCULUM <class-dec> // declaration of clas
-		3) <prog>      -> STATIC [INT/DOUBLE/STRING/VOID] ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>	//declaration and initialization of function
+		3) <prog>      -> STATIC [INT/DOUBLE/STRING/VOID] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>	//declaration and initialization of function
 	
 	<class-dec>
-		1) STATIC [INT/DOUBLE/SRING] ID SEMICOLON <class-dec>
-		2) RIGHT_VINCULUM
-		3) STATIC [INT/DOUBLE/STRING/VOID] ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>
+		1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID \
+              [SEMICOLON/ EQ <equal>/LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>] <class-dec>
+		2) <class-dec> -> RIGHT_VINCULUM
+		3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>
 
 	<st-list>//function body
 		1) <st-list>   -> RETURN <return-args> <st-list> //return in function
@@ -22,20 +23,28 @@ rules:
 		3) <st-list>   -> IF LEFT_BRACKET <bool-expr> RIGHT_BRACKET LEFT_VINCULUM <st-list> ELSE LEFT_VINCULUM <st-list> <st-list> //if-else statement
 		4) <st-list>   -> RIGHT_VINCULUM	// end of sequence
 		5) <st-list>   -> STATIC [INT/DOUBLE/SRING] ID EQUAL <equal>(MUST return something OR we must give some data to this func) <st-list> // ????????? can we declare static variables in func ?
-		6) <st-list>   -> [INT/DOUBLE/SRING] ID EQUAL <equal>(MUST return something OR we must give some data to this func) <st-list>
-		7) <st-list>   -> ID <func_var>(we must give pointer to ID) <st-list> //it can be function call OR inicialization of var
+		6) <st-list>   -> [INT/DOUBLE/SRING] ID EQUAL <equal>(MUST return something OR we must give some data to this func) <st-list> //variable decl + init
+		7) <st-list>   -> ID <func_var>(we must give pointer to ID) <st-list> //it can be function CALL OR inicialization of var
 
-	<func_var>
-		1) LEFT_BRACKET <func-args> SEMICOLON //its function call
-		2) EQUAL <equal> //its inicialization of var
+	<func-var>
+		1) <func-var>  ->LEFT_BRACKET <func-args> SEMICOLON //its function CALL
+		2) <func-var>  ->EQUAL <equal> //its inicialization of var
 
 	<equal>	
-		1) <equal>	   -> <const> SEMICOLON //inicialization on const
+		1) <equal>	   -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON //inicialization on const
 		2) <equal>	   -> ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) SEMICOLON //inicialization on statement
 		3) <equal>	   -> ID [SEMICOLON/EQUAL <equal>] //inicialization on variable
 		4) <equal>	   -> <math-expr> SEMICOLON//mathematic expression
 
-	<func-args>
+	<func-params>//function DECLARATION
+		1) <func-params> -> RIGHT_BRACKET
+		2) <func-params> -> [ID/INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] <func-params-list>
+
+	<func-params-list>
+		1) <func-params-list> -> RIGHT_BRACKET
+		2) <func-params-list> -> COMMA [ID/INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] <func-params-list>
+
+	<func-args>//function CALL
 		1) <func-args> -> RIGHT_BRACKET
 		2) <func-args> -> [INT/DOUBLE/SRING] ID <func-args-list>
 
@@ -43,16 +52,10 @@ rules:
 		1) <func-args-list> -> RIGHT_BRACKET
 		2) <func-args-list> -> COMMA [INT/DOUBLE/SRING] ID <func-args-list>
 
-
-	<const>
-		1) <const> 	   -> INT_LITERAL // constant int
-		2) <const> 	   -> DOUBLE_LITERAL // constant double
-		3) <const> 	   -> STRING_LITERAL // constant string
-
 	<return-args>
 		1) <return-args> -> SEMICOLON (ONLY if we in VOID function)
 		2) <return-args> -> ID SEMICOLON
-		3) <return-args> -> <const> SEMICOLON
+		3) <return-args> -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON
 		4) <return-args> -> <math-expr> SEMICOLON
 
 	<math-expr>
