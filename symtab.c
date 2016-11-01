@@ -3,17 +3,23 @@
 
 #include "symtab.h"
 
-/*#include "stable.h"
+/*
+#include "stable.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdbool.h>
 
-
-
-void tableInit(tSymbolTable *T)
+void tableInit(SymbolTable *T)
 // funkce inicializuje tabulku symbolu
 {
 
-  if (T = malloc(sizeof(tTableItem)*TABLE_SIZE) == NULL) return -1;
+  if (T = (struct tTableItem *)malloc(sizeof(tTableItem)*TABLE_SIZE) == NULL) return -1;
 
-  T->first = NULL;
+    for (int i = 0; i < TABLE_SIZE; i++)
+    {
+        symbol_init(T, i);
+    }
+
 }
 
 
@@ -30,21 +36,78 @@ unsigned int hash_function(const char *str, unsigned htab_size) {
 }
 
 
-void symbol_init(tTableItem **I, int idx){
+void symbol_init(SymbolTable *I, int idx){
 
-    *I->bool = 0;
-    *I->nextItem = NULL;
-    *I->data->varType = -1;
-    *I->data->varValue = -1;
+    I->table_items[idx]->free = 0;
+    I->table_items[idx]->nextItem = NULL;
+    I->table_items[idx]->data.varType = -1;
+    //I->data.varValue = -1;
 
-    *I->key->str = '\0';
-    *I->key->length = -1;
-    *I->key->allocSize = -1;
-    *I->key->type = -1;
+    I->table_items[idx]->token.str = '\0';
+    I->table_items[idx]->token.length = -1;
+    I->table_items[idx]->token.allocSize = -1;
+   // I->table_items[idx]->token.type = -1;
+
+}
+
+void symbol_add(string token, SymbolTable *tabulka){
+
+char *tokenchar = token.str;
 
 
+unsigned int klic = hash_function(tokenchar, TABLE_SIZE);
 
-}*/
+if (tabulka->table_items[klic]->free) {
+
+tabulka->table_items[klic]->token = token;
+tabulka->table_items[klic]->free = false;
+
+}
+
+else {
+    struct tableItem *synon = malloc((struct tableItem *)sizeof(struct tableItem));
+    if (synon == NULL)
+        return;
+    synon->token = token;
+    synon->free = false;
+    synon->nextItem = NULL;
+    tabulka->table_items[klic]->nextItem = synon;
+}
+}
+
+void symbol_find (string token, SymbolTable *tabulka){
+
+char *tokenchar = token.str;
+
+unsigned int klic = hash_function(tokenchar, TABLE_SIZE);
+
+while (tabulka->table_items[klic]->nextItem != NULL){
+
+    if (tabulka->table_items[klic]->token.str == tokenchar) return; //SYNTAX_ERROR;
+
+}
+
+}
+
+void tableFree(SymbolTable *T)
+// funkce dealokuje tabulku symbolu
+{
+  tTableItem *ptr;
+
+  for (int i = 0; i <TABLE_SIZE; i++)
+  {
+      while (T->table_items[i]->nextItem != NULL)
+      {
+        ptr = T->table_items[i]->nextItem;
+        T->table_items[i]->nextItem = T->table_items[i]->nextItem->nextItem;
+        // uvolnime klic
+        strFree(&ptr->token);
+        // nakonec uvolnime celou polozku
+        free(ptr);
+     }
+  }
+}
+*/
 
 void st_init(symtab_t *st) {
    st->size = 0; 
