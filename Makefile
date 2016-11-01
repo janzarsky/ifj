@@ -1,8 +1,11 @@
 CFLAGS = -pedantic -Wall -Wextra
-SOURCES=$(wildcard *.c)
-OBJECTS=$(SOURCES:.c=.o)
+SOURCES = $(filter-out parser_test.c, $(wildcard *.c))
+OBJECTS = $(SOURCES:.c=.o)
 
-all: ifj
+all: ifj parser_test
+
+parser_test: parser_test.c
+	gcc $(CFLAGS) $^ -o $@
 
 ifj: $(OBJECTS)
 	gcc $(CFLAGS) $^ -o $@
