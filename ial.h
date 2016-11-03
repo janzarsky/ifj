@@ -12,6 +12,8 @@ typedef struct string_struct
 
 int readInt ();
 
+double readDouble ();
+
 char* readString();
 
 #endif // IAL_H_INCLUDED
