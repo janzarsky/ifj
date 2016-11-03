@@ -75,18 +75,30 @@ else {
 }
 }
 
-void symbol_find (string token, SymbolTable *tabulka){
+tTableItem *symbol_find (string token, SymbolTable *tabulka){
 
-char *tokenchar = token.str;
+    char *tokenchar = token.str;
 
-unsigned int klic = hash_function(tokenchar, TABLE_SIZE);
+    unsigned int klic = hash_function(tokenchar, TABLE_SIZE);
 
-while (tabulka->table_items[klic]->nextItem != NULL){
+    if (tabulka->table_items[klic]->nextItem == NULL){
 
-    if (tabulka->table_items[klic]->token.str == tokenchar) return; //SYNTAX_ERROR;
+        if (tabulka->table_items[klic]->token.str != tokenchar) return NULL;//SYNTAX_ERROR;
+        else return tabulka->table_items[klic];
 
-}
-
+    }
+    else
+    {
+        tTableItem *ptr = tabulka->table_items[klic]->nextItem;
+        tTableItem *found = NULL;
+        while (ptr != NULL)
+        {
+            if (ptr->token.str == tokenchar)
+                found = ptr;
+            ptr = ptr->nextItem;
+        }
+        return found;
+    }
 }
 
 void tableFree(SymbolTable *T)
@@ -106,6 +118,17 @@ void tableFree(SymbolTable *T)
         free(ptr);
      }
   }
+}
+
+
+void symbol_actualize (SymbolTable *T, string ident, tData data)
+{
+    tTableItem *ptr;
+    ptr = symbol_find(ident, T);
+    if (ptr == NULL)
+        //error;
+        return;
+    ptr->data = data;
 }
 */
 
