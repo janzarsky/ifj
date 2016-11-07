@@ -1,9 +1,8 @@
-#include "instrlist.h"
 #include <stdio.h>
+#include "parser_test.h"
+#include "instrlist.h"
+#include "expr_parser.h"
 
-#define END_STATEMENT 66 //just to know that enter is over
-#define SYNTAX_OK 100
-#define SYNTAX_ERROR 99
 /*void generateInstruction(int instType, void *addr1, void *addr2, void *addr3)
 // vlozi novou instrukci do seznamu instrukci
 {
@@ -26,6 +25,7 @@ int statement[] = {CLASS, ID, LEFT_VINCULUM,STATIC, INT, ID, EQUAL, ID, LEFT_BRA
 // int statement[] = { STATIC, INT, ID , LEFT_BRACKET, INT, ID, COMMA, DOUBLE, ID,COMMA,STRING,ID, RIGHT_BRACKET, LEFT_VINCULUM, RIGHT_VINCULUM, END_STATEMENT}; 
 
 int token;
+
 int return_args();
 int statement_list();
 int func_var();
@@ -36,9 +36,6 @@ int func_args();
 int func_args_list();
 int func_params();
 int func_params_list();
-int bool_expr();
-int math_expr();
-
 
 int get_next_token(){
 	static int number=0;
@@ -531,14 +528,6 @@ int class_dec(){
 			break;
 	}
 	return SYNTAX_ERROR;
-}
-
-int bool_expr(){
-	return SYNTAX_OK;
-}
-
-int math_expr(){
-	return SYNTAX_OK;
 }
 
 int main(int argc, char ** argv){
