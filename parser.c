@@ -15,7 +15,7 @@ int parse(tListOfInstr * ilist, symtab_t * symtab , FILE* source) {
     do {
         token = lexer(&attr);
     
-        fprintf(stderr, "DEBUG: got token %d\n", token);
+        fprintf(stderr, "DEBUG: got token %d, %s\n", token, attr.str);
     } while (token != END_OF_FILE && token != LEX_ERROR);
     
     return 42;
