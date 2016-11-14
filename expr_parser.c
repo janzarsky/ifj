@@ -49,6 +49,13 @@ void pop() {
     }
 }
 
+void pop_n_times(int n) {
+    while (n > 0) {
+        pop();
+        n--;
+    }
+}
+
 int top() {
     if (stack.top != NULL) {
         return stack.top->symbol;
@@ -108,76 +115,88 @@ void insert_after_top_term(int symbol) {
 }
 
 int execute_rule() {
-    switch (top()) {
-        case T_ID:
-            pop();
-            break;
-        case NT_EXPR:
-            pop();
-            
-            if (top() != T_PLUS && top() != T_MUL)
-                return SYNTAX_ERROR;
-
-            pop();
-
-            if (top() != NT_EXPR)
-                return SYNTAX_ERROR;
-            
-            pop();
-            break;
-        default:
-            return SYNTAX_ERROR;
+    // rule E -> E+E
+    if (stack.top->symbol == NT_EXPR
+        && stack.top->next->symbol == T_PLUS
+        && stack.top->next->next->symbol == NT_EXPR) {
+        printf("rule: E -> E+E, ");
+        pop_n_times(4);
+        push(NT_EXPR);
     }
-
-    if (top() != TE_L)
+    // rule E -> E*E
+    else if (stack.top->symbol == NT_EXPR
+        && stack.top->next->symbol == T_MUL
+        && stack.top->next->next->symbol == NT_EXPR) {
+        printf("rule: E -> E*E, ");
+        pop_n_times(4);
+        push(NT_EXPR);
+    }
+    // rule E -> (E)
+    else if (stack.top->symbol == T_LEFT_BRACKET
+        && stack.top->next->symbol == NT_EXPR
+        && stack.top->next->next->symbol == T_RIGHT_BRACKET) {
+        printf("rule: E -> (E), ");
+        pop_n_times(4);
+        push(NT_EXPR);
+    }
+    // rule E -> ID
+    else if (stack.top->symbol == T_ID) {
+        printf("rule: E -> ID, ");
+        pop_n_times(2);
+        push(NT_EXPR);
+    }
+    else {
         return SYNTAX_ERROR;
-    
-    pop();
-
-    push(NT_EXPR);
+    }
 
     return SYNTAX_OK;
 }
 
-void print_stack() {
-    stack_item_t *temp = stack.top;
+void print_symbol(int symbol) {
+    switch (symbol) {
+        case T_PLUS:
+            printf("+ ");
+            break;
+        case T_MUL:
+            printf("* ");
+            break;
+        case T_LEFT_BRACKET:
+            printf("( ");
+            break;
+        case T_RIGHT_BRACKET:
+            printf(") ");
+            break;
+        case T_ID:
+            printf("i ");
+            break;
+        case T_END:
+            printf("$ ");
+            break;
+        case TE_L:
+            printf("< ");
+            break;
+        case TE_R:
+            printf("> ");
+            break;
+        case NT_EXPR:
+            printf("E ");
+            break;
+        default:
+            printf("%d ", symbol);
+            break;
+    }
+}
 
-    printf("top: ");
-
-    while (temp != NULL) {
-        switch (temp->symbol) {
-            case T_PLUS:
-                printf("+ ");
-                break;
-            case T_MUL:
-                printf("* ");
-                break;
-            case T_LEFT_BRACKET:
-                printf("( ");
-                break;
-            case T_RIGHT_BRACKET:
-                printf(") ");
-                break;
-            case T_ID:
-                printf("i ");
-                break;
-            case TE_L:
-                printf("< ");
-                break;
-            case TE_R:
-                printf("> ");
-                break;
-            case NT_EXPR:
-                printf("E ");
-                break;
-            default:
-                printf("%d ", temp->symbol);
-                break;
-        }
-        temp = temp->next;
+void print_stack_item(stack_item_t *item) {
+    if (item->next != NULL) {
+        print_stack_item(item->next);
     }
 
-    printf("bottom\n");
+    print_symbol(item->symbol);
+}
+
+void print_stack() {
+    print_stack_item(stack.top);
 }
 
 int bool_expr() {
@@ -194,23 +213,26 @@ int math_expr() {
     b = get_next_token();
     
     do {
-        printf("MATH_EXPR: top %d, b %d\n", top_term(), b);
+        printf("stack: ");
         print_stack();
+        printf(" \t\tinput: ");
+        print_symbol(b);
+        printf(", ");
 
         switch (table[top_term()][b]) {
             case TE_E:
-                printf("rule =\n");
+                printf("op: =, ");
                 push(b);
                 b = get_next_token();
                 break;
             case TE_L:
-                printf("rule <\n");
+                printf("op: <, ");
                 insert_after_top_term(TE_L);
                 push(b);
                 b = get_next_token();
                 break;
             case TE_R:
-                printf("rule >\n");
+                printf("op: >, ");
                 result = execute_rule();
                 if (result == SYNTAX_ERROR) {
                     return SYNTAX_ERROR;
@@ -218,14 +240,20 @@ int math_expr() {
                 break;
             case TE_N:
             default:
-                printf("rule none\n");
+                printf("op: none, ");
                 return SYNTAX_ERROR;
                 break;
         }
 
+        printf("\n");
+
     } while (top_term() != T_END || b != T_END);
 
+    printf("stack: ");
     print_stack();
+    printf(" \t\tinput: ");
+    print_symbol(b);
+    printf("\n");
 
     return SYNTAX_OK;
 }
