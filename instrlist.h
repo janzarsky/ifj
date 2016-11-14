@@ -66,6 +66,9 @@
 #define INC 70 // operator inkrementace ++
 #define DEC 71 // operator dekrementace --
 
+// vsechny tokeny maji hodnotu mensi nez TOKEN_MAX
+#define TOKEN_MAX 72
+
 /*
 #define FALSE 0
 #define TRUE 1

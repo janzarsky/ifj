@@ -5,11 +5,11 @@
 
 int token;
 
-enum token_t { T_PLUS, T_MUL, T_LEFT_BRACKET, T_RIGHT_BRACKET, T_ID, T_END, T_MAX };
-enum nonterm_t { NT_EXPR = T_MAX, NT_MAX };
+enum nonterm_t { NT_EXPR = TOKEN_MAX, NT_MAX };
 enum table_entry_t { TE_N = NT_MAX, TE_L, TE_E, TE_R, TE_MAX }; // none, <, =, >
 
-const char table[T_MAX][T_MAX] = {
+// FIXME use constants instead of 6
+const char table[6][6] = {
     { TE_R, TE_L, TE_L, TE_R, TE_L, TE_R },
     { TE_R, TE_R, TE_L, TE_R, TE_L, TE_R },
     { TE_L, TE_L, TE_L, TE_E, TE_L, TE_N },
@@ -28,6 +28,18 @@ typedef struct stack{
 } stack_t;
 
 stack_t stack = { NULL };
+
+int map_token(int token) {
+    switch (token) {
+        case PLUS: return 0; break;
+        case MUL: return 1; break;
+        case LEFT_BRACKET: return 2; break;
+        case RIGHT_BRACKET: return 3; break;
+        case ID: return 4; break;
+        case END_OF_FILE: return 5; break;
+        default: return -1;
+    }
+}
 
 void push(int symbol) {
     stack_item_t *temp = malloc(sizeof(stack_item_t));
@@ -61,12 +73,12 @@ int top() {
         return stack.top->symbol;
     }
     else {
-        return T_END;
+        return END_OF_FILE;
     }
 }
 
 int is_term(int symbol) {
-    return (symbol < T_MAX);
+    return (symbol < TOKEN_MAX);
 }
 
 int top_term() {
@@ -81,7 +93,7 @@ int top_term() {
         }
     }
 
-    return T_END;
+    return END_OF_FILE;
 }
 
 void insert_after_top_term(int symbol) {
@@ -117,7 +129,7 @@ void insert_after_top_term(int symbol) {
 int execute_rule() {
     // rule E -> E+E
     if (stack.top->symbol == NT_EXPR
-        && stack.top->next->symbol == T_PLUS
+        && stack.top->next->symbol == PLUS
         && stack.top->next->next->symbol == NT_EXPR) {
         printf("rule: E -> E+E, ");
         pop_n_times(4);
@@ -125,22 +137,22 @@ int execute_rule() {
     }
     // rule E -> E*E
     else if (stack.top->symbol == NT_EXPR
-        && stack.top->next->symbol == T_MUL
+        && stack.top->next->symbol == MUL
         && stack.top->next->next->symbol == NT_EXPR) {
         printf("rule: E -> E*E, ");
         pop_n_times(4);
         push(NT_EXPR);
     }
     // rule E -> (E)
-    else if (stack.top->symbol == T_LEFT_BRACKET
+    else if (stack.top->symbol == LEFT_BRACKET
         && stack.top->next->symbol == NT_EXPR
-        && stack.top->next->next->symbol == T_RIGHT_BRACKET) {
+        && stack.top->next->next->symbol == RIGHT_BRACKET) {
         printf("rule: E -> (E), ");
         pop_n_times(4);
         push(NT_EXPR);
     }
     // rule E -> ID
-    else if (stack.top->symbol == T_ID) {
+    else if (stack.top->symbol == ID) {
         printf("rule: E -> ID, ");
         pop_n_times(2);
         push(NT_EXPR);
@@ -154,22 +166,22 @@ int execute_rule() {
 
 void print_symbol(int symbol) {
     switch (symbol) {
-        case T_PLUS:
+        case PLUS:
             printf("+ ");
             break;
-        case T_MUL:
+        case MUL:
             printf("* ");
             break;
-        case T_LEFT_BRACKET:
+        case LEFT_BRACKET:
             printf("( ");
             break;
-        case T_RIGHT_BRACKET:
+        case RIGHT_BRACKET:
             printf(") ");
             break;
-        case T_ID:
+        case ID:
             printf("i ");
             break;
-        case T_END:
+        case END_OF_FILE:
             printf("$ ");
             break;
         case TE_L:
@@ -208,7 +220,7 @@ extern int get_next_token();
 int math_expr() {
     int b, result;
 
-    push(T_END);
+    push(END_OF_FILE);
 
     b = get_next_token();
     
@@ -219,7 +231,7 @@ int math_expr() {
         print_symbol(b);
         printf(", ");
 
-        switch (table[top_term()][b]) {
+        switch (table[map_token(top_term())][map_token(b)]) {
             case TE_E:
                 printf("op: =, ");
                 push(b);
@@ -247,7 +259,7 @@ int math_expr() {
 
         printf("\n");
 
-    } while (top_term() != T_END || b != T_END);
+    } while (top_term() != END_OF_FILE || b != END_OF_FILE);
 
     printf("stack: ");
     print_stack();
