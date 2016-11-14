@@ -1,9 +1,10 @@
-/*#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include "symtab.h"
 
+/*
 #define TABLE_SIZE 1000
 
 unsigned int hash_function(const char *str, unsigned htab_size) {
