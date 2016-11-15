@@ -1,22 +1,33 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
+#include <stdbool.h>
 #include "parser_test.h"
 #include "instrlist.h"
 
 int token;
 
+#define DEBUG_PRINT_STACK_WIDTH 20
+int debug_print_cnt = 0;
+
 enum nonterm_t { NT_EXPR = TOKEN_MAX, NT_MAX };
 enum table_entry_t { TE_N = NT_MAX, TE_L, TE_E, TE_R, TE_MAX }; // none, <, =, >
 
-// FIXME use constants instead of 6
-const char table[6][6] = {
-    { TE_R, TE_L, TE_L, TE_R, TE_L, TE_R },
-    { TE_R, TE_R, TE_L, TE_R, TE_L, TE_R },
-    { TE_L, TE_L, TE_L, TE_E, TE_L, TE_N },
-    { TE_R, TE_R, TE_N, TE_R, TE_N, TE_R },
-    { TE_R, TE_R, TE_N, TE_R, TE_N, TE_R },
-    { TE_L, TE_L, TE_L, TE_N, TE_L, TE_N }
+// FIXME use constants instead of literal
+const char table[8][8] = {
+//           +     -     *     /     (     )     ID    $
+/* +   */ { TE_R, TE_R, TE_L, TE_L, TE_L, TE_R, TE_L, TE_R },
+/* -   */ { TE_R, TE_R, TE_L, TE_L, TE_L, TE_R, TE_L, TE_R },
+/* *   */ { TE_R, TE_R, TE_R, TE_R, TE_L, TE_R, TE_L, TE_R },
+/* /   */ { TE_R, TE_R, TE_R, TE_R, TE_L, TE_R, TE_L, TE_R },
+/* (   */ { TE_L, TE_L, TE_L, TE_L, TE_L, TE_E, TE_L, TE_N },
+/* )   */ { TE_R, TE_R, TE_R, TE_R, TE_N, TE_R, TE_N, TE_R },
+/* ID  */ { TE_R, TE_R, TE_R, TE_R, TE_N, TE_R, TE_N, TE_R },
+/* $   */ { TE_L, TE_L, TE_L, TE_L, TE_L, TE_N, TE_L, TE_N }
 };
+
+// template
+///* x   */ { TE_ , TE_ , TE_ , TE_ , TE_ , TE_ , TE_  },
 
 typedef struct stack_item {
     int symbol;
@@ -31,13 +42,24 @@ stack_t stack = { NULL };
 
 int map_token(int token) {
     switch (token) {
-        case PLUS: return 0; break;
-        case MUL: return 1; break;
-        case LEFT_BRACKET: return 2; break;
-        case RIGHT_BRACKET: return 3; break;
-        case ID: return 4; break;
-        case END_OF_FILE: return 5; break;
-        default: return -1;
+        case PLUS:
+            return 0; break;
+        case MINUS:
+            return 1; break;
+        case MUL:
+            return 2; break;
+        case DIV:
+            return 3; break;
+        case LEFT_BRACKET:
+            return 4; break;
+        case RIGHT_BRACKET:
+            return 5; break;
+        case ID:
+            return 6; break;
+        case END_OF_FILE:
+            return 7; break;
+        default:
+            return -1;
     }
 }
 
@@ -126,38 +148,72 @@ void insert_after_top_term(int symbol) {
     }
 }
 
-int execute_rule() {
-    // rule E -> E+E
-    if (stack.top->symbol == NT_EXPR
-        && stack.top->next->symbol == PLUS
-        && stack.top->next->next->symbol == NT_EXPR) {
+//         E     -> E        +     E
+// rule(4, NT_EXPR, NT_EXPR, PLUS, NT_EXPR);
+bool rule(int num, ...) {
+    va_list valist;
+    va_start(valist, num);
+
+    // left part of a rule
+    int left_symbol = va_arg(valist, int);
+
+    // copy arguments (we need them in reverse order)
+    int *symbols = malloc((num-1)*sizeof(int));
+
+    if (symbols == NULL) {
+        va_end(valist);
+        return false;
+    }
+
+    for (int i = 0; i < num - 1; i++) {
+        symbols[num - 2 - i] = va_arg(valist, int);
+    }
+    
+    // compare stack with arguments
+    stack_item_t *temp = stack.top;
+
+    for (int i = 0; i < num - 1; i++) {
+        if (temp->symbol != symbols[i]) {
+            va_end(valist);
+            return false;
+        }
+
+        if (temp->next == NULL) {
+            va_end(valist);
+            return false;
+        }
+
+        temp = temp->next;
+    }
+
+    if (temp->symbol != TE_L) {
+        va_end(valist);
+        return false;
+    }
+
+    pop_n_times(num);
+
+    push(left_symbol);
+
+    va_end(valist);
+    return true;
+}
+
+int rules() {
+    if (rule(4, NT_EXPR, NT_EXPR, PLUS, NT_EXPR))
         printf("rule: E -> E+E, ");
-        pop_n_times(4);
-        push(NT_EXPR);
-    }
-    // rule E -> E*E
-    else if (stack.top->symbol == NT_EXPR
-        && stack.top->next->symbol == MUL
-        && stack.top->next->next->symbol == NT_EXPR) {
+    else if (rule(4, NT_EXPR, NT_EXPR, MINUS, NT_EXPR))
+        printf("rule: E -> E-E, ");
+    else if (rule(4, NT_EXPR, NT_EXPR, MUL, NT_EXPR))
         printf("rule: E -> E*E, ");
-        pop_n_times(4);
-        push(NT_EXPR);
-    }
-    // rule E -> (E)
-    else if (stack.top->symbol == LEFT_BRACKET
-        && stack.top->next->symbol == NT_EXPR
-        && stack.top->next->next->symbol == RIGHT_BRACKET) {
+    else if (rule(4, NT_EXPR, NT_EXPR, DIV, NT_EXPR))
+        printf("rule: E -> E/E, ");
+    else if (rule(4, NT_EXPR, LEFT_BRACKET, NT_EXPR, RIGHT_BRACKET))
         printf("rule: E -> (E), ");
-        pop_n_times(4);
-        push(NT_EXPR);
-    }
-    // rule E -> ID
-    else if (stack.top->symbol == ID) {
+    else if (rule(2, NT_EXPR, ID))
         printf("rule: E -> ID, ");
-        pop_n_times(2);
-        push(NT_EXPR);
-    }
     else {
+        printf("rule: no matching rule");
         return SYNTAX_ERROR;
     }
 
@@ -167,34 +223,40 @@ int execute_rule() {
 void print_symbol(int symbol) {
     switch (symbol) {
         case PLUS:
-            printf("+ ");
+            printf("+");
+            break;
+        case MINUS:
+            printf("-");
             break;
         case MUL:
-            printf("* ");
+            printf("*");
+            break;
+        case DIV:
+            printf("/");
             break;
         case LEFT_BRACKET:
-            printf("( ");
+            printf("(");
             break;
         case RIGHT_BRACKET:
-            printf(") ");
+            printf(")");
             break;
         case ID:
-            printf("i ");
+            printf("i");
             break;
         case END_OF_FILE:
-            printf("$ ");
+            printf("$");
             break;
         case TE_L:
-            printf("< ");
+            printf("<");
             break;
         case TE_R:
-            printf("> ");
+            printf(">");
             break;
         case NT_EXPR:
-            printf("E ");
+            printf("E");
             break;
         default:
-            printf("%d ", symbol);
+            printf("%d", symbol);
             break;
     }
 }
@@ -205,10 +267,16 @@ void print_stack_item(stack_item_t *item) {
     }
 
     print_symbol(item->symbol);
+    debug_print_cnt++;
 }
 
 void print_stack() {
+    debug_print_cnt = 0;
+
     print_stack_item(stack.top);
+
+    for (int i = debug_print_cnt; i < DEBUG_PRINT_STACK_WIDTH; i++)
+        printf(" ");
 }
 
 int bool_expr() {
@@ -245,8 +313,9 @@ int math_expr() {
                 break;
             case TE_R:
                 printf("op: >, ");
-                result = execute_rule();
+                result = rules();
                 if (result == SYNTAX_ERROR) {
+                    printf("\n");
                     return SYNTAX_ERROR;
                 }
                 break;

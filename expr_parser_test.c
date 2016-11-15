@@ -3,9 +3,12 @@
 #include "parser_test.h"
 #include "instrlist.h"
 
-#define TEST_TOKENS_MAX 6
+#define TEST_TOKENS_MAX 18
+char *input = "i + ((i * (i - (i / i))))";
 int test_tokens[TEST_TOKENS_MAX] = {
-    ID, PLUS, ID, MUL, ID, END_OF_FILE
+    ID, PLUS, LEFT_BRACKET, LEFT_BRACKET, ID, MUL, LEFT_BRACKET, ID, MINUS,
+    LEFT_BRACKET, ID, DIV, ID, RIGHT_BRACKET, RIGHT_BRACKET, RIGHT_BRACKET,
+    RIGHT_BRACKET, END_OF_FILE
 };
 int test_tokens_counter = 0;
 
@@ -20,6 +23,12 @@ int get_next_token() {
 }
 
 int main(int __attribute__((unused)) argc, char __attribute__((unused)) **argv) {
+    printf("**************************************************************************\n");
+    printf(" Expression parser test\n");
+    printf(" input: %s\n", input);
+    printf("**************************************************************************\n");
+
+
     int result = math_expr();
 
     if (result == SYNTAX_OK)
