@@ -69,6 +69,15 @@
 // vsechny tokeny maji hodnotu mensi nez TOKEN_MAX
 #define TOKEN_MAX 72
 
+// seznam instrukci
+#define IN_ADD 0
+#define IN_SUB 1
+#define IN_MUL 2
+#define IN_DIV 3
+#define IN_PUSH 4
+
+#define IN_MAX 5
+
 /*
 #define FALSE 0
 #define TRUE 1

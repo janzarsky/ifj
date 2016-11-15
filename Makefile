@@ -5,10 +5,10 @@ PROGRAMS = ifj parser_test expr_parser_test
 
 all: ifj parser_test expr_parser_test
 
-parser_test: parser_test.c expr_parser.c
+parser_test: parser_test.c expr_parser.c instrlist.c
 	gcc $(CFLAGS) $^ -o $@
 
-expr_parser_test: expr_parser_test.c expr_parser.c
+expr_parser_test: expr_parser_test.c expr_parser.c instrlist.c
 	gcc $(CFLAGS) $^ -o $@
 
 ifj: $(OBJECTS)

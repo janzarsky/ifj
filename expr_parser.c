@@ -7,7 +7,7 @@
 
 int token;
 
-#define DEBUG_PRINT_STACK_WIDTH 20
+#define DEBUG_PRINT_STACK_WIDTH 30
 int debug_print_cnt = 0;
 
 enum nonterm_t { NT_EXPR = TOKEN_MAX, NT_MAX };
@@ -39,6 +39,8 @@ typedef struct stack{
 } stack_t;
 
 stack_t stack = { NULL };
+
+tListOfInstr instr_list;
 
 int map_token(int token) {
     switch (token) {
@@ -148,6 +150,35 @@ void insert_after_top_term(int symbol) {
     }
 }
 
+void print_instr(tInstr *instr) {
+    switch (instr->instType) {
+        case IN_ADD:
+            printf("ADD"); break;
+        case IN_SUB:
+            printf("SUB"); break;
+        case IN_MUL:
+            printf("MUL"); break;
+        case IN_DIV:
+            printf("DIV"); break;
+        case IN_PUSH:
+            printf("PUSH"); break;
+        default:
+            printf("%d", instr->instType);
+    }
+
+    printf(" %p %p %p", instr->addr1, instr->addr2, instr->addr3);
+}
+
+void add_instr(int type, void * ptr1, void * ptr2, void * ptr3) {
+    tInstr instr = { type, ptr1, ptr2, ptr3 };
+
+    listInsertLast(&instr_list, instr);
+
+    printf("instr: ");
+
+    print_instr(&instr);
+}
+
 //         E     -> E        +     E
 // rule(4, NT_EXPR, NT_EXPR, PLUS, NT_EXPR);
 bool rule(int num, ...) {
@@ -200,18 +231,29 @@ bool rule(int num, ...) {
 }
 
 int rules() {
-    if (rule(4, NT_EXPR, NT_EXPR, PLUS, NT_EXPR))
-        printf("rule: E -> E+E, ");
-    else if (rule(4, NT_EXPR, NT_EXPR, MINUS, NT_EXPR))
-        printf("rule: E -> E-E, ");
-    else if (rule(4, NT_EXPR, NT_EXPR, MUL, NT_EXPR))
-        printf("rule: E -> E*E, ");
-    else if (rule(4, NT_EXPR, NT_EXPR, DIV, NT_EXPR))
-        printf("rule: E -> E/E, ");
-    else if (rule(4, NT_EXPR, LEFT_BRACKET, NT_EXPR, RIGHT_BRACKET))
-        printf("rule: E -> (E), ");
-    else if (rule(2, NT_EXPR, ID))
-        printf("rule: E -> ID, ");
+    if (rule(4, NT_EXPR, NT_EXPR, PLUS, NT_EXPR)) {
+        printf("rule: E -> E+E    ");
+        add_instr(IN_ADD, NULL, NULL, NULL);
+    }
+    else if (rule(4, NT_EXPR, NT_EXPR, MINUS, NT_EXPR)) {
+        printf("rule: E -> E-E    ");
+        add_instr(IN_SUB, NULL, NULL, NULL);
+    }
+    else if (rule(4, NT_EXPR, NT_EXPR, MUL, NT_EXPR)) {
+        printf("rule: E -> E*E    ");
+        add_instr(IN_MUL, NULL, NULL, NULL);
+    }
+    else if (rule(4, NT_EXPR, NT_EXPR, DIV, NT_EXPR)) {
+        printf("rule: E -> E/E    ");
+        add_instr(IN_DIV, NULL, NULL, NULL);
+    }
+    else if (rule(4, NT_EXPR, LEFT_BRACKET, NT_EXPR, RIGHT_BRACKET)) {
+        printf("rule: E -> (E)    ");
+    }
+    else if (rule(2, NT_EXPR, ID)) {
+        printf("rule: E -> ID     ");
+        add_instr(IN_PUSH, (void *) 0x42, NULL, NULL);
+    }
     else {
         printf("rule: no matching rule");
         return SYNTAX_ERROR;
@@ -279,14 +321,27 @@ void print_stack() {
         printf(" ");
 }
 
-int bool_expr() {
-    return SYNTAX_OK;
+void print_instr_list() {
+    tInstr *instr;
+
+    listFirst(&instr_list);
+
+    while (instr_list.active != NULL) {
+        instr = listGetData(&instr_list);
+
+        print_instr(instr);
+        printf("\n");
+
+        listNext(&instr_list);
+    }
 }
 
 extern int get_next_token();
 
 int math_expr() {
     int b, result;
+
+    listInit(&instr_list);
 
     push(END_OF_FILE);
 
@@ -295,24 +350,24 @@ int math_expr() {
     do {
         printf("stack: ");
         print_stack();
-        printf(" \t\tinput: ");
+        printf("    input: ");
         print_symbol(b);
-        printf(", ");
+        printf("    ");
 
         switch (table[map_token(top_term())][map_token(b)]) {
             case TE_E:
-                printf("op: =, ");
+                printf("op: =    ");
                 push(b);
                 b = get_next_token();
                 break;
             case TE_L:
-                printf("op: <, ");
+                printf("op: <    ");
                 insert_after_top_term(TE_L);
                 push(b);
                 b = get_next_token();
                 break;
             case TE_R:
-                printf("op: >, ");
+                printf("op: >    ");
                 result = rules();
                 if (result == SYNTAX_ERROR) {
                     printf("\n");
@@ -332,9 +387,18 @@ int math_expr() {
 
     printf("stack: ");
     print_stack();
-    printf(" \t\tinput: ");
+    printf("    input: ");
     print_symbol(b);
     printf("\n");
 
+    printf("\n");
+    printf("Generated instructions:\n");
+    print_instr_list();
+
     return SYNTAX_OK;
 }
+
+int bool_expr() {
+    return math_expr();
+}
+
