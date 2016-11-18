@@ -23,7 +23,7 @@ typedef union {
     char *strval;
 } st_value_t;
 
-typedef struct {
+typedef struct symtab_elem_t{
     char *id;
     st_elemtype_t elem_type;
     st_datatype_t data_type;
