@@ -40,7 +40,7 @@ typedef struct {
 
 unsigned int hash_function(const char *str, unsigned htab_size);
 void symbol_init(symtab_t *I, int idx);
-void tableInit(symtab_t *T);
+int tableInit(symtab_t *T);
 void symbol_add(string token, symtab_t *tabulka);
 symtab_elem_t *symbol_find (string token, symtab_t *tabulka);
 void symbol_actualize (symtab_t *T, string ident);
