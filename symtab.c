@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include "symtab.h"
+#include "string.h"
+#include "string.c"
 
 /*
 #define TABLE_SIZE 1000
@@ -18,7 +20,7 @@ unsigned int hash_function(const char *str, unsigned htab_size) {
 
 void symbol_init(symtab_t *I, int idx){
 
-    I->elements[idx].free = 0;
+    I->elements[idx].free = 1;
     I->elements[idx].nextElem = NULL;
     I->elements[idx].data_type = -1;
     I->elements[idx].elem_type = -1;
@@ -26,15 +28,24 @@ void symbol_init(symtab_t *I, int idx){
     I->elements[idx].value.ival = 0;
     I->elements[idx].value.strval = '\0';
     I->elements[idx].id = '\0';
+    I->elements[idx].token.str = '\0';
+    I->elements[idx].token.allocSize = 0;
+    I->elements[idx].token.length = 0;
 }
 
-void tableInit(symtab_t *T){
+int tableInit(symtab_t *T){
 
-  if (T = (struct symtab_elem_t *)malloc(sizeof(symtab_elem_t)*TABLE_SIZE) == NULL) return -1;
+  T = (symtab_t *)malloc(sizeof(symtab_elem_t)*TABLE_SIZE);
+
+  if (T == NULL) return - 1;
+
+  //if (T = (struct symtab_t *)malloc(sizeof(symtab_elem_t)*TABLE_SIZE) == NULL) return -1;
     for (int i = 0; i < TABLE_SIZE; i++)
     {
         symbol_init(T, i);
     }
+
+  return 0;
 }
 
 void symbol_add(string token, symtab_t *tabulka){
@@ -42,15 +53,16 @@ void symbol_add(string token, symtab_t *tabulka){
 char *tokenchar = token.str;
 unsigned int klic = hash_function(tokenchar, TABLE_SIZE);
 
-if (tabulka->elements[klic].free) {
 
+if (tabulka->elements[klic].free == 0 ) {
 tabulka->elements[klic].token = token;
 tabulka->elements[klic].free = false;
+// DODELAT VALUE, DATA TYPE A ELEM TYPE!!!
 
 }
 else {
-
-    symtab_elem_t *synon = malloc((struct symtab_elem_t *)sizeof(symtab_elem_t));
+printf("jsem v else \n");
+    symtab_elem_t *synon = (symtab_elem_t *)malloc(sizeof(symtab_elem_t));
     if (synon == NULL) return;
 
     synon->token = token;
@@ -68,7 +80,7 @@ symtab_elem_t *symbol_find (string token, symtab_t *tabulka){
         if (tabulka->elements[klic].token.str != tokenchar) return NULL;//SYNTAX_ERROR;
         else{
 
-       symtab_elem_t *symbol = malloc((struct symtab_elem_t *)sizeof(symtab_elem_t));
+       symtab_elem_t *symbol = (symtab_elem_t *)malloc(sizeof(symtab_elem_t));
        *symbol = tabulka->elements[klic];
 
             return symbol;}
@@ -94,7 +106,8 @@ void symbol_actualize (symtab_t *T, string ident)
     if (ptr == NULL)
         //error;
         return;
-    //ptr-> = data;  // DORESIT JAK SE BUDOU UKLADAT TY DATA DO ELEM
+
+    // DODELAT VALUE, DATA TYPE A ELEM TYPE!!!
 }
 
 void tableFree(symtab_t *T)
@@ -106,7 +119,7 @@ void tableFree(symtab_t *T)
       while (T->elements[i].nextElem != NULL)
       {
         ptr = T->elements[i].nextElem;
-        T->elements[i].nextElem = T->elements[i].nextElem.nextElem; // TADY MY TO HAZE ERROR 
+        T->elements[i].nextElem = T->elements[i].nextElem->nextElem;
         // uvolnime klic
         strFree(&ptr->token);
         // nakonec uvolnime celou polozku
