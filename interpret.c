@@ -1,4 +1,4 @@
-#include <stdio.h>
+/*#include <stdio.h>
 #include "str.h"
 #include "symtab.h"
 #include "instrlist.h"
@@ -65,4 +65,4 @@ void push(st_value_t val) {
     temp->hodnota = val;
 
     stack.top = temp;
-}
+}*/
