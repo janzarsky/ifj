@@ -22,7 +22,7 @@ typedef struct {
 #define ER SYNTAX_ERROR
 #define OK SYNTAX_OK
 
-#define NUM_TESTS 100
+#define NUM_TESTS 120
 
 test_case_t tests[NUM_TESTS] = {
     { "<empty>",        ER, { END_OF_FILE } },

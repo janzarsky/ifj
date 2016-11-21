@@ -31,28 +31,18 @@ enum table_entry_t { T_N = NT_MAX, T_L, T_E, T_R, T_MAX }; // none, <, =, >
  * 7: == != 
  */
 
-#define TABLE_SIZE 17
+#define TABLE_SIZE 7
 
 const char table[TABLE_SIZE][TABLE_SIZE] = {
-//             0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16
-//             +    -    *    /    <    >    <=   >=   ==   !=   (    )    int  dbl  str  ID   $
-/*  0 +   */ { T_R, T_R, T_L, T_L, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
-/*  1 -   */ { T_R, T_R, T_L, T_L, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
-/*  2 *   */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
-/*  3 /   */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
-/*  4 <   */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
-/*  5 >   */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
-/*  6 <=  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
-/*  7 >=  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
-/*  8 ==  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
-/*  9 !=  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
-/* 10 (   */ { T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_E, T_L, T_L, T_L, T_L, T_N },
-/* 11 )   */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
-/* 12 int */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
-/* 13 dbl */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
-/* 14 str */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
-/* 15 ID  */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
-/* 16 $   */ { T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_N, T_L, T_L, T_L, T_L, T_N }
+//             0    1    2    3    4    5    6
+//             + -  * /  rel  (    )    ID   $
+/*  0 + - */ { T_R, T_L, T_R, T_L, T_R, T_L, T_R },
+/*  1 * / */ { T_R, T_R, T_R, T_L, T_R, T_L, T_R },
+/*  2 rel */ { T_L, T_L, T_N, T_L, T_R, T_L, T_R },
+/*  3 (   */ { T_L, T_L, T_L, T_L, T_E, T_L, T_N },
+/*  4 )   */ { T_R, T_R, T_R, T_N, T_R, T_N, T_R },
+/*  5 id  */ { T_R, T_R, T_R, T_N, T_R, T_N, T_R },
+/*  6 $   */ { T_L, T_L, T_L, T_L, T_N, T_L, T_N }
 };
 
 typedef struct stack_item {
@@ -71,39 +61,29 @@ tListOfInstr instr_list;
 int map_token(int token) {
     switch (token) {
         case PLUS:
-            return 0; break;
         case MINUS:
-            return 1; break;
+            return 0; break;
         case MUL:
-            return 2; break;
         case DIV:
-            return 3; break;
+            return 1; break;
         case LESS:
-            return 4; break;
         case GREAT:
-            return 5; break;
         case LESS_EQ:
-            return 6; break;
         case GREAT_EQ:
-            return 7; break;
         case EQUAL:
-            return 8; break;
         case N_EQUAL:
-            return 9; break;
+            return 2; break;
         case LEFT_BRACKET:
-            return 10; break;
+            return 3; break;
         case RIGHT_BRACKET:
-            return 11; break;
+            return 4; break;
         case INT_LITERAL:
-            return 12; break;
         case DOUBLE_LITERAL:
-            return 13; break;
         case STRING_LITERAL:
-            return 14; break;
         case ID:
-            return 15; break;
+            return 5; break;
         case END_OF_FILE:
-            return 16; break;
+            return 6; break;
         default:
             return -1;
     }
