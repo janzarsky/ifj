@@ -7,14 +7,21 @@
 
 int token;
 
-#define DEBUG_PRINT_STACK_WIDTH 30
+#ifdef DEBUG
+
+#define DEBUG_PRINT_STACK_WIDTH 40
 int debug_print_cnt = 0;
 
-enum nonterm_t { NT_EXPR = TOKEN_MAX, NT_STR_EXPR, NT_MAX };
-enum table_entry_t { T_N = NT_MAX, T_L, T_E, T_R, T_MAX }; // none, <, =, >
+#define debug_printf(...) printf(__VA_ARGS__)
 
-// FIXME remove later
-#define T_ -1
+#else
+
+#define debug_printf(...) ;
+
+#endif
+
+enum nonterm_t { NT_EXPR = TOKEN_MAX, NT_MAX };
+enum table_entry_t { T_N = NT_MAX, T_L, T_E, T_R, T_MAX }; // none, <, =, >
 
 /* Priority:
  * 
@@ -24,25 +31,26 @@ enum table_entry_t { T_N = NT_MAX, T_L, T_E, T_R, T_MAX }; // none, <, =, >
  * 7: == != 
  */
 
-// FIXME use constants instead of literal
-const char table[17][17] = {
+#define TABLE_SIZE 17
+
+const char table[TABLE_SIZE][TABLE_SIZE] = {
 //             0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16
 //             +    -    *    /    <    >    <=   >=   ==   !=   (    )    int  dbl  str  ID   $
 /*  0 +   */ { T_R, T_R, T_L, T_L, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
-/*  1 -   */ { T_R, T_R, T_L, T_L, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
-/*  2 *   */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
-/*  3 /   */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
-/*  4 <   */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
-/*  5 >   */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
-/*  6 <=  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
-/*  7 >=  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
-/*  8 ==  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
-/*  9 !=  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
+/*  1 -   */ { T_R, T_R, T_L, T_L, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
+/*  2 *   */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
+/*  3 /   */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
+/*  4 <   */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
+/*  5 >   */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
+/*  6 <=  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
+/*  7 >=  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
+/*  8 ==  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
+/*  9 !=  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
 /* 10 (   */ { T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_E, T_L, T_L, T_L, T_L, T_N },
 /* 11 )   */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
 /* 12 int */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
 /* 13 dbl */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
-/* 14 str */ { T_R, T_N, T_N, T_N, T_N, T_N, T_N, T_N, T_N, T_N, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
+/* 14 str */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
 /* 15 ID  */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
 /* 16 $   */ { T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_N, T_L, T_L, T_L, T_L, T_N }
 };
@@ -121,6 +129,12 @@ void pop() {
     }
 }
 
+void stack_init() {
+    while (stack.top != NULL) {
+        pop();
+    }
+}
+
 void pop_n_times(int n) {
     while (n > 0) {
         pop();
@@ -186,6 +200,7 @@ void insert_after_top_term(int symbol) {
     }
 }
 
+#ifdef DEBUG
 void print_instr(tInstr *instr) {
     switch (instr->instType) {
         case IN_ADD:
@@ -204,15 +219,17 @@ void print_instr(tInstr *instr) {
 
     printf(" %p %p %p", instr->addr1, instr->addr2, instr->addr3);
 }
+#endif
 
 void add_instr(int type, void * ptr1, void * ptr2, void * ptr3) {
     tInstr instr = { type, ptr1, ptr2, ptr3 };
 
     listInsertLast(&instr_list, instr);
 
+#ifdef DEBUG
     printf("instr: ");
-
     print_instr(&instr);
+#endif
 }
 
 //         E     -> E        +     E
@@ -268,71 +285,67 @@ bool rule(int num, ...) {
 
 int rules() {
     if (rule(4, NT_EXPR, NT_EXPR, PLUS, NT_EXPR)) {
-        printf("rule: E -> E+E    ");
+        debug_printf("rule: E -> E + E  ");
         add_instr(IN_ADD, NULL, NULL, NULL);
     }
     else if (rule(4, NT_EXPR, NT_EXPR, MINUS, NT_EXPR)) {
-        printf("rule: E -> E-E    ");
+        debug_printf("rule: E -> E - E  ");
         add_instr(IN_SUB, NULL, NULL, NULL);
     }
     else if (rule(4, NT_EXPR, NT_EXPR, MUL, NT_EXPR)) {
-        printf("rule: E -> E*E    ");
+        debug_printf("rule: E -> E * E  ");
         add_instr(IN_MUL, NULL, NULL, NULL);
     }
     else if (rule(4, NT_EXPR, NT_EXPR, DIV, NT_EXPR)) {
-        printf("rule: E -> E/E    ");
+        debug_printf("rule: E -> E / E  ");
         add_instr(IN_DIV, NULL, NULL, NULL);
     }
     else if (rule(4, NT_EXPR, LEFT_BRACKET, NT_EXPR, RIGHT_BRACKET)) {
-        printf("rule: E -> (E)    ");
+        debug_printf("rule: E -> (E)    ");
     }
     else if (rule(2, NT_EXPR, ID)) {
-        printf("rule: E -> ID     ");
+        debug_printf("rule: E -> ID     ");
         add_instr(IN_PUSH, (void *) 0x42, NULL, NULL);
     }
     else if (rule(2, NT_EXPR, INT_LITERAL)) {
-        printf("rule: E -> INT    ");
+        debug_printf("rule: E -> INT    ");
         add_instr(IN_PUSH, (void *) 0x01, NULL, NULL);
     }
     else if (rule(2, NT_EXPR, DOUBLE_LITERAL)) {
-        printf("rule: E -> DOUBLE ");
+        debug_printf("rule: E -> DOUBLE ");
         add_instr(IN_PUSH, (void *) 0x02, NULL, NULL);
     }
-    else if (rule(4, NT_STR_EXPR, NT_STR_EXPR, PLUS, NT_STR_EXPR)) {
-        printf("rule: STR_E -> STR_E + STR_E ");
-    }
-    else if (rule(4, NT_STR_EXPR, LEFT_BRACKET, NT_STR_EXPR, RIGHT_BRACKET)) {
-        printf("rule: STR_E -> (STR) ");
-    }
-    else if (rule(2, NT_STR_EXPR, STRING_LITERAL)) {
-        printf("rule: STR_E -> STR ");
+    else if (rule(2, NT_EXPR, STRING_LITERAL)) {
+        debug_printf("rule: E -> STRING ");
+        add_instr(IN_PUSH, (void *) 0x02, NULL, NULL);
     }
     else if (rule(4, NT_EXPR, NT_EXPR, LESS, NT_EXPR)) {
-        printf("rule: E -> E < E  ");
+        debug_printf("rule: E -> E < E  ");
     }
     else if (rule(4, NT_EXPR, NT_EXPR, GREAT, NT_EXPR)) {
-        printf("rule: E -> E > E  ");
+        debug_printf("rule: E -> E > E  ");
     }
     else if (rule(4, NT_EXPR, NT_EXPR, LESS_EQ, NT_EXPR)) {
-        printf("rule: E -> E <= E ");
+        debug_printf("rule: E -> E <= E ");
     }
     else if (rule(4, NT_EXPR, NT_EXPR, GREAT_EQ, NT_EXPR)) {
-        printf("rule: E -> E >= E ");
+        debug_printf("rule: E -> E >= E ");
     }
     else if (rule(4, NT_EXPR, NT_EXPR, EQUAL, NT_EXPR)) {
-        printf("rule: E -> E == E ");
+        debug_printf("rule: E -> E == E ");
     }
     else if (rule(4, NT_EXPR, NT_EXPR, N_EQUAL, NT_EXPR)) {
-        printf("rule: E -> E != E ");
+        debug_printf("rule: E -> E != E ");
     }
     else {
-        printf("rule: no matching rule");
+        debug_printf("rule: no matching rule");
         return SYNTAX_ERROR;
     }
 
     return SYNTAX_OK;
 }
 
+#ifdef DEBUG
 void print_symbol(int symbol) {
     debug_print_cnt++;
 
@@ -407,10 +420,6 @@ void print_symbol(int symbol) {
         case NT_EXPR:
             printf("E");
             break;
-        case NT_STR_EXPR:
-            printf("STR_E");
-            debug_print_cnt += 4;
-            break;
         default:
             printf("%d", symbol);
             break;
@@ -457,6 +466,7 @@ void print_instr_list() {
         listNext(&instr_list);
     }
 }
+#endif
 
 extern int get_next_token();
 
@@ -465,47 +475,52 @@ int math_expr() {
 
     listInit(&instr_list);
 
+    stack_init();
+
     push(END_OF_FILE);
 
     b = get_next_token();
     
     do {
+#ifdef DEBUG
         printf("stack: ");
         print_stack();
         printf("    input: ");
         print_symbol_aligned(b);
+#endif
 
         switch (table[map_token(top_term())][map_token(b)]) {
             case T_E:
-                printf("op: =    ");
+                debug_printf("op: =    ");
                 push(b);
                 b = get_next_token();
                 break;
             case T_L:
-                printf("op: <    ");
+                debug_printf("op: <    ");
                 insert_after_top_term(T_L);
                 push(b);
                 b = get_next_token();
                 break;
             case T_R:
-                printf("op: >    ");
+                debug_printf("op: >    ");
                 result = rules();
                 if (result == SYNTAX_ERROR) {
-                    printf("\n");
+                    debug_printf("\n");
                     return SYNTAX_ERROR;
                 }
                 break;
             case T_N:
             default:
-                printf("op: none, ");
+                debug_printf("op: none, ");
                 return SYNTAX_ERROR;
                 break;
         }
 
-        printf("\n");
+        debug_printf("\n");
 
     } while (top_term() != END_OF_FILE || b != END_OF_FILE);
 
+#ifdef DEBUG
     printf("stack: ");
     print_stack();
     printf("    input: ");
@@ -515,6 +530,7 @@ int math_expr() {
     printf("\n");
     printf("Generated instructions:\n");
     print_instr_list();
+#endif
 
     return SYNTAX_OK;
 }
