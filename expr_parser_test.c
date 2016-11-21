@@ -3,12 +3,12 @@
 #include "parser_test.h"
 #include "instrlist.h"
 
-#define TEST_TOKENS_MAX 18
-char *input = "i + ((i * (i - (i / i))))";
+#define TEST_TOKENS_MAX 20
+char *input = "i < i + ((i * (i - (i / i))))";
 int test_tokens[TEST_TOKENS_MAX] = {
-    ID, PLUS, LEFT_BRACKET, LEFT_BRACKET, ID, MUL, LEFT_BRACKET, ID, MINUS,
-    LEFT_BRACKET, ID, DIV, ID, RIGHT_BRACKET, RIGHT_BRACKET, RIGHT_BRACKET,
-    RIGHT_BRACKET, END_OF_FILE
+    ID, LESS, ID, PLUS, LEFT_BRACKET, LEFT_BRACKET, ID, MUL, LEFT_BRACKET, ID,
+    MINUS, LEFT_BRACKET, ID, DIV, ID, RIGHT_BRACKET, RIGHT_BRACKET,
+    RIGHT_BRACKET, RIGHT_BRACKET, END_OF_FILE
 };
 int test_tokens_counter = 0;
 

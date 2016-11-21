@@ -13,21 +13,36 @@ int debug_print_cnt = 0;
 enum nonterm_t { NT_EXPR = TOKEN_MAX, NT_MAX };
 enum table_entry_t { TE_N = NT_MAX, TE_L, TE_E, TE_R, TE_MAX }; // none, <, =, >
 
-// FIXME use constants instead of literal
-const char table[8][8] = {
-//           +     -     *     /     (     )     ID    $
-/* +   */ { TE_R, TE_R, TE_L, TE_L, TE_L, TE_R, TE_L, TE_R },
-/* -   */ { TE_R, TE_R, TE_L, TE_L, TE_L, TE_R, TE_L, TE_R },
-/* *   */ { TE_R, TE_R, TE_R, TE_R, TE_L, TE_R, TE_L, TE_R },
-/* /   */ { TE_R, TE_R, TE_R, TE_R, TE_L, TE_R, TE_L, TE_R },
-/* (   */ { TE_L, TE_L, TE_L, TE_L, TE_L, TE_E, TE_L, TE_N },
-/* )   */ { TE_R, TE_R, TE_R, TE_R, TE_N, TE_R, TE_N, TE_R },
-/* ID  */ { TE_R, TE_R, TE_R, TE_R, TE_N, TE_R, TE_N, TE_R },
-/* $   */ { TE_L, TE_L, TE_L, TE_L, TE_L, TE_N, TE_L, TE_N }
-};
+// FIXME remove later
+#define TE_ -1
 
-// template
-///* x   */ { TE_ , TE_ , TE_ , TE_ , TE_ , TE_ , TE_  },
+/* Priority:
+ * 
+ * 3: * /
+ * 4: + -
+ * 6: < > <= >=
+ * 7: == != 
+ */
+
+// FIXME use constants instead of literal
+const char table[14][14] = {
+//              0     1     2     3     4     5     6     7     8     9     10    11    12    13
+//              +     -     *     /     <     >     <=    >=    ==    !=    (     )     ID    $
+/*  0 +   */ { TE_R, TE_R, TE_L, TE_L, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_L, TE_R, TE_L, TE_R },
+/*  1 -   */ { TE_R, TE_R, TE_L, TE_L, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_L, TE_R, TE_L, TE_R },
+/*  2 *   */ { TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_L, TE_R, TE_L, TE_R },
+/*  3 /   */ { TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_L, TE_R, TE_L, TE_R },
+/*  4 <   */ { TE_L, TE_L, TE_L, TE_L, TE_N, TE_N, TE_N, TE_N, TE_N, TE_N, TE_L, TE_R, TE_L, TE_R },
+/*  5 >   */ { TE_L, TE_L, TE_L, TE_L, TE_N, TE_N, TE_N, TE_N, TE_N, TE_N, TE_L, TE_R, TE_L, TE_R },
+/*  6 <=  */ { TE_L, TE_L, TE_L, TE_L, TE_N, TE_N, TE_N, TE_N, TE_N, TE_N, TE_L, TE_R, TE_L, TE_R },
+/*  7 >=  */ { TE_L, TE_L, TE_L, TE_L, TE_N, TE_N, TE_N, TE_N, TE_N, TE_N, TE_L, TE_R, TE_L, TE_R },
+/*  8 ==  */ { TE_L, TE_L, TE_L, TE_L, TE_N, TE_N, TE_N, TE_N, TE_N, TE_N, TE_L, TE_R, TE_L, TE_R },
+/*  9 !=  */ { TE_L, TE_L, TE_L, TE_L, TE_N, TE_N, TE_N, TE_N, TE_N, TE_N, TE_L, TE_R, TE_L, TE_R },
+/* 10 (   */ { TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_E, TE_L, TE_N },
+/* 11 )   */ { TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_N, TE_R, TE_N, TE_R },
+/* 12 ID  */ { TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_N, TE_R, TE_N, TE_R },
+/* 13 $   */ { TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_N, TE_L, TE_N }
+};
 
 typedef struct stack_item {
     int symbol;
@@ -52,14 +67,26 @@ int map_token(int token) {
             return 2; break;
         case DIV:
             return 3; break;
-        case LEFT_BRACKET:
+        case LESS:
             return 4; break;
-        case RIGHT_BRACKET:
+        case GREAT:
             return 5; break;
-        case ID:
+        case LESS_EQ:
             return 6; break;
-        case END_OF_FILE:
+        case GREAT_EQ:
             return 7; break;
+        case EQUAL:
+            return 8; break;
+        case N_EQUAL:
+            return 9; break;
+        case LEFT_BRACKET:
+            return 10; break;
+        case RIGHT_BRACKET:
+            return 11; break;
+        case ID:
+            return 12; break;
+        case END_OF_FILE:
+            return 13; break;
         default:
             return -1;
     }
@@ -254,6 +281,24 @@ int rules() {
         printf("rule: E -> ID     ");
         add_instr(IN_PUSH, (void *) 0x42, NULL, NULL);
     }
+    else if (rule(4, NT_EXPR, NT_EXPR, LESS, NT_EXPR)) {
+        printf("rule: E -> E < E  ");
+    }
+    else if (rule(4, NT_EXPR, NT_EXPR, GREAT, NT_EXPR)) {
+        printf("rule: E -> E > E  ");
+    }
+    else if (rule(4, NT_EXPR, NT_EXPR, LESS_EQ, NT_EXPR)) {
+        printf("rule: E -> E <= E ");
+    }
+    else if (rule(4, NT_EXPR, NT_EXPR, GREAT_EQ, NT_EXPR)) {
+        printf("rule: E -> E >= E ");
+    }
+    else if (rule(4, NT_EXPR, NT_EXPR, EQUAL, NT_EXPR)) {
+        printf("rule: E -> E == E ");
+    }
+    else if (rule(4, NT_EXPR, NT_EXPR, N_EQUAL, NT_EXPR)) {
+        printf("rule: E -> E != E ");
+    }
     else {
         printf("rule: no matching rule");
         return SYNTAX_ERROR;
@@ -275,6 +320,24 @@ void print_symbol(int symbol) {
             break;
         case DIV:
             printf("/");
+            break;
+        case LESS:
+            printf("'<'");
+            break;
+        case GREAT:
+            printf("'>'");
+            break;
+        case LESS_EQ:
+            printf("'<='");
+            break;
+        case GREAT_EQ:
+            printf("'>='");
+            break;
+        case EQUAL:
+            printf("==");
+            break;
+        case N_EQUAL:
+            printf("!=");
             break;
         case LEFT_BRACKET:
             printf("(");
