@@ -3,12 +3,15 @@
 #include "parser_test.h"
 #include "instrlist.h"
 
-#define TEST_TOKENS_MAX 20
-char *input = "i < 123 + ((i * (42.5 - (i / i))))";
+//#define TEST_TOKENS_MAX 20
+#define TEST_TOKENS_MAX 8
+
+//char *input = "i < 123 + ((i * (42.5 - (i / i))))";
+char *input = "\"asdf\" + (\"a\" + \"b\")";
+
 int test_tokens[TEST_TOKENS_MAX] = {
-    ID, LESS, INT_LITERAL, PLUS, LEFT_BRACKET, LEFT_BRACKET, DOUBLE_LITERAL,
-    MUL, LEFT_BRACKET, ID, MINUS, LEFT_BRACKET, ID, DIV, ID, RIGHT_BRACKET,
-    RIGHT_BRACKET, RIGHT_BRACKET, RIGHT_BRACKET, END_OF_FILE
+    STRING_LITERAL, PLUS, LEFT_BRACKET, STRING_LITERAL, PLUS, STRING_LITERAL, RIGHT_BRACKET, END_OF_FILE
+//    ID, LESS, INT_LITERAL, PLUS, LEFT_BRACKET, LEFT_BRACKET, DOUBLE_LITERAL, MUL, LEFT_BRACKET, ID, MINUS, LEFT_BRACKET, ID, DIV, ID, RIGHT_BRACKET, RIGHT_BRACKET, RIGHT_BRACKET, RIGHT_BRACKET, END_OF_FILE
 };
 int test_tokens_counter = 0;
 

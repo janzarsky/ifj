@@ -10,7 +10,7 @@ int token;
 #define DEBUG_PRINT_STACK_WIDTH 30
 int debug_print_cnt = 0;
 
-enum nonterm_t { NT_EXPR = TOKEN_MAX, NT_MAX };
+enum nonterm_t { NT_EXPR = TOKEN_MAX, NT_STR_EXPR, NT_MAX };
 enum table_entry_t { T_N = NT_MAX, T_L, T_E, T_R, T_MAX }; // none, <, =, >
 
 // FIXME remove later
@@ -298,7 +298,15 @@ int rules() {
         printf("rule: E -> DOUBLE ");
         add_instr(IN_PUSH, (void *) 0x02, NULL, NULL);
     }
-    // TODO rules for string literal
+    else if (rule(4, NT_STR_EXPR, NT_STR_EXPR, PLUS, NT_STR_EXPR)) {
+        printf("rule: STR_E -> STR_E + STR_E ");
+    }
+    else if (rule(4, NT_STR_EXPR, LEFT_BRACKET, NT_STR_EXPR, RIGHT_BRACKET)) {
+        printf("rule: STR_E -> (STR) ");
+    }
+    else if (rule(2, NT_STR_EXPR, STRING_LITERAL)) {
+        printf("rule: STR_E -> STR ");
+    }
     else if (rule(4, NT_EXPR, NT_EXPR, LESS, NT_EXPR)) {
         printf("rule: E -> E < E  ");
     }
@@ -398,6 +406,10 @@ void print_symbol(int symbol) {
             break;
         case NT_EXPR:
             printf("E");
+            break;
+        case NT_STR_EXPR:
+            printf("STR_E");
+            debug_print_cnt += 4;
             break;
         default:
             printf("%d", symbol);
