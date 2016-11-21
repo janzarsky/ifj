@@ -388,6 +388,9 @@ void print_symbol(int symbol) {
             printf("id");
             debug_print_cnt += 1;
             break;
+        case SEMICOLON:
+            printf(";");
+            break;
         case END_OF_FILE:
             printf("$");
             break;
@@ -448,6 +451,8 @@ void print_instr_list() {
 }
 #endif
 
+extern int return_token(int symbol);
+
 extern int get_next_token();
 
 int math_expr() {
@@ -468,6 +473,16 @@ int math_expr() {
         printf("    input: ");
         print_symbol_aligned(b);
 #endif
+        if (b == SEMICOLON) {
+            return_token(b);
+            debug_printf(", ");
+            b = END_OF_FILE;
+        }
+        else if (b == RIGHT_BRACKET && top_term() == END_OF_FILE) {
+            return_token(b);
+            debug_printf("\n");
+            break;
+        }
 
         switch (table[map_token(top_term())][map_token(b)]) {
             case T_E:
@@ -491,9 +506,8 @@ int math_expr() {
                 break;
             case T_N:
             default:
-                debug_printf("op: none, ");
+                debug_printf("op: none, \n");
                 return SYNTAX_ERROR;
-                break;
         }
 
         debug_printf("\n");
@@ -501,6 +515,7 @@ int math_expr() {
     } while (top_term() != END_OF_FILE || b != END_OF_FILE);
 
 #ifdef DEBUG
+    printf("********** END OF ALGORITM **********\n");
     printf("stack: ");
     print_stack();
     printf("    input: ");
