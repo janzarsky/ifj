@@ -4,11 +4,11 @@
 #include "instrlist.h"
 
 #define TEST_TOKENS_MAX 20
-char *input = "i < i + ((i * (i - (i / i))))";
+char *input = "i < 123 + ((i * (42.5 - (i / i))))";
 int test_tokens[TEST_TOKENS_MAX] = {
-    ID, LESS, ID, PLUS, LEFT_BRACKET, LEFT_BRACKET, ID, MUL, LEFT_BRACKET, ID,
-    MINUS, LEFT_BRACKET, ID, DIV, ID, RIGHT_BRACKET, RIGHT_BRACKET,
-    RIGHT_BRACKET, RIGHT_BRACKET, END_OF_FILE
+    ID, LESS, INT_LITERAL, PLUS, LEFT_BRACKET, LEFT_BRACKET, DOUBLE_LITERAL,
+    MUL, LEFT_BRACKET, ID, MINUS, LEFT_BRACKET, ID, DIV, ID, RIGHT_BRACKET,
+    RIGHT_BRACKET, RIGHT_BRACKET, RIGHT_BRACKET, END_OF_FILE
 };
 int test_tokens_counter = 0;
 

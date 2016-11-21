@@ -11,10 +11,10 @@ int token;
 int debug_print_cnt = 0;
 
 enum nonterm_t { NT_EXPR = TOKEN_MAX, NT_MAX };
-enum table_entry_t { TE_N = NT_MAX, TE_L, TE_E, TE_R, TE_MAX }; // none, <, =, >
+enum table_entry_t { T_N = NT_MAX, T_L, T_E, T_R, T_MAX }; // none, <, =, >
 
 // FIXME remove later
-#define TE_ -1
+#define T_ -1
 
 /* Priority:
  * 
@@ -25,23 +25,26 @@ enum table_entry_t { TE_N = NT_MAX, TE_L, TE_E, TE_R, TE_MAX }; // none, <, =, >
  */
 
 // FIXME use constants instead of literal
-const char table[14][14] = {
-//              0     1     2     3     4     5     6     7     8     9     10    11    12    13
-//              +     -     *     /     <     >     <=    >=    ==    !=    (     )     ID    $
-/*  0 +   */ { TE_R, TE_R, TE_L, TE_L, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_L, TE_R, TE_L, TE_R },
-/*  1 -   */ { TE_R, TE_R, TE_L, TE_L, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_L, TE_R, TE_L, TE_R },
-/*  2 *   */ { TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_L, TE_R, TE_L, TE_R },
-/*  3 /   */ { TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_L, TE_R, TE_L, TE_R },
-/*  4 <   */ { TE_L, TE_L, TE_L, TE_L, TE_N, TE_N, TE_N, TE_N, TE_N, TE_N, TE_L, TE_R, TE_L, TE_R },
-/*  5 >   */ { TE_L, TE_L, TE_L, TE_L, TE_N, TE_N, TE_N, TE_N, TE_N, TE_N, TE_L, TE_R, TE_L, TE_R },
-/*  6 <=  */ { TE_L, TE_L, TE_L, TE_L, TE_N, TE_N, TE_N, TE_N, TE_N, TE_N, TE_L, TE_R, TE_L, TE_R },
-/*  7 >=  */ { TE_L, TE_L, TE_L, TE_L, TE_N, TE_N, TE_N, TE_N, TE_N, TE_N, TE_L, TE_R, TE_L, TE_R },
-/*  8 ==  */ { TE_L, TE_L, TE_L, TE_L, TE_N, TE_N, TE_N, TE_N, TE_N, TE_N, TE_L, TE_R, TE_L, TE_R },
-/*  9 !=  */ { TE_L, TE_L, TE_L, TE_L, TE_N, TE_N, TE_N, TE_N, TE_N, TE_N, TE_L, TE_R, TE_L, TE_R },
-/* 10 (   */ { TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_E, TE_L, TE_N },
-/* 11 )   */ { TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_N, TE_R, TE_N, TE_R },
-/* 12 ID  */ { TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_R, TE_N, TE_R, TE_N, TE_R },
-/* 13 $   */ { TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_L, TE_N, TE_L, TE_N }
+const char table[17][17] = {
+//             0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16
+//             +    -    *    /    <    >    <=   >=   ==   !=   (    )    int  dbl  str  ID   $
+/*  0 +   */ { T_R, T_R, T_L, T_L, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_L, T_L, T_R },
+/*  1 -   */ { T_R, T_R, T_L, T_L, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
+/*  2 *   */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
+/*  3 /   */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
+/*  4 <   */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
+/*  5 >   */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
+/*  6 <=  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
+/*  7 >=  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
+/*  8 ==  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
+/*  9 !=  */ { T_L, T_L, T_L, T_L, T_N, T_N, T_N, T_N, T_N, T_N, T_L, T_R, T_L, T_L, T_N, T_L, T_R },
+/* 10 (   */ { T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_E, T_L, T_L, T_L, T_L, T_N },
+/* 11 )   */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
+/* 12 int */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
+/* 13 dbl */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
+/* 14 str */ { T_R, T_N, T_N, T_N, T_N, T_N, T_N, T_N, T_N, T_N, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
+/* 15 ID  */ { T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_R, T_N, T_R, T_N, T_N, T_N, T_N, T_R },
+/* 16 $   */ { T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_L, T_N, T_L, T_L, T_L, T_L, T_N }
 };
 
 typedef struct stack_item {
@@ -83,10 +86,16 @@ int map_token(int token) {
             return 10; break;
         case RIGHT_BRACKET:
             return 11; break;
-        case ID:
+        case INT_LITERAL:
             return 12; break;
-        case END_OF_FILE:
+        case DOUBLE_LITERAL:
             return 13; break;
+        case STRING_LITERAL:
+            return 14; break;
+        case ID:
+            return 15; break;
+        case END_OF_FILE:
+            return 16; break;
         default:
             return -1;
     }
@@ -244,7 +253,7 @@ bool rule(int num, ...) {
         temp = temp->next;
     }
 
-    if (temp->symbol != TE_L) {
+    if (temp->symbol != T_L) {
         va_end(valist);
         return false;
     }
@@ -281,6 +290,15 @@ int rules() {
         printf("rule: E -> ID     ");
         add_instr(IN_PUSH, (void *) 0x42, NULL, NULL);
     }
+    else if (rule(2, NT_EXPR, INT_LITERAL)) {
+        printf("rule: E -> INT    ");
+        add_instr(IN_PUSH, (void *) 0x01, NULL, NULL);
+    }
+    else if (rule(2, NT_EXPR, DOUBLE_LITERAL)) {
+        printf("rule: E -> DOUBLE ");
+        add_instr(IN_PUSH, (void *) 0x02, NULL, NULL);
+    }
+    // TODO rules for string literal
     else if (rule(4, NT_EXPR, NT_EXPR, LESS, NT_EXPR)) {
         printf("rule: E -> E < E  ");
     }
@@ -308,6 +326,8 @@ int rules() {
 }
 
 void print_symbol(int symbol) {
+    debug_print_cnt++;
+
     switch (symbol) {
         case PLUS:
             printf("+");
@@ -323,21 +343,27 @@ void print_symbol(int symbol) {
             break;
         case LESS:
             printf("'<'");
+            debug_print_cnt += 2;
             break;
         case GREAT:
             printf("'>'");
+            debug_print_cnt += 2;
             break;
         case LESS_EQ:
             printf("'<='");
+            debug_print_cnt += 3;
             break;
         case GREAT_EQ:
             printf("'>='");
+            debug_print_cnt += 3;
             break;
         case EQUAL:
             printf("==");
+            debug_print_cnt += 1;
             break;
         case N_EQUAL:
             printf("!=");
+            debug_print_cnt += 1;
             break;
         case LEFT_BRACKET:
             printf("(");
@@ -345,16 +371,29 @@ void print_symbol(int symbol) {
         case RIGHT_BRACKET:
             printf(")");
             break;
+        case INT_LITERAL:
+            printf("int");
+            debug_print_cnt += 2;
+            break;
+        case DOUBLE_LITERAL:
+            printf("dbl");
+            debug_print_cnt += 2;
+            break;
+        case STRING_LITERAL:
+            printf("str");
+            debug_print_cnt += 2;
+            break;
         case ID:
-            printf("i");
+            printf("id");
+            debug_print_cnt += 1;
             break;
         case END_OF_FILE:
             printf("$");
             break;
-        case TE_L:
+        case T_L:
             printf("<");
             break;
-        case TE_R:
+        case T_R:
             printf(">");
             break;
         case NT_EXPR:
@@ -372,7 +411,6 @@ void print_stack_item(stack_item_t *item) {
     }
 
     print_symbol(item->symbol);
-    debug_print_cnt++;
 }
 
 void print_stack() {
@@ -381,6 +419,15 @@ void print_stack() {
     print_stack_item(stack.top);
 
     for (int i = debug_print_cnt; i < DEBUG_PRINT_STACK_WIDTH; i++)
+        printf(" ");
+}
+
+void print_symbol_aligned(int symbol) {
+    debug_print_cnt = 0;
+
+    print_symbol(symbol);
+
+    for (int i = debug_print_cnt; i < 6; i++)
         printf(" ");
 }
 
@@ -414,22 +461,21 @@ int math_expr() {
         printf("stack: ");
         print_stack();
         printf("    input: ");
-        print_symbol(b);
-        printf("    ");
+        print_symbol_aligned(b);
 
         switch (table[map_token(top_term())][map_token(b)]) {
-            case TE_E:
+            case T_E:
                 printf("op: =    ");
                 push(b);
                 b = get_next_token();
                 break;
-            case TE_L:
+            case T_L:
                 printf("op: <    ");
-                insert_after_top_term(TE_L);
+                insert_after_top_term(T_L);
                 push(b);
                 b = get_next_token();
                 break;
-            case TE_R:
+            case T_R:
                 printf("op: >    ");
                 result = rules();
                 if (result == SYNTAX_ERROR) {
@@ -437,7 +483,7 @@ int math_expr() {
                     return SYNTAX_ERROR;
                 }
                 break;
-            case TE_N:
+            case T_N:
             default:
                 printf("op: none, ");
                 return SYNTAX_ERROR;
