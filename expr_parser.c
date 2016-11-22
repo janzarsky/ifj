@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "parser_test.h"
 #include "instrlist.h"
+#include "expr_parser.h"
 
 int token;
 
@@ -20,6 +21,8 @@ int debug_print_cnt = 0;
 
 #endif
 
+enum type_t { TYPE_UNDEFINED, TYPE_VOID, TYPE_INT, TYPE_DOUBLE, TYPE_STRING,
+    TYPE_BOOL, TYPE_TEMP, TYPE_MAX };
 enum nonterm_t { NT_EXPR = TOKEN_MAX, NT_MAX };
 enum table_entry_t { T_N = NT_MAX, T_L, T_E, T_R, T_MAX }; // none, <, =, >
 
@@ -47,6 +50,7 @@ const char table[TABLE_SIZE][TABLE_SIZE] = {
 
 typedef struct stack_item {
     int symbol;
+    int type;
     struct stack_item *next;
 } stack_item_t;
 
@@ -89,7 +93,7 @@ int map_token(int token) {
     }
 }
 
-void push(int symbol) {
+void push(int symbol, int type) {
     stack_item_t *temp = malloc(sizeof(stack_item_t));
 
     if (temp == NULL)
@@ -97,6 +101,7 @@ void push(int symbol) {
 
     temp->next = stack.top;
     temp->symbol = symbol;
+    temp->type = type;
 
     stack.top = temp;
 }
@@ -199,6 +204,27 @@ void print_instr(tInstr *instr) {
 
     printf(" %p %p %p", instr->addr1, instr->addr2, instr->addr3);
 }
+
+void print_type(int type) {
+    switch (type) {
+        case TYPE_UNDEFINED:
+            printf("undef  "); break;
+        case TYPE_VOID:
+            printf("void   "); break;
+        case TYPE_INT:
+            printf("int    "); break;
+        case TYPE_DOUBLE:
+            printf("double "); break;
+        case TYPE_STRING:
+            printf("undef  "); break;
+        case TYPE_BOOL:
+            printf("bool   "); break;
+        case TYPE_TEMP:
+            printf("temp   "); break;
+        default:
+            printf("other  ");
+    }
+}
 #endif
 
 void add_instr(int type, void * ptr1, void * ptr2, void * ptr3) {
@@ -212,31 +238,26 @@ void add_instr(int type, void * ptr1, void * ptr2, void * ptr3) {
 #endif
 }
 
-//         E     -> E        +     E
-// rule(4, NT_EXPR, NT_EXPR, PLUS, NT_EXPR);
-bool rule(int num, ...) {
+bool check_rule(int num, ...) {
     va_list valist;
     va_start(valist, num);
 
-    // left part of a rule
-    int left_symbol = va_arg(valist, int);
-
     // copy arguments (we need them in reverse order)
-    int *symbols = malloc((num-1)*sizeof(int));
+    int *symbols = malloc(num*sizeof(int));
 
     if (symbols == NULL) {
         va_end(valist);
         return false;
     }
 
-    for (int i = 0; i < num - 1; i++) {
-        symbols[num - 2 - i] = va_arg(valist, int);
+    for (int i = 0; i < num; i++) {
+        symbols[num - 1 - i] = va_arg(valist, int);
     }
     
     // compare stack with arguments
     stack_item_t *temp = stack.top;
 
-    for (int i = 0; i < num - 1; i++) {
+    for (int i = 0; i < num; i++) {
         if (temp->symbol != symbols[i]) {
             va_end(valist);
             return false;
@@ -255,66 +276,110 @@ bool rule(int num, ...) {
         return false;
     }
 
-    pop_n_times(num);
-
-    push(left_symbol);
-
     va_end(valist);
     return true;
 }
 
+void execute_rule(int num, int symbol, int type) {
+    // pop additional '<' from stack
+    pop_n_times(num + 1);
+
+#ifdef DEBUG
+    debug_printf("pushing type: ");
+    print_type(type);
+    debug_printf("  ");
+#endif
+
+    push(symbol, type);
+}
+
+int get_type_brackets() {
+    return stack.top->next->type;
+}
+
+int get_type_add() {
+    return TYPE_VOID;
+}
+
 int rules() {
-    if (rule(4, NT_EXPR, NT_EXPR, PLUS, NT_EXPR)) {
+    int type = TYPE_VOID;
+
+    if (check_rule(3, NT_EXPR, PLUS, NT_EXPR)) {
+        type = get_type_add();
+
+        if (type == TYPE_UNDEFINED)
+            return SEMANTIC_ERROR;
+
+        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E + E  ");
         add_instr(IN_ADD, NULL, NULL, NULL);
     }
-    else if (rule(4, NT_EXPR, NT_EXPR, MINUS, NT_EXPR)) {
+    else if (check_rule(3, NT_EXPR, MINUS, NT_EXPR)) {
+        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E - E  ");
         add_instr(IN_SUB, NULL, NULL, NULL);
     }
-    else if (rule(4, NT_EXPR, NT_EXPR, MUL, NT_EXPR)) {
+    else if (check_rule(3, NT_EXPR, MUL, NT_EXPR)) {
+        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E * E  ");
         add_instr(IN_MUL, NULL, NULL, NULL);
     }
-    else if (rule(4, NT_EXPR, NT_EXPR, DIV, NT_EXPR)) {
+    else if (check_rule(3, NT_EXPR, DIV, NT_EXPR)) {
+        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E / E  ");
         add_instr(IN_DIV, NULL, NULL, NULL);
     }
-    else if (rule(4, NT_EXPR, LEFT_BRACKET, NT_EXPR, RIGHT_BRACKET)) {
+    else if (check_rule(3, LEFT_BRACKET, NT_EXPR, RIGHT_BRACKET)) {
+        type = get_type_brackets();
+
+        if (type == TYPE_UNDEFINED)
+            return SEMANTIC_ERROR;
+
+        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> (E)    ");
     }
-    else if (rule(2, NT_EXPR, ID)) {
+    else if (check_rule(1, ID)) {
+        execute_rule(1, NT_EXPR, TYPE_TEMP);
         debug_printf("rule: E -> ID     ");
         add_instr(IN_PUSH, (void *) 0x42, NULL, NULL);
     }
-    else if (rule(2, NT_EXPR, INT_LITERAL)) {
+    else if (check_rule(1, INT_LITERAL)) {
+        execute_rule(1, NT_EXPR, TYPE_INT);
         debug_printf("rule: E -> INT    ");
         add_instr(IN_PUSH, (void *) 0x01, NULL, NULL);
     }
-    else if (rule(2, NT_EXPR, DOUBLE_LITERAL)) {
+    else if (check_rule(1, DOUBLE_LITERAL)) {
+        execute_rule(1, NT_EXPR, TYPE_DOUBLE);
         debug_printf("rule: E -> DOUBLE ");
         add_instr(IN_PUSH, (void *) 0x02, NULL, NULL);
     }
-    else if (rule(2, NT_EXPR, STRING_LITERAL)) {
+    else if (check_rule(1, STRING_LITERAL)) {
+        execute_rule(1, NT_EXPR, TYPE_STRING);
         debug_printf("rule: E -> STRING ");
         add_instr(IN_PUSH, (void *) 0x02, NULL, NULL);
     }
-    else if (rule(4, NT_EXPR, NT_EXPR, LESS, NT_EXPR)) {
+    else if (check_rule(3, NT_EXPR, LESS, NT_EXPR)) {
+        execute_rule(3, NT_EXPR, TYPE_BOOL);
         debug_printf("rule: E -> E < E  ");
     }
-    else if (rule(4, NT_EXPR, NT_EXPR, GREAT, NT_EXPR)) {
+    else if (check_rule(3, NT_EXPR, GREAT, NT_EXPR)) {
+        execute_rule(3, NT_EXPR, TYPE_BOOL);
         debug_printf("rule: E -> E > E  ");
     }
-    else if (rule(4, NT_EXPR, NT_EXPR, LESS_EQ, NT_EXPR)) {
+    else if (check_rule(3, NT_EXPR, LESS_EQ, NT_EXPR)) {
+        execute_rule(3, NT_EXPR, TYPE_BOOL);
         debug_printf("rule: E -> E <= E ");
     }
-    else if (rule(4, NT_EXPR, NT_EXPR, GREAT_EQ, NT_EXPR)) {
+    else if (check_rule(3, NT_EXPR, GREAT_EQ, NT_EXPR)) {
+        execute_rule(3, NT_EXPR, TYPE_BOOL);
         debug_printf("rule: E -> E >= E ");
     }
-    else if (rule(4, NT_EXPR, NT_EXPR, EQUAL, NT_EXPR)) {
+    else if (check_rule(3, NT_EXPR, EQUAL, NT_EXPR)) {
+        execute_rule(3, NT_EXPR, TYPE_BOOL);
         debug_printf("rule: E -> E == E ");
     }
-    else if (rule(4, NT_EXPR, NT_EXPR, N_EQUAL, NT_EXPR)) {
+    else if (check_rule(3,  NT_EXPR, N_EQUAL, NT_EXPR)) {
+        execute_rule(3, NT_EXPR, TYPE_BOOL);
         debug_printf("rule: E -> E != E ");
     }
     else {
@@ -451,8 +516,6 @@ void print_instr_list() {
 }
 #endif
 
-extern int return_token(int symbol);
-
 extern int get_next_token();
 
 int math_expr() {
@@ -462,7 +525,7 @@ int math_expr() {
 
     stack_init();
 
-    push(END_OF_FILE);
+    push(END_OF_FILE, TYPE_UNDEFINED);
 
     b = get_next_token();
     
@@ -474,12 +537,10 @@ int math_expr() {
         print_symbol_aligned(b);
 #endif
         if (b == SEMICOLON) {
-            return_token(b);
             debug_printf(", ");
             b = END_OF_FILE;
         }
         else if (b == RIGHT_BRACKET && top_term() == END_OF_FILE) {
-            return_token(b);
             debug_printf("\n");
             break;
         }
@@ -487,13 +548,13 @@ int math_expr() {
         switch (table[map_token(top_term())][map_token(b)]) {
             case T_E:
                 debug_printf("op: =    ");
-                push(b);
+                push(b, TYPE_UNDEFINED);
                 b = get_next_token();
                 break;
             case T_L:
                 debug_printf("op: <    ");
                 insert_after_top_term(T_L);
-                push(b);
+                push(b, TYPE_UNDEFINED);
                 b = get_next_token();
                 break;
             case T_R:
@@ -502,6 +563,10 @@ int math_expr() {
                 if (result == SYNTAX_ERROR) {
                     debug_printf("\n");
                     return SYNTAX_ERROR;
+                }
+                else if (result == SEMANTIC_ERROR) {
+                    debug_printf("\n");
+                    return SEMANTIC_ERROR;
                 }
                 break;
             case T_N:

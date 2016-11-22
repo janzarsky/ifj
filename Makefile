@@ -1,4 +1,4 @@
-CFLAGS = -pedantic -Wall -Wextra -std=c99
+CFLAGS = -pedantic -Wall -Wextra -std=c99 -g
 SOURCES = $(filter-out parser_test.c expr_parser_test.c, $(wildcard *.c))
 OBJECTS = $(SOURCES:.c=.o)
 PROGRAMS = ifj parser_test expr_parser_test

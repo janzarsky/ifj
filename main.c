@@ -17,33 +17,67 @@
 #include "symtab.h"
 
 //DEBUG
-void test_symtab(symtab_t *symtab) {
-    st_print(symtab);
+void symtab_test()
+{
 
-    symtab_elem_t elem;
+   symtab_t *tabulka = NULL;
 
-    elem.id = "supervar";
-    elem.elem_type = ST_ELEMTYPE_VAR;
-    elem.data_type = ST_DATATYPE_INT;
-    elem.value.ival = 42;
-    st_insert(symtab, elem);
+   // INICIALIZACE TABULKY
 
-    elem.id = "doublevar";
-    elem.elem_type = ST_ELEMTYPE_VAR;
-    elem.data_type = ST_DATATYPE_DOUBLE;
-    elem.value.dval = 42.42e42;
-    st_insert(symtab, elem);
+   int inicializace = tableInit(&tabulka);
 
-    elem.id = "somestring";
-    elem.elem_type = ST_ELEMTYPE_VAR;
-    elem.data_type = ST_DATATYPE_STRING;
-    elem.value.strval = "asdf";
-    st_insert(symtab, elem);
+   if (inicializace == -1 ) {
+       printf("tableInit failed\n");
+       return;
+   }
 
-    st_print(symtab);
+   bool volno = tabulka->elements[496] == NULL;
+
+   if (volno == true)
+        printf("volno\n");
+
+   printf("PRIDAVANI SYMBOLU\n");
+
+   char *novySymbol = "Ahoj";
+
+   symbol_add(novySymbol, &tabulka);
+   printf("%s\n",tabulka->elements[498]->id);
+   volno =  tabulka->elements[498] == NULL;
+
+   if (volno == false)
+        printf("!volno\n");
+    else
+        printf("volno");
+
+   novySymbol = "Uz";
+   unsigned int klic = hash_function(novySymbol, TABLE_SIZE);
+   symbol_add(novySymbol, &tabulka);
+   printf("%s\n",tabulka->elements[klic]->id);
+   volno =  tabulka->elements[klic] == NULL;
+
+   novySymbol = "Ahoj";
+   klic = hash_function(novySymbol, TABLE_SIZE);
+   symbol_add(novySymbol, &tabulka);
+   printf("%s\n",tabulka->elements[klic]->nextElem->id);
+   volno =  tabulka->elements[klic]->nextElem == NULL;
+   if (volno == false)
+        printf("!volno\n");
+    else
+        printf("volno");
+
+    symtab_elem_t *find = symbol_find(novySymbol, tabulka);
+    printf("%s\n",find->id);
+    if (find == tabulka->elements[498]->nextElem)
+        printf("OK\n");
+
+    tableFree(tabulka);
+    printf("%p\n", (void *) tabulka);
 }
 
 int main(int argc, char** argv) {
+    symtab_test();
+/*
+
     if (argc != 2) {
         return 99;
     }
@@ -57,9 +91,6 @@ int main(int argc, char** argv) {
     // initialize table of symbols
     symtab_t *symtab = malloc(sizeof(symtab_t));
     st_init(symtab);
-
-    //DEBUG
-    test_symtab(symtab);
 
     tListOfInstr *ilist = malloc(sizeof(tListOfInstr));
     listInit(ilist);
@@ -75,6 +106,6 @@ int main(int argc, char** argv) {
     // free table of symbols
     // free instruction list
     fclose(source);
-
+*/
     return 0;
 }

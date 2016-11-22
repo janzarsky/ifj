@@ -184,6 +184,9 @@ int main(int __attribute__((unused)) argc, char __attribute__((unused)) **argv) 
             case SYNTAX_ERROR:
                 printf(" parser result: SYNTAX_ERROR\n");
                 break;
+            case SEMANTIC_ERROR:
+                printf(" parser result: SEMANTIC_ERROR\n");
+                break;
             default:
                 printf(" parser result: other\n");
         }

@@ -13,7 +13,7 @@ int parse(tListOfInstr * ilist, symtab_t * symtab , FILE* source) {
     strInit(&attr);
     
     do {
-        token = lexer(&attr);
+        token = get_next_token(&attr);
     
         fprintf(stderr, "DEBUG: got token %d, %s\n", token, attr.str);
     } while (token != END_OF_FILE && token != LEX_ERROR);
@@ -23,34 +23,34 @@ int parse(tListOfInstr * ilist, symtab_t * symtab , FILE* source) {
 /*
 int class_main(){ // parser pro povinnou tridu main
 
-     token = lexer(&attr);
+     token = get_next_token(&attr);
 
      switch (token){
 
      case CLASS:
 
-         if ((token = lexer(&attr)) == LEX_ERROR) return LEX_ERROR;
+         if ((token = get_next_token(&attr)) == LEX_ERROR) return LEX_ERROR;
          if (token != MAIN) return SYNTAX_ERROR; else                      // vstupnim bodem programu je povinna trida Main
          {
-             if ((token = lexer(&attr)) == LEX_ERROR) return LEX_ERROR;
+             if ((token = get_next_token(&attr)) == LEX_ERROR) return LEX_ERROR;
              if (token != LEFT_VINCULUM) return SYNTAX_ERROR; else        // jsme uvnitr mainu "class Main{"
              {
-                 if ((token = lexer(&attr)) == LEX_ERROR) return LEX_ERROR;
+                 if ((token = get_next_token(&attr)) == LEX_ERROR) return LEX_ERROR;
                  if (token != STATIC) return SYNTAX_ERROR; else       // musi nasledovat funkce run - > static void run
                  {
-                     if ((token = lexer(&attr)) == LEX_ERROR) return LEX_ERROR;
+                     if ((token = get_next_token(&attr)) == LEX_ERROR) return LEX_ERROR;
                      if (token != VOID) return SYNTAX_ERROR; else
                      {
-                         if ((token = lexer(&attr)) == LEX_ERROR) return LEX_ERROR;
+                         if ((token = get_next_token(&attr)) == LEX_ERROR) return LEX_ERROR;
                          if (token != RUN) return SYNTAX_ERROR; else
                          {
-                            if ((token = lexer(&attr)) == LEX_ERROR) return LEX_ERROR;
+                            if ((token = get_next_token(&attr)) == LEX_ERROR) return LEX_ERROR;
                             if (token != LEFT_BRACKET) return SYNTAX_ERROR; else
                             {
-                                if ((token = lexer(&attr)) == LEX_ERROR) return LEX_ERROR;
+                                if ((token = get_next_token(&attr)) == LEX_ERROR) return LEX_ERROR;
                                 if (token != RIGHT_BRACKET) return SYNTAX_ERROR; else
                                 {
-                                    if ((token = lexer(&attr)) == LEX_ERROR) return LEX_ERROR;
+                                    if ((token = get_next_token(&attr)) == LEX_ERROR) return LEX_ERROR;
                                     if (token != LEFT_VINCULUM) return SYNTAX_ERROR; else       // jsme uvnitr fce run -> " class Main{ static void run(){ " muze zacit zbytek programu
                                     {
                                         main_body();
@@ -73,7 +73,7 @@ int class_main(){ // parser pro povinnou tridu main
 
 int class_body(){
 
-token = lexer(&attr);
+token = get_next_token(&attr);
 
 switch (token){
 
@@ -81,12 +81,12 @@ case CLASS: return SYNTAX_ERROR; // pokus o deklarovani tridy uvnitr tridy
 
 case INT: // nasleduje deklarovani promenne typu int
 
-    if ((token = lexer(&attr)) == LEX_ERROR) return LEX_ERROR;
+    if ((token = get_next_token(&attr)) == LEX_ERROR) return LEX_ERROR;
     if (token != ID) return SYNTAX_ERROR; else
     {
        tableInsert(blablabla); // vloz identifikator do tabulky symbolu a podivej se, jestli uz takovy v ramci jedne tridy/fce neexistuje, DOPLNIT!!!!!
 
-       if ((token = lexer(&attr)) == LEX_ERROR) return LEX_ERROR;
+       if ((token = get_next_token(&attr)) == LEX_ERROR) return LEX_ERROR;
        if (token != SEMICOLON && token != EQUAL) return SYNTAX_ERROR; else
 
        {
@@ -103,12 +103,12 @@ break; // konec case INT
 
 case STRING: // podobne jako u int
 
-    if ((token = lexer(&attr)) == LEX_ERROR) return LEX_ERROR;
+    if ((token = get_next_token(&attr)) == LEX_ERROR) return LEX_ERROR;
     if (token != ID) return SYNTAX_ERROR; else
     {
        tableInsert(blablabla); // vloz identifikator do tabulky symbolu a podivej se, jestli uz takovy v ramci jedne tridy/fce neexistuje, DOPLNIT!!!!!
 
-       if ((token = lexer(&attr)) == LEX_ERROR) return LEX_ERROR;
+       if ((token = get_next_token(&attr)) == LEX_ERROR) return LEX_ERROR;
        if (token != SEMICOLON && token != EQUAL) return SYNTAX_ERROR; else
 
        {
@@ -123,12 +123,12 @@ break; // konec case STRING
 
 case DOUBLE:
 
-    if ((token = lexer(&attr)) == LEX_ERROR) return LEX_ERROR;
+    if ((token = get_next_token(&attr)) == LEX_ERROR) return LEX_ERROR;
     if (token != ID) return SYNTAX_ERROR; else
     {
        tableInsert(blablabla); // vloz identifikator do tabulky symbolu a podivej se, jestli uz takovy v ramci jedne tridy/fce neexistuje, DOPLNIT!!!!!
 
-       if ((token = lexer(&attr)) == LEX_ERROR) return LEX_ERROR;
+       if ((token = get_next_token(&attr)) == LEX_ERROR) return LEX_ERROR;
        if (token != SEMICOLON && token != EQUAL) return SYNTAX_ERROR; else
 
        {

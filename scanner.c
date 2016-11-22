@@ -14,7 +14,7 @@ void setSourceFile(FILE *f)
   source = f;
 }
 
-int lexer(string *buffer){
+int get_next_token(string *buffer){
 
     int state = 0; // stav automatu
     int c; // promenna pro znak

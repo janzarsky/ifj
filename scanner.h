@@ -70,6 +70,6 @@
 
 //hlavicka funkce simulujici lexikalni analyzator
 void setSourceFile(FILE *f);
-int lexer(string *buffer);
+int get_next_token(string *buffer);
 
 #endif
