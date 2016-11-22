@@ -1,17 +1,10 @@
 //KNIHOVNA PRO ZPRACOVANI RETEZCU
 
-// prevzata z ukazkoveho projektu "Zjednodušená implementace interpretu jednoduchého jazyka", zatim beze zmeny 
+// prevzata z ukazkoveho projektu "Zjednodušená implementace interpretu jednoduchého jazyka", zatim beze zmeny
 
 #include <string.h>
 #include <malloc.h>
-#include "string.h"
-
-typedef struct string_struct
-{
-  char* str;		// misto pro dany retezec ukonceny znakem '\0'
-  int length;		// skutecna delka retezce
-  int allocSize;	// velikost alokovane pameti
-} string;
+#include "symtab.h"
 
 #define STR_LEN_INC 8
 // konstanta STR_LEN_INC udava, na kolik bytu provedeme pocatecni alokaci pameti
@@ -100,3 +93,4 @@ int strGetLength(string *s)
 {
    return s->length;
 }
+
