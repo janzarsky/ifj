@@ -518,7 +518,10 @@ void print_instr_list() {
 
 extern int get_next_token();
 
-int math_expr() {
+#define SEMICOLON_TERMINATED 1
+#define RIGHT_BRACKET_TERMINATED 2
+
+int expr(int terminator) {
     int b, result;
 
     listInit(&instr_list);
@@ -536,11 +539,12 @@ int math_expr() {
         printf("    input: ");
         print_symbol_aligned(b);
 #endif
-        if (b == SEMICOLON) {
+        if (terminator == SEMICOLON_TERMINATED && b == SEMICOLON) {
             debug_printf(", ");
             b = END_OF_FILE;
         }
-        else if (b == RIGHT_BRACKET && top_term() == END_OF_FILE) {
+        else if (terminator == RIGHT_BRACKET_TERMINATED
+            && b == RIGHT_BRACKET && top_term() == END_OF_FILE) {
             debug_printf("\n");
             break;
         }
@@ -596,6 +600,9 @@ int math_expr() {
 }
 
 int bool_expr() {
-    return math_expr();
+    return expr(RIGHT_BRACKET_TERMINATED);
 }
 
+int math_expr() {
+    return expr(SEMICOLON_TERMINATED);
+}
