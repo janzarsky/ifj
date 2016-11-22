@@ -1,6 +1,6 @@
 //KNIHOVNA PRO ZPRACOVANI RETEZCU
 
-// prevzata z ukazkoveho projektu "Zjednodušená implementace interpretu jednoduchého jazyka", zatim beze zmeny 
+// prevzata z ukazkoveho projektu "Zjednodušená implementace interpretu jednoduchého jazyka", zatim beze zmeny
 
 #include <string.h>
 #include <malloc.h>
@@ -93,3 +93,4 @@ int strGetLength(string *s)
 {
    return s->length;
 }
+
