@@ -24,19 +24,23 @@ typedef union {
     char *strval;
 } st_value_t;
 
-typedef struct symtab_elem_t{
+typedef struct symtab_t symtab_t;
+
+typedef struct symtab_elem_t {
     char *id;
     st_elemtype_t elem_type;
     st_datatype_t data_type;
     st_value_t value;
+    bool declared;
+    bool initialized;
+    symtab_t *local_table;
     struct symtab_elem_t *nextElem;
-    bool free;
 } symtab_elem_t;
 
-typedef struct {
+struct symtab_t{
     symtab_elem_t *elements[TABLE_SIZE];
     size_t size;
-} symtab_t;
+};
 
 unsigned int hash_function(const char *str, unsigned htab_size);
 void symbol_init(symtab_t **I, int idx);
