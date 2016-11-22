@@ -4,7 +4,6 @@
 #include <stdbool.h>
 
 #include "symtab.h"
-#include "string.h"
 
 unsigned int hash_function(const char *str, unsigned htab_size) {
     unsigned int h = 0;

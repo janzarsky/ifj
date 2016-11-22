@@ -2,7 +2,6 @@
 #define _SYMTAB_H
 
 #include <stdbool.h>
-#include "string.h"
 
 #define TABLE_SIZE 1000
 
