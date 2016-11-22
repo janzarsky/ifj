@@ -24,7 +24,7 @@ void symtab_test()
 
    // INICIALIZACE TABULKY
 
-   int inicializace = tableInit(&tabulka);
+   int inicializace = st_init(&tabulka);
 
    if (inicializace == -1 ) {
        printf("tableInit failed\n");
@@ -40,7 +40,7 @@ void symtab_test()
 
    char *novySymbol = "Ahoj";
 
-   symbol_add(novySymbol, &tabulka);
+   st_add(tabulka, novySymbol);
    printf("%s\n",tabulka->elements[498]->id);
    volno =  tabulka->elements[498] == NULL;
 
@@ -51,13 +51,13 @@ void symtab_test()
 
    novySymbol = "Uz";
    unsigned int klic = hash_function(novySymbol, TABLE_SIZE);
-   symbol_add(novySymbol, &tabulka);
+   st_add(tabulka, novySymbol);
    printf("%s\n",tabulka->elements[klic]->id);
    volno =  tabulka->elements[klic] == NULL;
 
    novySymbol = "Ahoj";
    klic = hash_function(novySymbol, TABLE_SIZE);
-   symbol_add(novySymbol, &tabulka);
+   st_add(tabulka, novySymbol);
    printf("%s\n",tabulka->elements[klic]->nextElem->id);
    volno =  tabulka->elements[klic]->nextElem == NULL;
    if (volno == false)
@@ -65,12 +65,12 @@ void symtab_test()
     else
         printf("volno");
 
-    symtab_elem_t *find = symbol_find(novySymbol, tabulka);
+    symtab_elem_t *find = st_find(tabulka, novySymbol);
     printf("%s\n",find->id);
     if (find == tabulka->elements[498]->nextElem)
         printf("OK\n");
 
-    tableFree(tabulka);
+    st_free(tabulka);
     printf("%p\n", (void *) tabulka);
 }
 

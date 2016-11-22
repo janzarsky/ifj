@@ -44,12 +44,9 @@ struct symtab_t{
 
 unsigned int hash_function(const char *str, unsigned htab_size);
 void symbol_init(symtab_t **I, int idx);
-int tableInit(symtab_t **T);
-void symbol_add(char *token, symtab_t **tabulka);
-symtab_elem_t *symbol_find (char *token, symtab_t *tabulka);
-void symbol_actualize (symtab_t *T, char *ident);
-void tableFree(symtab_t *T);
-void st_insert(symtab_t *st, symtab_elem_t elem);
 
-void st_print(symtab_t *st);
+int st_init(symtab_t **table);
+void st_add(symtab_t *table, char *token);
+symtab_elem_t *st_find (symtab_t *table, char *token);
+void st_free(symtab_t *table);
 #endif
