@@ -3,7 +3,7 @@ SOURCES = $(filter-out parser_test.c expr_parser_test.c, $(wildcard *.c))
 OBJECTS = $(SOURCES:.c=.o)
 PROGRAMS = ifj parser_test expr_parser_test
 
-all: parser_test expr_parser_test ifj
+all: expr_parser_test ifj parser_test
 
 parser_test: parser_test.c expr_parser.c instrlist.c
 	gcc $(CFLAGS) $^ -o $@
