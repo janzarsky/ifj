@@ -2,6 +2,7 @@
 #include "parser_test.h"
 #include "instrlist.h"
 #include "expr_parser.h"
+#include "string.h"
 
 /*void generateInstruction(int instType, void *addr1, void *addr2, void *addr3)
 // vlozi novou instrukci do seznamu instrukci
@@ -15,16 +16,17 @@
 }*/
 
 //		1) <prog> 	   -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM
-// int statement[] = {CLASS, MAIN, LEFT_VINCULUM, STATIC, VOID, RUN, LEFT_BRACKET, RIGHT_BRACKET, LEFT_VINCULUM, RIGHT_VINCULUM, RIGHT_VINCULUM, END_STATEMENT}; 
+// int statement[] = {CLASS, MAIN, LEFT_VINCULUM, STATIC, VOID, RUN, LEFT_BRACKET, RIGHT_BRACKET, LEFT_VINCULUM, RIGHT_VINCULUM, RIGHT_VINCULUM, END_OF_FILE}; 
 
 		// 2) <prog>      -> CLASS ID LEFT_VINCULUM <class-dec>  // declaration of clas
-// int statement[] = {CLASS, ID, LEFT_VINCULUM,STATIC, INT, ID , LEFT_BRACKET, INT, ID, COMMA, DOUBLE, ID,COMMA,STRING,ID, RIGHT_BRACKET, LEFT_VINCULUM, RIGHT_VINCULUM, RIGHT_VINCULUM, END_STATEMENT}; 
+// int statement[] = {CLASS, ID, LEFT_VINCULUM,STATIC, INT, ID , LEFT_BRACKET, INT, ID, COMMA, DOUBLE, ID,COMMA,STRING,ID, RIGHT_BRACKET, LEFT_VINCULUM, RIGHT_VINCULUM, RIGHT_VINCULUM, END_OF_FILE}; 
 int statement[] = {CLASS, ID, LEFT_VINCULUM,STATIC, INT, ID, EQUAL, ID, LEFT_BRACKET, ID,COMMA, STRING_LITERAL, RIGHT_BRACKET,  SEMICOLON, RIGHT_VINCULUM, END_STATEMENT}; 
 
 		// 3) <prog>      -> STATIC [INT/DOUBLE/SRING/VOID] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>
-// int statement[] = { STATIC, INT, ID , LEFT_BRACKET, INT, ID, COMMA, DOUBLE, ID,COMMA,STRING,ID, RIGHT_BRACKET, LEFT_VINCULUM, RIGHT_VINCULUM, END_STATEMENT}; 
+// int statement[] = { STATIC, INT, ID , LEFT_BRACKET, INT, ID, COMMA, DOUBLE, ID,COMMA,STRING,ID, RIGHT_BRACKET, LEFT_VINCULUM, RIGHT_VINCULUM, END_OF_FILE}; 
 
 int token;
+string *tokken_data;
 
 int return_args();
 int statement_list();
@@ -45,9 +47,12 @@ int get_next_token(){
 		return END_STATEMENT;
 }
 
-// 1) <prog> -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM
-// 2) <prog> -> CLASS ID LEFT_VINCULUM <class-dec> // declaration of clas
-// 3) <prog> -> STATIC [INT/DOUBLE/STRING/VOID] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>	//declaration and initialization of function
+
+
+// 1) <prog>  -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM <prog>
+// 2) <prog>  -> CLASS ID LEFT_VINCULUM <class-dec> <prog> // declaration of class
+//-- 3) <prog> -> STATIC [INT/DOUBLE/STRING/VOID] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>	//declaration and initialization of function
+// 3) <prog>  -> END_OF_FILE
 int program(){
 	int result;
 	if ( (token = get_next_token()) == LEX_ERROR )
@@ -57,7 +62,7 @@ int program(){
 			if ( (token = get_next_token()) == LEX_ERROR )
 				return LEX_ERROR;
 			switch(token){
-// 1) <prog> 	   -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM
+// 1) <prog>  -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM <prog>
 				case MAIN:
 						if ( (token = get_next_token()) != LEX_ERROR  && token == LEFT_VINCULUM)
 							 if ( (token = get_next_token()) != LEX_ERROR && token == STATIC)
@@ -69,20 +74,28 @@ int program(){
 											 		if( (result = statement_list()) != SYNTAX_OK)
 											 			return result;
 											 		else
-													 	if ( (token = get_next_token()) != LEX_ERROR && token == RIGHT_VINCULUM)
-														 	if ( (token = get_next_token()) != LEX_ERROR && token == END_STATEMENT)
+													 	if ( (token = get_next_token()) != LEX_ERROR && token == RIGHT_VINCULUM){
+													 		if( (result = program()) != SYNTAX_OK)
+													 			return result;
+													 		else
 														 		return SYNTAX_OK;
+														}	 	
 												}
 						if(token == LEX_ERROR)
 							return LEX_ERROR;						
 						return SYNTAX_ERROR;
 						break;	
-// 2) <prog>      -> CLASS ID LEFT_VINCULUM <class-dec> // declaration of class						
+// 2) <prog>  -> CLASS ID LEFT_VINCULUM <class-dec> <prog> // declaration of class
 				case ID: 
+
+						//FIXME add insert to symTable
+
 						if ( (token = get_next_token()) != LEX_ERROR  && token == LEFT_VINCULUM){
 					 		if( (result = class_dec()) != SYNTAX_OK)
 					 			return result;
-							if ( (token = get_next_token()) != LEX_ERROR  && token == END_STATEMENT)
+					 		if( (result = program()) != SYNTAX_OK)
+					 			return result;
+					 		else
 								return SYNTAX_OK;
 						}
 						if(token == LEX_ERROR)
@@ -92,7 +105,7 @@ int program(){
 			}
 			return SYNTAX_ERROR;
 // 3) <prog>      -> STATIC [INT/DOUBLE/STRING/VOID] ID LEFT_BRACKET <func_params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>
-		case STATIC:
+		/*case STATIC:
 			if ( (token = get_next_token()) != LEX_ERROR  && (token == VOID || token == INT || token == DOUBLE || token == STRING) )
 				if ( (token = get_next_token()) != LEX_ERROR  && token == ID)
 					if ( (token = get_next_token()) != LEX_ERROR  && token == LEFT_BRACKET){
@@ -109,7 +122,10 @@ int program(){
 			if(token == LEX_ERROR)
 				return LEX_ERROR;
 			return SYNTAX_ERROR;
-			break;	
+			break;*/
+//	3) <prog>      -> END_OF_FILE	
+		case END_OF_FILE:	
+			return SYNTAX_OK;
 	}
 	return SYNTAX_ERROR;
 }
@@ -184,6 +200,9 @@ int statement_list(){
 		case STATIC:
 			if ( (token = get_next_token()) != LEX_ERROR && (token == INT || token == DOUBLE || token == STRING) )
 				if ( (token = get_next_token()) != LEX_ERROR && token == ID)
+
+						//FIXME add insert to symTab
+
 					if ( (token = get_next_token()) != LEX_ERROR && token == EQUAL){
 						if ( (result = equal()) != SYNTAX_OK)
 							return result;
@@ -200,6 +219,9 @@ int statement_list(){
 		case DOUBLE:
 		case STRING:
 			if ( (token = get_next_token()) != LEX_ERROR && token == ID)
+
+						//FIXME add insert to symTab
+
 				if ( (token = get_next_token()) != LEX_ERROR && token == EQUAL){
 					if ( (result = equal()) != SYNTAX_OK)
 						return result;
@@ -239,6 +261,9 @@ int func_params(){
 		case INT:
 		case DOUBLE:
 		case STRING:
+
+						//FIXME add insert to symTab
+
 			if ( (token = get_next_token()) != LEX_ERROR && token == ID){
 				if ( (result = func_params_list()) != SYNTAX_OK)
 					return result;
@@ -266,6 +291,9 @@ int func_params_list(){
 		case COMMA:
 			if ( (token = get_next_token()) != LEX_ERROR && (token == INT || token == DOUBLE || token == STRING))
 				if ( (token = get_next_token()) != LEX_ERROR && token == ID){
+
+					//FIXME add insert to symTable to function parameters
+
 					if ( (result = func_params_list()) != SYNTAX_OK)
 						return result;
 					else return SYNTAX_OK;
@@ -288,6 +316,9 @@ int func_var(){
 	switch(token){
 // 1) LEFT_BRACKET <func-args> SEMICOLON //its function call	
 		case LEFT_BRACKET:
+
+			//FIXME add insert to symTable
+
 			if ( (result = func_args()) != SYNTAX_OK)
 				return result;
 			if ( (token = get_next_token()) != LEX_ERROR && token == SEMICOLON)
@@ -298,6 +329,9 @@ int func_var(){
 			break;
 // 2) EQUAL <equal> //its inicialization of var			
 		case EQUAL:
+
+			//FIXME add insert to symTable
+
 			if ( (result = equal()) != SYNTAX_OK)
 				return result;
 			else return SYNTAX_OK;
@@ -308,8 +342,8 @@ int func_var(){
 
 // <return-args>
 // 		1) <return-args> -> SEMICOLON (ONLY if we in VOID function)
-// 		2) <return-args> -> ID SEMICOLON
-// 		3) <return-args> -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON
+//-- 		2) <return-args> -> ID SEMICOLON
+//-- 		3) <return-args> -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON
 // 		4) <return-args> -> <math-expr> SEMICOLON
 int return_args(){
 	int result;
@@ -318,34 +352,51 @@ int return_args(){
 	switch(token){
 // 1) <return-args> -> SEMICOLON (ONLY if we in VOID function)		
 		case SEMICOLON:
+
+			//FIXME check if we are in VOID function
+
 			return SYNTAX_OK;
 			break;
-// 2) <return-args> -> ID SEMICOLON			
-		case ID:
-			if ( (token = get_next_token()) != LEX_ERROR && token == SEMICOLON)
-				return SYNTAX_OK;
-			if(token == LEX_ERROR)
-				return LEX_ERROR;
-			return SYNTAX_ERROR;	
-			break;
-// 3) <return-args> -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON			
-		case INT_LITERAL:
-		case DOUBLE_LITERAL:
-		case STRING_LITERAL:
-			if ( (token = get_next_token()) != LEX_ERROR && token == SEMICOLON)
-				return SYNTAX_OK;
-			if(token == LEX_ERROR)
-				return LEX_ERROR;
-			return SYNTAX_ERROR;	
-			break;
-		// case <math-expr>                    //FIXME
+// // 2) <return-args> -> ID SEMICOLON			
+// 		case ID:
+// 			if ( (token = get_next_token()) != LEX_ERROR && token == SEMICOLON)
+// 				return SYNTAX_OK;
+// 			if(token == LEX_ERROR)
+// 				return LEX_ERROR;
+// 			return SYNTAX_ERROR;	
+// 			break;
+// // 3) <return-args> -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON			
+// 		case INT_LITERAL:
+// 		case DOUBLE_LITERAL:
+// 		case STRING_LITERAL:
+// 			if ( (token = get_next_token()) != LEX_ERROR && token == SEMICOLON)
+// 				return SYNTAX_OK;
+// 			if(token == LEX_ERROR)
+// 				return LEX_ERROR;
+// 			return SYNTAX_ERROR;	
+// 			break;
+		default:
+			return_token();
+			if( (result = math_expr()) == SYNTAX_OK){
+
+				//FIXME insert to symbol table
+				//FIXME check function return type
+
+				if(token == SEMICOLON)
+					return SYNTAX_OK;
+				else 
+					return SYNTAX_ERROR;
+			}
+			else{
+				return result;
+			}
 	}
 	return SYNTAX_ERROR;
 }
 
 
 // <equal>	
-// 		1) <equal>	   -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON
+//-- 		1) <equal>	   -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON
 // 		2) <equal>	   -> ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) SEMICOLON 
 // 		3) <equal>	   -> ID [SEMICOLON/EQUAL <equal>]
 // 		4) <equal>	   -> <math-expr> SEMICOLON
@@ -354,7 +405,7 @@ int equal(){
 	if ( (token = get_next_token()) == LEX_ERROR )
 		return LEX_ERROR;
 	switch(token){
-		case INT_LITERAL:
+		/*case INT_LITERAL:
 		case DOUBLE_LITERAL:
 		case STRING_LITERAL:
 			if ( (token = get_next_token()) != LEX_ERROR && token == SEMICOLON)
@@ -362,13 +413,16 @@ int equal(){
 			if(token == LEX_ERROR)
 				return LEX_ERROR;
 			return SYNTAX_ERROR;	
-			break;
+			break;*/
 		case ID:
 			if ( (token = get_next_token()) == LEX_ERROR )
 				return LEX_ERROR;
 			switch(token){
-// 2) <equal>	   -> ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) SEMICOLON 				
-				case LEFT_BRACKET:
+// 2) <equal>	   -> ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) SEMICOLON //function call			
+				case LEFT_BRACKET: 
+
+						//FIXME add insert function to symTab 
+
 					if ( (result = func_args()) != SYNTAX_OK)
 						return result;
 					if ( (token = get_next_token()) != LEX_ERROR && token == SEMICOLON)
@@ -379,17 +433,36 @@ int equal(){
 					break;
 // 3) <equal>	   -> ID SEMICOLON					
 				case SEMICOLON:
+
+						//FIXME add insert var to symTab
+
 					return SYNTAX_OK;
 					break;
 // 3) <equal>	   -> ID EQUAL <equal>					
 				case EQUAL:	
+
+						//FIXME add insert var to symTab
+
 					if ( (result = equal()) != SYNTAX_OK)
 						return result;
 					else return SYNTAX_OK;
 					break;
+				default:
+					return_token();
+					if( (result = math_expr()) == SYNTAX_OK){
+
+						//FIXME insert to symbol table
+
+						if(token == SEMICOLON)
+							return SYNTAX_OK;
+						else 
+							return SYNTAX_ERROR;
+					}
+					else{
+						return result;
+					}	
 			}
 			return SYNTAX_ERROR;
-		// case <math-expr>                       //FIXME
 	}
 	return SYNTAX_ERROR;
 }
@@ -409,6 +482,9 @@ int func_args(){
 		case INT_LITERAL:
 		case DOUBLE_LITERAL:
 		case STRING_LITERAL:
+
+		//FIXME function arguments
+
 			if ( (result = func_args_list()) != SYNTAX_OK)
 				return result;
 			else return SYNTAX_OK;
@@ -421,6 +497,9 @@ int func_args(){
 // 		1) <func-args-list> -> RIGHT_BRACKET
 // 		2) <func-args-list> -> COMMA [ID/INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] <func-args-list>
 int func_args_list(){
+
+	//FIXME function arguments
+
 	int result;
 	if ( (token = get_next_token()) == LEX_ERROR )
 		return LEX_ERROR;
@@ -446,7 +525,7 @@ int func_args_list(){
 
 // <class-dec>
 // 		1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID \
-//               [SEMICOLON/ EQ <equal>/LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>] <class-dec>
+//               [SEMICOLON/ EQUAL <equal>/LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>] <class-dec>
 // 		2) <class-dec> -> RIGHT_VINCULUM
 // 		3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>
 int class_dec(){
@@ -462,6 +541,9 @@ int class_dec(){
 				case DOUBLE:
 				case STRING:
 					if ( (token = get_next_token()) != LEX_ERROR && token == ID){
+
+						//FIXME add insert to symTab
+
 						if ( (token = get_next_token()) == LEX_ERROR )
 							return LEX_ERROR;
 						switch(token){
@@ -471,7 +553,7 @@ int class_dec(){
 									return result;
 								else return SYNTAX_OK;
 								break;
-// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID  EQ <equal> <class-dec>								
+// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID  EQUAL <equal> <class-dec>								
 							case EQUAL:
 								if ( (result = equal()) != SYNTAX_OK)
 									return result;
@@ -504,6 +586,9 @@ int class_dec(){
 // 3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>					
 				case VOID:
 					if ( (token = get_next_token()) != LEX_ERROR && token == ID)
+
+						//FIXME add insert to symTab
+
 						if ( (token = get_next_token()) != LEX_ERROR && token == LEFT_BRACKET){
 							if ( (result = func_params()) != SYNTAX_OK)
 								return result;
@@ -531,6 +616,11 @@ int class_dec(){
 }
 
 int main(int argc, char ** argv){
+	int result;
+	if( (result = strInit(tokken_data)) != STR_SUCCESS){
+		printf("String allocation error\n");
+		return result;
+	}
 	printf("**************************************************************************\n");
 	printf("\t100 - SYNTAX_OK\n\t99  - SYNTAX_ERROR\n\t98  - LEX_ERROR\n");
 	printf("**************************************************************************\n");
