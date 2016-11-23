@@ -64,13 +64,13 @@ void print_instr(tInstr *instr) {
             printf("MUL"); break;
         case IN_DIV:
             printf("DIV"); break;
-        case IN_FADD:
+        case IN_F_ADD:
             printf("FADD"); break;
-        case IN_FSUB:
+        case IN_F_SUB:
             printf("FSUB"); break;
-        case IN_FMUL:
+        case IN_F_MUL:
             printf("FMUL"); break;
-        case IN_FDIV:
+        case IN_F_DIV:
             printf("FDIV"); break;
         case IN_PUSH:
             printf("PUSH"); break;

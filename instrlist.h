@@ -75,10 +75,10 @@
 #define IN_SUB          1
 #define IN_MUL          2
 #define IN_DIV          3
-#define IN_FADD         4   // operace pro double
-#define IN_FSUB         5
-#define IN_FMUL         6
-#define IN_FDIV         7
+#define IN_F_ADD        4   // operace pro double
+#define IN_F_SUB        5
+#define IN_F_MUL        6
+#define IN_F_DIV        7
 #define IN_PUSH         8   // vloz na zasobnik
 #define IN_CONV         9   // preved vrchol zasobniku z int na double
 #define IN_SWAP         10  // vymen horni dva prvky zasobniku
