@@ -7,9 +7,10 @@ non-terminaly: <prog> <st-list> <equal> <func-var> <func-args> <func-args-list> 
 
 rules:  
 	<prog>	
-		1) <prog> 	   -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM
-		2) <prog>      -> CLASS ID LEFT_VINCULUM <class-dec> // declaration of clas
-		3) <prog>      -> STATIC [INT/DOUBLE/STRING/VOID] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>	//declaration and initialization of function
+		1) <prog> 	   -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM <prog>
+		2) <prog>      -> CLASS ID LEFT_VINCULUM <class-dec> <prog> // declaration of class
+		3) <prog>      -> EOF
+///		3) <prog>      -> STATIC [INT/DOUBLE/STRING/VOID] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>	//declaration and 			                initialization of function
 	
 	<class-dec>
 		1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID \
@@ -31,7 +32,7 @@ rules:
 		2) <func-var>  ->EQUAL <equal> //its inicialization of var
 
 	<equal>	
-		1) <equal>	   -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON //inicialization on const
+///		1) <equal>	   -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON //inicialization on const 
 		2) <equal>	   -> ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) SEMICOLON //inicialization on statement
 		3) <equal>	   -> ID [SEMICOLON/EQUAL <equal>] //inicialization on variable
 		4) <equal>	   -> <math-expr> SEMICOLON//mathematic expression
@@ -54,13 +55,12 @@ rules:
 
 	<return-args>
 		1) <return-args> -> SEMICOLON (ONLY if we in VOID function)
-		2) <return-args> -> ID SEMICOLON
-		3) <return-args> -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON
+///		2) <return-args> -> ID SEMICOLON
+///		3) <return-args> -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON
 		4) <return-args> -> <math-expr> SEMICOLON
 
-	<math-expr>
+/*	<math-expr>
 		1) <math-expr> -> <bool-expr>(will return only true or false)
 		2) <math-expr> ->  SMTH like x+4*2/1+0+(2+4)/5 ... //FIXME
 	
-	<bool-expr>
-		1)
+	<bool-expr> */
