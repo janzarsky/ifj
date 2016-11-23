@@ -25,7 +25,7 @@ typedef struct {
 #define SE SEMANTIC_ERROR
 #define OK SYNTAX_OK
 
-#define NUM_TESTS 120
+#define NUM_TESTS 150
 
 #define T_BOOL 1
 #define T_MATH 2
@@ -133,6 +133,13 @@ test_case_t tests[NUM_TESTS] = {
     { T_BOOL, TYPE_ERROR,  "str >= str )",   SE, { STRING_LITERAL, GREAT_EQ, STRING_LITERAL, RIGHT_BRACKET } },
     { T_BOOL, TYPE_ERROR,  "str == str )",   SE, { STRING_LITERAL, EQUAL, STRING_LITERAL, RIGHT_BRACKET } },
     { T_BOOL, TYPE_ERROR,  "str != str )",   SE, { STRING_LITERAL, N_EQUAL, STRING_LITERAL, RIGHT_BRACKET } },
+
+    { T_BOOL, TYPE_BOOL,   "int < dbl )",    OK, { INT_LITERAL, LESS, DOUBLE_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "dbl > int )",    OK, { DOUBLE_LITERAL, GREAT, INT_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "int <= dbl )",   OK, { INT_LITERAL, LESS_EQ, DOUBLE_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "dbl >= int )",   OK, { DOUBLE_LITERAL, GREAT_EQ, INT_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "int == dbl )",   OK, { INT_LITERAL, EQUAL, DOUBLE_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "dbl != int )",   OK, { DOUBLE_LITERAL, N_EQUAL, INT_LITERAL, RIGHT_BRACKET } },
 
     { T_BOOL, TYPE_ERROR,  ")",              SE, { RIGHT_BRACKET } },
     { T_MATH, TYPE_ERROR,  ";",              SY, { SEMICOLON } },

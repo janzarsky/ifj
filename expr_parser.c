@@ -80,6 +80,30 @@ void print_instr(tInstr *instr) {
             printf("SWAP"); break;
         case IN_CONCAT:
             printf("CONCAT"); break;
+        case IN_LESS:
+            printf("LESS"); break;
+        case IN_GREAT:
+            printf("GREAT"); break;
+        case IN_LESS_EQ:
+            printf("LES_EQ"); break;
+        case IN_GREAT_EQ:
+            printf("GREAT_EQ"); break;
+        case IN_EQ:
+            printf("EQ"); break;
+        case IN_N_EQ:
+            printf("N_EQ"); break;
+        case IN_F_LESS:
+            printf("F_LESS"); break;
+        case IN_F_GREAT:
+            printf("F_GREAT"); break;
+        case IN_F_LESS_EQ:
+            printf("F_LES_EQ"); break;
+        case IN_F_GREAT_EQ:
+            printf("F_GREAT_EQ"); break;
+        case IN_F_EQ:
+            printf("F_EQ"); break;
+        case IN_F_N_EQ:
+            printf("F_N_EQ"); break;
         default:
             printf("%d", instr->instType);
     }
@@ -387,7 +411,7 @@ int execute_rule(int num, int symbol, int type) {
     return SYNTAX_OK;
 }
 
-int check_type_arithmetic() {
+int check_and_convert_numeric_types() {
     int type1 = stack.top->type;
     int type2 = stack.top->next->next->type;
 
@@ -412,53 +436,21 @@ int check_type_arithmetic() {
     return TYPE_ERROR;
 }
 
-int check_type_add() {
-    int type = check_type_arithmetic();
+int check_type_arithmetic(int instr) {
+    int type = check_and_convert_numeric_types();
 
     if (type == TYPE_INT) {
-        add_instr(IN_ADD, NULL, NULL, NULL);
+        add_instr(instr, NULL, NULL, NULL);
     }
     else if (type == TYPE_DOUBLE) {
-        add_instr(IN_FADD, NULL, NULL, NULL);
+        add_instr(instr + F_ARITH_OFFSET, NULL, NULL, NULL);
     }
-    else if ((stack.top->type == TYPE_STRING) &&
+    else if (instr == IN_ADD &&
+             (stack.top->type == TYPE_STRING) &&
              (stack.top->next->next->type == TYPE_STRING)) {
         type = TYPE_STRING;
         add_instr(IN_CONCAT, NULL, NULL, NULL);
     }
-
-    return type;
-}
-
-int check_type_minus() {
-    int type = check_type_arithmetic();
-
-    if (type == TYPE_INT)
-        add_instr(IN_SUB, NULL, NULL, NULL);
-    else if (type == TYPE_DOUBLE)
-        add_instr(IN_FSUB, NULL, NULL, NULL);
-
-    return type;
-}
-
-int check_type_mul() {
-    int type = check_type_arithmetic();
-
-    if (type == TYPE_INT)
-        add_instr(IN_MUL, NULL, NULL, NULL);
-    else if (type == TYPE_DOUBLE)
-        add_instr(IN_FMUL, NULL, NULL, NULL);
-
-    return type;
-}
-
-int check_type_div() {
-    int type = check_type_arithmetic();
-
-    if (type == TYPE_INT)
-        add_instr(IN_DIV, NULL, NULL, NULL);
-    else if (type == TYPE_DOUBLE)
-        add_instr(IN_FDIV, NULL, NULL, NULL);
 
     return type;
 }
@@ -472,15 +464,19 @@ int check_type_id() {
     return TYPE_INT;
 }
 
-int check_type_rel() {
-    int type1 = stack.top->type;
-    int type2 = stack.top->next->next->type;
+int check_type_rel(int instr) {
+    int type = check_and_convert_numeric_types();
 
-    if (((type1 == TYPE_INT) || (type1 == TYPE_DOUBLE))
-        && ((type2 == TYPE_INT) || (type2 == TYPE_DOUBLE)))
-        return TYPE_BOOL;
-    else
-        return TYPE_ERROR;
+    if (type == TYPE_INT) {
+        type = TYPE_BOOL;
+        add_instr(instr, NULL, NULL, NULL);
+    }
+    else if (type == TYPE_DOUBLE) {
+        type = TYPE_BOOL;
+        add_instr(instr + F_REL_OFFSET, NULL, NULL, NULL);
+    }
+    
+    return type;
 }
 
 int rules() {
@@ -488,79 +484,79 @@ int rules() {
 
     if (check_rule(3, NT_EXPR, PLUS, NT_EXPR)) {
         debug_printf("rule: E -> E + E  ");
-        type = check_type_add();
+        type = check_type_arithmetic(IN_ADD);
         result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, MINUS, NT_EXPR)) {
         debug_printf("rule: E -> E - E  ");
-        type = check_type_minus();
+        type = check_type_arithmetic(IN_SUB);
         result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, MUL, NT_EXPR)) {
         debug_printf("rule: E -> E * E  ");
-        type = check_type_mul();
+        type = check_type_arithmetic(IN_MUL);
         result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, DIV, NT_EXPR)) {
         debug_printf("rule: E -> E / E  ");
-        type = check_type_div();
+        type = check_type_arithmetic(IN_DIV);
         result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, LEFT_BRACKET, NT_EXPR, RIGHT_BRACKET)) {
+        debug_printf("rule: E -> (E)    ");
         type = check_type_brackets();
         result = execute_rule(3, NT_EXPR, type);
-        debug_printf("rule: E -> (E)    ");
     }
     else if (check_rule(1, ID)) {
+        debug_printf("rule: E -> ID     ");
         type = check_type_id();
         result = execute_rule(1, NT_EXPR, type);
-        debug_printf("rule: E -> ID     ");
         add_instr(IN_PUSH, (void *) 0x42, NULL, NULL);
     }
     else if (check_rule(1, INT_LITERAL)) {
-        result = execute_rule(1, NT_EXPR, TYPE_INT);
         debug_printf("rule: E -> INT    ");
+        result = execute_rule(1, NT_EXPR, TYPE_INT);
         add_instr(IN_PUSH, (void *) 0x01, NULL, NULL);
     }
     else if (check_rule(1, DOUBLE_LITERAL)) {
-        result = execute_rule(1, NT_EXPR, TYPE_DOUBLE);
         debug_printf("rule: E -> DOUBLE ");
+        result = execute_rule(1, NT_EXPR, TYPE_DOUBLE);
         add_instr(IN_PUSH, (void *) 0x02, NULL, NULL);
     }
     else if (check_rule(1, STRING_LITERAL)) {
-        result = execute_rule(1, NT_EXPR, TYPE_STRING);
         debug_printf("rule: E -> STRING ");
+        result = execute_rule(1, NT_EXPR, TYPE_STRING);
         add_instr(IN_PUSH, (void *) 0x02, NULL, NULL);
     }
     else if (check_rule(3, NT_EXPR, LESS, NT_EXPR)) {
-        type = check_type_rel();
-        result = execute_rule(3, NT_EXPR, check_type_rel());
         debug_printf("rule: E -> E < E  ");
+        type = check_type_rel(IN_LESS);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, GREAT, NT_EXPR)) {
-        type = check_type_rel();
-        result = execute_rule(3, NT_EXPR, check_type_rel());
         debug_printf("rule: E -> E > E  ");
+        type = check_type_rel(IN_GREAT);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, LESS_EQ, NT_EXPR)) {
-        type = check_type_rel();
-        result = execute_rule(3, NT_EXPR, check_type_rel());
         debug_printf("rule: E -> E <= E ");
+        type = check_type_rel(IN_LESS_EQ);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, GREAT_EQ, NT_EXPR)) {
-        type = check_type_rel();
-        result = execute_rule(3, NT_EXPR, check_type_rel());
         debug_printf("rule: E -> E >= E ");
+        type = check_type_rel(IN_GREAT_EQ);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, EQUAL, NT_EXPR)) {
-        type = check_type_rel();
-        result = execute_rule(3, NT_EXPR, check_type_rel());
         debug_printf("rule: E -> E == E ");
+        type = check_type_rel(IN_EQ);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3,  NT_EXPR, N_EQUAL, NT_EXPR)) {
-        type = check_type_rel();
-        result = execute_rule(3, NT_EXPR, check_type_rel());
         debug_printf("rule: E -> E != E ");
+        type = check_type_rel(IN_N_EQ);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else {
         debug_printf("rule: no matching rule");
