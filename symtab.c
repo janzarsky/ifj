@@ -26,14 +26,14 @@ int st_init(symtab_t **table){
     return 0;
 }
 
-void st_add(symtab_t *tabulka, char *token) {
+symtab_elem_t *st_add(symtab_t *tabulka, char *token) {
     unsigned int klic = hash_function(token, TABLE_SIZE);
     printf("%u\n",klic);
 
     symtab_elem_t *synon = (symtab_elem_t *) malloc(sizeof(symtab_elem_t));
 
     if (synon == NULL)
-        return;
+        return NULL;
 
     synon->id = token;
 
@@ -46,6 +46,7 @@ void st_add(symtab_t *tabulka, char *token) {
         tabulka->elements[klic] = synon;
     }
 
+    return synon;
 }
 
 symtab_elem_t *st_find (symtab_t *tabulka, char *token){

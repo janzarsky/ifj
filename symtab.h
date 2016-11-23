@@ -46,7 +46,7 @@ unsigned int hash_function(const char *str, unsigned htab_size);
 void symbol_init(symtab_t **I, int idx);
 
 int st_init(symtab_t **table);
-void st_add(symtab_t *table, char *token);
+symtab_elem_t *st_add(symtab_t *table, char *token);
 symtab_elem_t *st_find (symtab_t *table, char *token);
 void st_free(symtab_t *table);
 #endif
