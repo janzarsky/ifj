@@ -150,7 +150,7 @@ void listFirst(tListOfInstr *L); // zaktivuje prvni instrukci
 void listNext(tListOfInstr *L); // aktivni instrukci se stane nasledujici instrukce
 tInstr *listGetData(tListOfInstr *L); // vrati aktivni instrukci
 void listGoto(tListOfInstr *L, tListItem *gotoInstr); // nastavime aktivni instrukci podle zadaneho ukazatele
-void *listGetPointerLast(tListOfInstr *L, tListItem *gotoInstr); // vrati ukazatel na posledni instrukci
+void *listGetPointerLast(tListOfInstr *L); // vrati ukazatel na posledni instrukci
 
 
 #endif

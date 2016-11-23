@@ -5,7 +5,7 @@ PROGRAMS = ifj parser_test expr_parser_test
 
 all: parser_test expr_parser_test ifj
 
-parser_test: parser_test.c expr_parser.c instrlist.c
+parser_test: parser_test.c expr_parser.c instrlist.c string.c symtab.c scanner.c
 	gcc $(CFLAGS) $^ -o $@
 
 expr_parser_test: expr_parser_test.c expr_parser.c instrlist.c

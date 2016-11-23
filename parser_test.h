@@ -9,7 +9,16 @@
 #define STR_ERROR  -1
 #define STR_SUCCESS 0
 
-extern int token;
-extern void return_token();
+
+int return_args();
+int statement_list();
+int func_var();
+int program();
+int equal();
+int class_dec();
+int func_args();
+int func_args_list();
+int func_params();
+int func_params_list();
 
 #endif

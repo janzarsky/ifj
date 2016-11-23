@@ -23,7 +23,6 @@ rules:
 		2) <st-list>   -> WHILE LEFT_BRACKET <bool-expr> RIGHT_BRACKET LEFT_VINCULUM <st-list> <st-list>//cycle while
 		3) <st-list>   -> IF LEFT_BRACKET <bool-expr> RIGHT_BRACKET LEFT_VINCULUM <st-list> ELSE LEFT_VINCULUM <st-list> <st-list> //if-else statement
 		4) <st-list>   -> RIGHT_VINCULUM	// end of sequence
-		5) <st-list>   -> STATIC [INT/DOUBLE/SRING] ID EQUAL <equal>(MUST return something OR we must give some data to this func) <st-list> // ????????? can we declare static variables in func ?
 		6) <st-list>   -> [INT/DOUBLE/SRING] ID EQUAL <equal>(MUST return something OR we must give some data to this func) <st-list> //variable decl + init
 		7) <st-list>   -> ID <func_var>(we must give pointer to ID) <st-list> //it can be function CALL OR inicialization of var
 
