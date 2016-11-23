@@ -7,6 +7,7 @@
 
 typedef struct {
     int expr_type;
+    int type;
     char input[INPUT_SIZE];
     int expectedness;
     int tokens[INPUT_SIZE];
@@ -20,7 +21,8 @@ typedef struct {
 #define COLOR_CYAN    "\x1b[36m"
 #define COLOR_RESET   "\x1b[0m"
 
-#define ER SYNTAX_ERROR
+#define SY SYNTAX_ERROR
+#define SE SEMANTIC_ERROR
 #define OK SYNTAX_OK
 
 #define NUM_TESTS 120
@@ -29,111 +31,113 @@ typedef struct {
 #define T_MATH 2
 
 test_case_t tests[NUM_TESTS] = {
-    { T_MATH, "<empty> ;",      ER, { SEMICOLON } },
-    { T_MATH, "int ;",          OK, { INT_LITERAL, SEMICOLON } },
-    { T_MATH, "double ;",       OK, { DOUBLE_LITERAL, SEMICOLON } },
-    { T_MATH, "string ;",       OK, { STRING_LITERAL, SEMICOLON } },
-    { T_MATH, "i ;",            OK, { ID, SEMICOLON } },
-    { T_MATH, "int int ;",      ER, { INT_LITERAL, INT_LITERAL, SEMICOLON } },
-    { T_MATH, "dbl dbl ;",      ER, { DOUBLE_LITERAL, DOUBLE_LITERAL, SEMICOLON } },
-    { T_MATH, "str str ;",      ER, { STRING_LITERAL, STRING_LITERAL, SEMICOLON } },
-    { T_MATH, "i i ;",          ER, { ID, ID, SEMICOLON } },
-    { T_MATH, "( ;",            ER, { LEFT_BRACKET, SEMICOLON } },
-    { T_MATH, "() ;",           ER, { LEFT_BRACKET, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "( i ;",          ER, { LEFT_BRACKET, ID, SEMICOLON } },
-    { T_MATH, "( i ) ;",        OK, { LEFT_BRACKET, ID, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "( int ) ;",      OK, { LEFT_BRACKET, INT_LITERAL, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "( dbl ) ;",      OK, { LEFT_BRACKET, DOUBLE_LITERAL, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "( str ) ;",      OK, { LEFT_BRACKET, STRING_LITERAL, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "( ( i ) ) ;",    OK, { LEFT_BRACKET, LEFT_BRACKET, ID, RIGHT_BRACKET, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "( ( str ) ) ;",  OK, { LEFT_BRACKET, LEFT_BRACKET, STRING_LITERAL, RIGHT_BRACKET, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "i + i ;",        OK, { ID, PLUS, ID, SEMICOLON } },
-    { T_MATH, "i - i ;",        OK, { ID, MINUS, ID, SEMICOLON } },
-    { T_MATH, "i * i ;",        OK, { ID, MUL, ID, SEMICOLON } },
-    { T_MATH, "i / i ;",        OK, { ID, DIV, ID, SEMICOLON } },
-    { T_MATH, "i + i + i ;",    OK, { ID, PLUS, ID, PLUS, ID, SEMICOLON } },
-    { T_MATH, "i - i - i ;",    OK, { ID, MINUS, ID, MINUS, ID, SEMICOLON } },
-    { T_MATH, "i * i * i ;",    OK, { ID, MUL, ID, MUL, ID, SEMICOLON } },
-    { T_MATH, "i / i / i ;",    OK, { ID, DIV, ID, DIV, ID, SEMICOLON } },
-    { T_MATH, "i + i * i ;",    OK, { ID, PLUS, ID, MUL, ID, SEMICOLON } },
-    { T_MATH, "i * i - i ;",    OK, { ID, MUL, ID, MINUS, ID, SEMICOLON } },
-    { T_MATH, "i - i / i ;",    OK, { ID, MINUS, ID, DIV, ID, SEMICOLON } },
-    { T_MATH, "i / i + i ;",    OK, { ID, DIV, ID, PLUS, ID, SEMICOLON } },
-    { T_MATH, "i + ( i + i ) ;",    OK, { ID, PLUS, LEFT_BRACKET, ID, PLUS, ID, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "i - ( i - i ) ;",    OK, { ID, MINUS, LEFT_BRACKET, ID, MINUS, ID, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "( i * i ) * i ;",    OK, { LEFT_BRACKET, ID, MUL, ID, RIGHT_BRACKET, MUL, ID, SEMICOLON } },
-    { T_MATH, "( i / i / i ) ;",    OK, { LEFT_BRACKET, ID, DIV, ID, DIV, ID, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "( i ) + i * i ;",    OK, { LEFT_BRACKET, ID, PLUS, ID, MUL, ID, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "i * ( i ) - i ;",    OK, { ID, MUL, LEFT_BRACKET, ID, RIGHT_BRACKET, MINUS, ID, SEMICOLON } },
-    { T_MATH, "i - i / ( i ) ;",    OK, { ID, MINUS, ID, DIV, LEFT_BRACKET, ID, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "i ( i + i ) ;",  ER, { ID, LEFT_BRACKET, ID, PLUS, ID, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "( i * i ) i ;",  ER, { LEFT_BRACKET, ID, MUL, ID, RIGHT_BRACKET, ID, SEMICOLON } },
-    { T_MATH, "i + ;",          ER, { ID, PLUS, SEMICOLON } },
-    { T_MATH, "i - ;",          ER, { ID, MINUS, SEMICOLON } },
-    { T_MATH, "i * ;",          ER, { ID, MUL, SEMICOLON } },
-    { T_MATH, "i / ;",          ER, { ID, DIV, SEMICOLON } },
-    { T_MATH, "+ i ;",          ER, { PLUS, ID, SEMICOLON } },
-    { T_MATH, "- i ;",          ER, { MINUS, ID, SEMICOLON } },
-    { T_MATH, "* i ;",          ER, { MUL, ID, SEMICOLON } },
-    { T_MATH, "/ i ;",          ER, { DIV, ID, SEMICOLON } },
-    { T_MATH, "+ ;",            ER, { PLUS, SEMICOLON } },
-    { T_MATH, "- ;",            ER, { MINUS, SEMICOLON } },
-    { T_MATH, "* ;",            ER, { MUL, SEMICOLON } },
-    { T_MATH, "/ ;",            ER, { DIV, SEMICOLON } },
-    { T_MATH, "str + str ;",    OK, { STRING_LITERAL, PLUS, STRING_LITERAL, SEMICOLON } },
-    { T_MATH, "i + str ;",      OK, { ID, PLUS, STRING_LITERAL, SEMICOLON } },
-    { T_MATH, "int + str ;",    OK, { INT_LITERAL, PLUS, STRING_LITERAL, SEMICOLON } },
-    { T_MATH, "dbl + str ;",    OK, { DOUBLE_LITERAL, PLUS, STRING_LITERAL, SEMICOLON } },
-    { T_MATH, "str - str ;",    OK, { STRING_LITERAL, MINUS, STRING_LITERAL, SEMICOLON } },
-    { T_MATH, "str * str ;",    OK, { STRING_LITERAL, MUL, STRING_LITERAL, SEMICOLON } },
-    { T_MATH, "str / str ;",    OK, { STRING_LITERAL, DIV, STRING_LITERAL, SEMICOLON } },
-    { T_MATH, "str + str + str ;",      OK, { STRING_LITERAL, PLUS, STRING_LITERAL, PLUS, STRING_LITERAL, SEMICOLON } },
-    { T_MATH, "str + ( str ) ;",        OK, { STRING_LITERAL, PLUS, LEFT_BRACKET, STRING_LITERAL, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "str + ( str + str ) ;",  OK, { STRING_LITERAL, PLUS, LEFT_BRACKET, STRING_LITERAL, PLUS, STRING_LITERAL, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "<empty> ;",      SY, { SEMICOLON } },
+    { T_MATH, TYPE_INT,    "int ;",          OK, { INT_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_DOUBLE, "double ;",       OK, { DOUBLE_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_STRING, "string ;",       OK, { STRING_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i ;",            OK, { ID, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "int int ;",      SY, { INT_LITERAL, INT_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "dbl dbl ;",      SY, { DOUBLE_LITERAL, DOUBLE_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "str str ;",      SY, { STRING_LITERAL, STRING_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "i i ;",          SY, { ID, ID, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "( ;",            SY, { LEFT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "() ;",           SY, { LEFT_BRACKET, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "( i ;",          SY, { LEFT_BRACKET, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "( i ) ;",        OK, { LEFT_BRACKET, ID, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "( int ) ;",      OK, { LEFT_BRACKET, INT_LITERAL, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_DOUBLE, "( dbl ) ;",      OK, { LEFT_BRACKET, DOUBLE_LITERAL, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_STRING, "( str ) ;",      OK, { LEFT_BRACKET, STRING_LITERAL, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "( ( i ) ) ;",    OK, { LEFT_BRACKET, LEFT_BRACKET, ID, RIGHT_BRACKET, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_STRING, "( ( str ) ) ;",  OK, { LEFT_BRACKET, LEFT_BRACKET, STRING_LITERAL, RIGHT_BRACKET, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i + i ;",        OK, { ID, PLUS, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i - i ;",        OK, { ID, MINUS, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i * i ;",        OK, { ID, MUL, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i / i ;",        OK, { ID, DIV, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i + i + i ;",    OK, { ID, PLUS, ID, PLUS, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i - i - i ;",    OK, { ID, MINUS, ID, MINUS, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i * i * i ;",    OK, { ID, MUL, ID, MUL, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i / i / i ;",    OK, { ID, DIV, ID, DIV, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i + i * i ;",    OK, { ID, PLUS, ID, MUL, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i * i - i ;",    OK, { ID, MUL, ID, MINUS, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i - i / i ;",    OK, { ID, MINUS, ID, DIV, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i / i + i ;",    OK, { ID, DIV, ID, PLUS, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i + ( i + i ) ;",    OK, { ID, PLUS, LEFT_BRACKET, ID, PLUS, ID, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i - ( i - i ) ;",    OK, { ID, MINUS, LEFT_BRACKET, ID, MINUS, ID, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "( i * i ) * i ;",    OK, { LEFT_BRACKET, ID, MUL, ID, RIGHT_BRACKET, MUL, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "( i / i / i ) ;",    OK, { LEFT_BRACKET, ID, DIV, ID, DIV, ID, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "( i ) + i * i ;",    OK, { LEFT_BRACKET, ID, PLUS, ID, MUL, ID, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i * ( i ) - i ;",    OK, { ID, MUL, LEFT_BRACKET, ID, RIGHT_BRACKET, MINUS, ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i - i / ( i ) ;",    OK, { ID, MINUS, ID, DIV, LEFT_BRACKET, ID, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "i ( i + i ) ;",  SY, { ID, LEFT_BRACKET, ID, PLUS, ID, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "( i * i ) i ;",  SY, { LEFT_BRACKET, ID, MUL, ID, RIGHT_BRACKET, ID, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "i + ;",          SY, { ID, PLUS, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "i - ;",          SY, { ID, MINUS, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "i * ;",          SY, { ID, MUL, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "i / ;",          SY, { ID, DIV, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "+ i ;",          SY, { PLUS, ID, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "- i ;",          SY, { MINUS, ID, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "* i ;",          SY, { MUL, ID, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "/ i ;",          SY, { DIV, ID, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "+ ;",            SY, { PLUS, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "- ;",            SY, { MINUS, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "* ;",            SY, { MUL, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "/ ;",            SY, { DIV, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "i + str ;",      SE, { ID, PLUS, STRING_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "int + str ;",    SE, { INT_LITERAL, PLUS, STRING_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "dbl + str ;",    SE, { DOUBLE_LITERAL, PLUS, STRING_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "str - str ;",    SE, { STRING_LITERAL, MINUS, STRING_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "str * str ;",    SE, { STRING_LITERAL, MUL, STRING_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "str / str ;",    SE, { STRING_LITERAL, DIV, STRING_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_STRING, "str + str ;",    OK, { STRING_LITERAL, PLUS, STRING_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_STRING, "str + str + str ;",      OK, { STRING_LITERAL, PLUS, STRING_LITERAL, PLUS, STRING_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_STRING, "str + ( str ) ;",        OK, { STRING_LITERAL, PLUS, LEFT_BRACKET, STRING_LITERAL, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_STRING, "str + ( str + str ) ;",  OK, { STRING_LITERAL, PLUS, LEFT_BRACKET, STRING_LITERAL, PLUS, STRING_LITERAL, RIGHT_BRACKET, SEMICOLON } },
 
-    { T_BOOL, "i < i )",        OK, { ID, LESS, ID, RIGHT_BRACKET } },
-    { T_BOOL, "i > i )",        OK, { ID, GREAT, ID, RIGHT_BRACKET } },
-    { T_BOOL, "i <= i )",       OK, { ID, LESS_EQ, ID, RIGHT_BRACKET } },
-    { T_BOOL, "i >= i )",       OK, { ID, GREAT_EQ, ID, RIGHT_BRACKET } },
-    { T_BOOL, "i == i )",       OK, { ID, EQUAL, ID, RIGHT_BRACKET } },
-    { T_BOOL, "i != i )",       OK, { ID, N_EQUAL, ID, RIGHT_BRACKET } },
-    { T_BOOL, "i < )",          ER, { ID, LESS, RIGHT_BRACKET } },
-    { T_BOOL, "i > )",          ER, { ID, GREAT, RIGHT_BRACKET } },
-    { T_BOOL, "i <= )",         ER, { ID, LESS_EQ, RIGHT_BRACKET } },
-    { T_BOOL, "i >= )",         ER, { ID, GREAT_EQ, RIGHT_BRACKET } },
-    { T_BOOL, "i == )",         ER, { ID, EQUAL, RIGHT_BRACKET } },
-    { T_BOOL, "i != )",         ER, { ID, N_EQUAL, RIGHT_BRACKET } },
-    { T_BOOL, "< i )",          ER, { LESS, ID, RIGHT_BRACKET } },
-    { T_BOOL, "> i )",          ER, { GREAT, ID, RIGHT_BRACKET } },
-    { T_BOOL, "<= i )",         ER, { LESS_EQ, ID, RIGHT_BRACKET } },
-    { T_BOOL, ">= i )",         ER, { GREAT_EQ, ID, RIGHT_BRACKET } },
-    { T_BOOL, "== i )",         ER, { EQUAL, ID, RIGHT_BRACKET } },
-    { T_BOOL, "!= i )",         ER, { N_EQUAL, ID, RIGHT_BRACKET } },
-    { T_BOOL, "i < i < i )",    ER, { ID, LESS, ID, LESS, ID, RIGHT_BRACKET } },
-    { T_BOOL, "i > i > i )",    ER, { ID, GREAT, ID, GREAT, ID, RIGHT_BRACKET } },
-    { T_BOOL, "i <= i <= i )",  ER, { ID, LESS_EQ, ID, LESS_EQ, ID, RIGHT_BRACKET } },
-    { T_BOOL, "i >= i >= i )",  ER, { ID, GREAT_EQ, ID, GREAT_EQ, ID, RIGHT_BRACKET } },
-    { T_BOOL, "i == i == i )",  ER, { ID, EQUAL, ID, EQUAL, ID, RIGHT_BRACKET } },
-    { T_BOOL, "i != i != i )",  ER, { ID, N_EQUAL, ID, N_EQUAL, ID, RIGHT_BRACKET } },
-    { T_BOOL, "str < str )",    OK, { STRING_LITERAL, LESS, STRING_LITERAL, RIGHT_BRACKET } },
-    { T_BOOL, "str > str )",    OK, { STRING_LITERAL, GREAT, STRING_LITERAL, RIGHT_BRACKET } },
-    { T_BOOL, "str <= str )",   OK, { STRING_LITERAL, LESS_EQ, STRING_LITERAL, RIGHT_BRACKET } },
-    { T_BOOL, "str >= str )",   OK, { STRING_LITERAL, GREAT_EQ, STRING_LITERAL, RIGHT_BRACKET } },
-    { T_BOOL, "str == str )",   OK, { STRING_LITERAL, EQUAL, STRING_LITERAL, RIGHT_BRACKET } },
-    { T_BOOL, "str != str )",   OK, { STRING_LITERAL, N_EQUAL, STRING_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "i < i )",        OK, { ID, LESS, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "i > i )",        OK, { ID, GREAT, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "i <= i )",       OK, { ID, LESS_EQ, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "i >= i )",       OK, { ID, GREAT_EQ, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "i == i )",       OK, { ID, EQUAL, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "i != i )",       OK, { ID, N_EQUAL, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "i < )",          SY, { ID, LESS, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "i > )",          SY, { ID, GREAT, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "i <= )",         SY, { ID, LESS_EQ, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "i >= )",         SY, { ID, GREAT_EQ, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "i == )",         SY, { ID, EQUAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "i != )",         SY, { ID, N_EQUAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "< i )",          SY, { LESS, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "> i )",          SY, { GREAT, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "<= i )",         SY, { LESS_EQ, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  ">= i )",         SY, { GREAT_EQ, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "== i )",         SY, { EQUAL, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "!= i )",         SY, { N_EQUAL, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "i < i < i )",    SY, { ID, LESS, ID, LESS, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "i > i > i )",    SY, { ID, GREAT, ID, GREAT, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "i <= i <= i )",  SY, { ID, LESS_EQ, ID, LESS_EQ, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "i >= i >= i )",  SY, { ID, GREAT_EQ, ID, GREAT_EQ, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "i == i == i )",  SY, { ID, EQUAL, ID, EQUAL, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "i != i != i )",  SY, { ID, N_EQUAL, ID, N_EQUAL, ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "str < str )",    SE, { STRING_LITERAL, LESS, STRING_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "str > str )",    SE, { STRING_LITERAL, GREAT, STRING_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "str <= str )",   SE, { STRING_LITERAL, LESS_EQ, STRING_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "str >= str )",   SE, { STRING_LITERAL, GREAT_EQ, STRING_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "str == str )",   SE, { STRING_LITERAL, EQUAL, STRING_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "str != str )",   SE, { STRING_LITERAL, N_EQUAL, STRING_LITERAL, RIGHT_BRACKET } },
 
-    { T_BOOL, ")",              OK, { RIGHT_BRACKET } },
-    { T_MATH, ";",              ER, { SEMICOLON } },
-    { T_BOOL, "i )",            OK, { ID, RIGHT_BRACKET } },
-    { T_BOOL, "i ) )",          OK, { ID, RIGHT_BRACKET, RIGHT_BRACKET } },
-    { T_MATH, "i ;",            OK, { ID, SEMICOLON } },
-    { T_MATH, "i ; ;",          OK, { ID, SEMICOLON, SEMICOLON } },
-    { T_BOOL, "( i ) )",        OK, { LEFT_BRACKET, ID, RIGHT_BRACKET, RIGHT_BRACKET } },
-    { T_MATH, "( i ) ;",        OK, { LEFT_BRACKET, ID, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "( i ;",          ER, { LEFT_BRACKET, ID, SEMICOLON } },
+    { T_BOOL, TYPE_ERROR,  ")",              SE, { RIGHT_BRACKET } },
+    { T_MATH, TYPE_ERROR,  ";",              SY, { SEMICOLON } },
+    { T_BOOL, TYPE_ERROR,  "i )",            SE, { ID, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "int > int )",    OK, { INT_LITERAL, GREAT, INT_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_ERROR,  "i ) )",          SE, { ID, RIGHT_BRACKET, RIGHT_BRACKET } },
+    { T_MATH, TYPE_INT,    "i ;",            OK, { ID, SEMICOLON } },
+    { T_MATH, TYPE_INT,    "i ; ;",          OK, { ID, SEMICOLON, SEMICOLON } },
+    { T_BOOL, TYPE_ERROR,  "( i ) )",        SE, { LEFT_BRACKET, ID, RIGHT_BRACKET, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "( int > int ) )",OK, { LEFT_BRACKET, INT_LITERAL, GREAT, INT_LITERAL, RIGHT_BRACKET, RIGHT_BRACKET } },
+    { T_MATH, TYPE_INT,    "( i ) ;",        OK, { LEFT_BRACKET, ID, RIGHT_BRACKET, SEMICOLON } },
+    { T_MATH, TYPE_ERROR,  "( i ;",          SY, { LEFT_BRACKET, ID, SEMICOLON } },
 
-    { T_MATH, "i < int + ((i * (dbl - (i / i)))) ;", OK, { ID, LESS, INT_LITERAL, PLUS, LEFT_BRACKET, LEFT_BRACKET, DOUBLE_LITERAL, MUL, LEFT_BRACKET, ID, MINUS, LEFT_BRACKET, ID, DIV, ID, RIGHT_BRACKET, RIGHT_BRACKET, RIGHT_BRACKET, RIGHT_BRACKET, SEMICOLON } },
-    { T_MATH, "i != int + ((dbl * (int - i) / int)) ;", OK, { ID, N_EQUAL, INT_LITERAL, PLUS, LEFT_BRACKET, LEFT_BRACKET, DOUBLE_LITERAL, MUL, LEFT_BRACKET, INT_LITERAL, MINUS, ID, RIGHT_BRACKET, DIV, INT_LITERAL, RIGHT_BRACKET, RIGHT_BRACKET, SEMICOLON } },
+    { T_BOOL, TYPE_BOOL, "i < int + ((i * (dbl - (i / i)))) ;", OK, { ID, LESS, INT_LITERAL, PLUS, LEFT_BRACKET, LEFT_BRACKET, DOUBLE_LITERAL, MUL, LEFT_BRACKET, ID, MINUS, LEFT_BRACKET, ID, DIV, ID, RIGHT_BRACKET, RIGHT_BRACKET, RIGHT_BRACKET, RIGHT_BRACKET, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL, "i != int + ((dbl * (int - i) / int)) ;", OK, { ID, N_EQUAL, INT_LITERAL, PLUS, LEFT_BRACKET, LEFT_BRACKET, DOUBLE_LITERAL, MUL, LEFT_BRACKET, INT_LITERAL, MINUS, ID, RIGHT_BRACKET, DIV, INT_LITERAL, RIGHT_BRACKET, RIGHT_BRACKET, RIGHT_BRACKET } },
 };
 
 int test_tokens_counter = 0;
@@ -159,7 +163,7 @@ int main(int __attribute__((unused)) argc, char __attribute__((unused)) **argv) 
     printf("**************************************************************************\n\n");
 
     int exit_code = 0;
-    int i, result;
+    int i, result, type;
 
     for (i = 0; i < NUM_TESTS; i++) {
         if (tests[i].input[0] == 0) {
@@ -183,9 +187,9 @@ int main(int __attribute__((unused)) argc, char __attribute__((unused)) **argv) 
         test_number = i;
 
         if (tests[i].expr_type == T_BOOL)
-            result = bool_expr();
+            result = bool_expr(&type);
         else if (tests[i].expr_type == T_MATH)
-            result = math_expr();
+            result = math_expr(&type);
         else
             result = -1;
 
@@ -194,19 +198,36 @@ int main(int __attribute__((unused)) argc, char __attribute__((unused)) **argv) 
 
         switch (result) {
             case SYNTAX_OK:
-                printf(" parser result: SYNTAX_OK\n");
-                break;
+                printf(" parser result: SYNTAX_OK\n"); break;
             case SYNTAX_ERROR:
-                printf(" parser result: SYNTAX_ERROR\n");
-                break;
+                printf(" parser result: SYNTAX_ERROR\n"); break;
             case SEMANTIC_ERROR:
-                printf(" parser result: SEMANTIC_ERROR\n");
-                break;
+                printf(" parser result: SEMANTIC_ERROR\n"); break;
             default:
                 printf(" parser result: other\n");
         }
 
-        if (result - tests[i].expectedness == 0) {
+        switch (type) {
+            case TYPE_NONE:
+                printf(" result type: none\n"); break;
+            case TYPE_ERROR:
+                printf(" result type: error\n"); break;
+            case TYPE_VOID:
+                printf(" result type: void\n"); break;
+            case TYPE_INT:
+                printf(" result type: int\n"); break;
+            case TYPE_DOUBLE:
+                printf(" result type: double\n"); break;
+            case TYPE_STRING:
+                printf(" result type: string\n"); break;
+            case TYPE_BOOL:
+                printf(" result type: bool\n"); break;
+            default:
+                printf(" result_type: other\n");
+        }
+
+        if (result == tests[i].expectedness
+            && type == tests[i].type) {
             printf(" test result: " COLOR_GREEN "PASS\n" COLOR_BLUE);
         }
         else {

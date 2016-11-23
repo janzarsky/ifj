@@ -21,8 +21,6 @@ int debug_print_cnt = 0;
 
 #endif
 
-enum type_t { TYPE_UNDEFINED, TYPE_VOID, TYPE_INT, TYPE_DOUBLE, TYPE_STRING,
-    TYPE_BOOL, TYPE_TEMP, TYPE_MAX };
 enum nonterm_t { NT_EXPR = TOKEN_MAX, NT_MAX };
 enum table_entry_t { T_N = NT_MAX, T_L, T_E, T_R, T_MAX }; // none, <, =, >
 
@@ -207,8 +205,10 @@ void print_instr(tInstr *instr) {
 
 void print_type(int type) {
     switch (type) {
-        case TYPE_UNDEFINED:
-            printf("undef  "); break;
+        case TYPE_NONE:
+            printf("none   "); break;
+        case TYPE_ERROR:
+            printf("error  "); break;
         case TYPE_VOID:
             printf("void   "); break;
         case TYPE_INT:
@@ -216,11 +216,9 @@ void print_type(int type) {
         case TYPE_DOUBLE:
             printf("double "); break;
         case TYPE_STRING:
-            printf("undef  "); break;
+            printf("string "); break;
         case TYPE_BOOL:
             printf("bool   "); break;
-        case TYPE_TEMP:
-            printf("temp   "); break;
         default:
             printf("other  ");
     }
@@ -293,12 +291,60 @@ void execute_rule(int num, int symbol, int type) {
     push(symbol, type);
 }
 
+int get_type_add() {
+    int type1 = stack.top->type;
+    int type2 = stack.top->next->next->type;
+
+    if (((type1 == TYPE_INT) || (type1 == TYPE_DOUBLE))
+        && ((type2 == TYPE_INT) || (type2 == TYPE_DOUBLE))) {
+        if ((type1 == TYPE_INT) && (type2 == TYPE_INT))
+            return TYPE_INT;
+        else
+            return TYPE_DOUBLE;
+
+    }
+    else if ((type1 == TYPE_STRING) && (type2 == TYPE_STRING)) {
+        return TYPE_STRING;
+    }
+    else {
+        return TYPE_ERROR;
+    }
+}
+
+int get_type_minus_mul_div() {
+    int type1 = stack.top->type;
+    int type2 = stack.top->next->next->type;
+
+    if (((type1 == TYPE_INT) || (type1 == TYPE_DOUBLE))
+        && ((type2 == TYPE_INT) || (type2 == TYPE_DOUBLE))) {
+        if ((type1 == TYPE_INT) && (type2 == TYPE_INT))
+            return TYPE_INT;
+        else
+            return TYPE_DOUBLE;
+
+    }
+    else {
+        return TYPE_ERROR;
+    }
+}
+
 int get_type_brackets() {
     return stack.top->next->type;
 }
 
-int get_type_add() {
-    return TYPE_VOID;
+int get_type_id() {
+    return TYPE_INT;
+}
+
+int get_type_rel() {
+    int type1 = stack.top->type;
+    int type2 = stack.top->next->next->type;
+
+    if (((type1 == TYPE_INT) || (type1 == TYPE_DOUBLE))
+        && ((type2 == TYPE_INT) || (type2 == TYPE_DOUBLE)))
+        return TYPE_BOOL;
+    else
+        return TYPE_ERROR;
 }
 
 int rules() {
@@ -307,7 +353,7 @@ int rules() {
     if (check_rule(3, NT_EXPR, PLUS, NT_EXPR)) {
         type = get_type_add();
 
-        if (type == TYPE_UNDEFINED)
+        if (type == TYPE_ERROR)
             return SEMANTIC_ERROR;
 
         execute_rule(3, NT_EXPR, type);
@@ -315,16 +361,31 @@ int rules() {
         add_instr(IN_ADD, NULL, NULL, NULL);
     }
     else if (check_rule(3, NT_EXPR, MINUS, NT_EXPR)) {
+        type = get_type_minus_mul_div();
+
+        if (type == TYPE_ERROR)
+            return SEMANTIC_ERROR;
+
         execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E - E  ");
         add_instr(IN_SUB, NULL, NULL, NULL);
     }
     else if (check_rule(3, NT_EXPR, MUL, NT_EXPR)) {
+        type = get_type_minus_mul_div();
+
+        if (type == TYPE_ERROR)
+            return SEMANTIC_ERROR;
+
         execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E * E  ");
         add_instr(IN_MUL, NULL, NULL, NULL);
     }
     else if (check_rule(3, NT_EXPR, DIV, NT_EXPR)) {
+        type = get_type_minus_mul_div();
+
+        if (type == TYPE_ERROR)
+            return SEMANTIC_ERROR;
+
         execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E / E  ");
         add_instr(IN_DIV, NULL, NULL, NULL);
@@ -332,14 +393,19 @@ int rules() {
     else if (check_rule(3, LEFT_BRACKET, NT_EXPR, RIGHT_BRACKET)) {
         type = get_type_brackets();
 
-        if (type == TYPE_UNDEFINED)
+        if (type == TYPE_ERROR)
             return SEMANTIC_ERROR;
 
         execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> (E)    ");
     }
     else if (check_rule(1, ID)) {
-        execute_rule(1, NT_EXPR, TYPE_TEMP);
+        type = get_type_id();
+
+        if (type == TYPE_ERROR)
+            return SEMANTIC_ERROR;
+
+        execute_rule(1, NT_EXPR, type);
         debug_printf("rule: E -> ID     ");
         add_instr(IN_PUSH, (void *) 0x42, NULL, NULL);
     }
@@ -359,27 +425,57 @@ int rules() {
         add_instr(IN_PUSH, (void *) 0x02, NULL, NULL);
     }
     else if (check_rule(3, NT_EXPR, LESS, NT_EXPR)) {
-        execute_rule(3, NT_EXPR, TYPE_BOOL);
+        type = get_type_rel();
+
+        if (type == TYPE_ERROR)
+            return SEMANTIC_ERROR;
+
+        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E < E  ");
     }
     else if (check_rule(3, NT_EXPR, GREAT, NT_EXPR)) {
-        execute_rule(3, NT_EXPR, TYPE_BOOL);
+        type = get_type_rel();
+
+        if (type == TYPE_ERROR)
+            return SEMANTIC_ERROR;
+
+        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E > E  ");
     }
     else if (check_rule(3, NT_EXPR, LESS_EQ, NT_EXPR)) {
-        execute_rule(3, NT_EXPR, TYPE_BOOL);
+        type = get_type_rel();
+
+        if (type == TYPE_ERROR)
+            return SEMANTIC_ERROR;
+
+        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E <= E ");
     }
     else if (check_rule(3, NT_EXPR, GREAT_EQ, NT_EXPR)) {
-        execute_rule(3, NT_EXPR, TYPE_BOOL);
+        type = get_type_rel();
+
+        if (type == TYPE_ERROR)
+            return SEMANTIC_ERROR;
+
+        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E >= E ");
     }
     else if (check_rule(3, NT_EXPR, EQUAL, NT_EXPR)) {
-        execute_rule(3, NT_EXPR, TYPE_BOOL);
+        type = get_type_rel();
+
+        if (type == TYPE_ERROR)
+            return SEMANTIC_ERROR;
+
+        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E == E ");
     }
     else if (check_rule(3,  NT_EXPR, N_EQUAL, NT_EXPR)) {
-        execute_rule(3, NT_EXPR, TYPE_BOOL);
+        type = get_type_rel();
+
+        if (type == TYPE_ERROR)
+            return SEMANTIC_ERROR;
+
+        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E != E ");
     }
     else {
@@ -518,17 +614,17 @@ void print_instr_list() {
 
 extern int get_next_token();
 
-#define SEMICOLON_TERMINATED 1
-#define RIGHT_BRACKET_TERMINATED 2
+#define MATH_EXPR 1
+#define BOOL_EXPR 2
 
-int expr(int terminator) {
+int expr(int expr_type, int *type) {
     int b, result;
 
     listInit(&instr_list);
 
     stack_init();
 
-    push(END_OF_FILE, TYPE_UNDEFINED);
+    push(END_OF_FILE, TYPE_NONE);
 
     b = get_next_token();
     
@@ -539,11 +635,11 @@ int expr(int terminator) {
         printf("    input: ");
         print_symbol_aligned(b);
 #endif
-        if (terminator == SEMICOLON_TERMINATED && b == SEMICOLON) {
+        if (expr_type == MATH_EXPR && b == SEMICOLON) {
             debug_printf(", ");
             b = END_OF_FILE;
         }
-        else if (terminator == RIGHT_BRACKET_TERMINATED
+        else if (expr_type == BOOL_EXPR
             && b == RIGHT_BRACKET && top_term() == END_OF_FILE) {
             debug_printf("\n");
             break;
@@ -552,13 +648,13 @@ int expr(int terminator) {
         switch (table[map_token(top_term())][map_token(b)]) {
             case T_E:
                 debug_printf("op: =    ");
-                push(b, TYPE_UNDEFINED);
+                push(b, TYPE_NONE);
                 b = get_next_token();
                 break;
             case T_L:
                 debug_printf("op: <    ");
                 insert_after_top_term(T_L);
-                push(b, TYPE_UNDEFINED);
+                push(b, TYPE_NONE);
                 b = get_next_token();
                 break;
             case T_R:
@@ -566,16 +662,19 @@ int expr(int terminator) {
                 result = rules();
                 if (result == SYNTAX_ERROR) {
                     debug_printf("\n");
+                    *type = TYPE_ERROR;
                     return SYNTAX_ERROR;
                 }
                 else if (result == SEMANTIC_ERROR) {
                     debug_printf("\n");
+                    *type = TYPE_ERROR;
                     return SEMANTIC_ERROR;
                 }
                 break;
             case T_N:
             default:
                 debug_printf("op: none, \n");
+                *type = TYPE_ERROR;
                 return SYNTAX_ERROR;
         }
 
@@ -596,13 +695,37 @@ int expr(int terminator) {
     print_instr_list();
 #endif
 
-    return SYNTAX_OK;
+    *type = stack.top->type;
+
+    if (expr_type == MATH_EXPR) {
+        if ((*type == TYPE_INT) || 
+            (*type == TYPE_DOUBLE) ||
+            (*type == TYPE_STRING)) {
+            return SYNTAX_OK;
+        }
+        else {
+            *type = TYPE_ERROR;
+            return SEMANTIC_ERROR;
+        }
+    }
+
+    if (expr_type == BOOL_EXPR) {
+        if (*type == TYPE_BOOL) {
+            return SYNTAX_OK;
+        }
+        else {
+            *type = TYPE_ERROR;
+            return SEMANTIC_ERROR;
+        }
+    }
+
+    return SYNTAX_ERROR;
 }
 
-int bool_expr() {
-    return expr(RIGHT_BRACKET_TERMINATED);
+int bool_expr(int *type) {
+    return expr(BOOL_EXPR, type);
 }
 
-int math_expr() {
-    return expr(SEMICOLON_TERMINATED);
+int math_expr(int *type) {
+    return expr(MATH_EXPR, type);
 }
