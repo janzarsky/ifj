@@ -25,7 +25,7 @@ typedef struct {
 #define SE SEMANTIC_ERROR
 #define OK SYNTAX_OK
 
-#define NUM_TESTS 120
+#define NUM_TESTS 150
 
 #define T_BOOL 1
 #define T_MATH 2
@@ -33,8 +33,8 @@ typedef struct {
 test_case_t tests[NUM_TESTS] = {
     { T_MATH, TYPE_ERROR,  "<empty> ;",      SY, { SEMICOLON } },
     { T_MATH, TYPE_INT,    "int ;",          OK, { INT_LITERAL, SEMICOLON } },
-    { T_MATH, TYPE_DOUBLE, "double ;",       OK, { DOUBLE_LITERAL, SEMICOLON } },
-    { T_MATH, TYPE_STRING, "string ;",       OK, { STRING_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_DOUBLE, "dbl ;",          OK, { DOUBLE_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_STRING, "str ;",          OK, { STRING_LITERAL, SEMICOLON } },
     { T_MATH, TYPE_INT,    "i ;",            OK, { ID, SEMICOLON } },
     { T_MATH, TYPE_ERROR,  "int int ;",      SY, { INT_LITERAL, INT_LITERAL, SEMICOLON } },
     { T_MATH, TYPE_ERROR,  "dbl dbl ;",      SY, { DOUBLE_LITERAL, DOUBLE_LITERAL, SEMICOLON } },
@@ -82,6 +82,16 @@ test_case_t tests[NUM_TESTS] = {
     { T_MATH, TYPE_ERROR,  "- ;",            SY, { MINUS, SEMICOLON } },
     { T_MATH, TYPE_ERROR,  "* ;",            SY, { MUL, SEMICOLON } },
     { T_MATH, TYPE_ERROR,  "/ ;",            SY, { DIV, SEMICOLON } },
+
+    { T_MATH, TYPE_DOUBLE, "int + dbl ;",    OK, { INT_LITERAL, PLUS, DOUBLE_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_DOUBLE, "dbl + int ;",    OK, { DOUBLE_LITERAL, PLUS, INT_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_DOUBLE, "int - dbl ;",    OK, { INT_LITERAL, MINUS, DOUBLE_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_DOUBLE, "dbl - int ;",    OK, { DOUBLE_LITERAL, MINUS, INT_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_DOUBLE, "int * dbl ;",    OK, { INT_LITERAL, MUL, DOUBLE_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_DOUBLE, "dbl * int ;",    OK, { DOUBLE_LITERAL, MUL, INT_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_DOUBLE, "int / dbl ;",    OK, { INT_LITERAL, DIV, DOUBLE_LITERAL, SEMICOLON } },
+    { T_MATH, TYPE_DOUBLE, "dbl / int ;",    OK, { DOUBLE_LITERAL, DIV, INT_LITERAL, SEMICOLON } },
+
     { T_MATH, TYPE_ERROR,  "i + str ;",      SE, { ID, PLUS, STRING_LITERAL, SEMICOLON } },
     { T_MATH, TYPE_ERROR,  "int + str ;",    SE, { INT_LITERAL, PLUS, STRING_LITERAL, SEMICOLON } },
     { T_MATH, TYPE_ERROR,  "dbl + str ;",    SE, { DOUBLE_LITERAL, PLUS, STRING_LITERAL, SEMICOLON } },
@@ -123,6 +133,13 @@ test_case_t tests[NUM_TESTS] = {
     { T_BOOL, TYPE_ERROR,  "str >= str )",   SE, { STRING_LITERAL, GREAT_EQ, STRING_LITERAL, RIGHT_BRACKET } },
     { T_BOOL, TYPE_ERROR,  "str == str )",   SE, { STRING_LITERAL, EQUAL, STRING_LITERAL, RIGHT_BRACKET } },
     { T_BOOL, TYPE_ERROR,  "str != str )",   SE, { STRING_LITERAL, N_EQUAL, STRING_LITERAL, RIGHT_BRACKET } },
+
+    { T_BOOL, TYPE_BOOL,   "int < dbl )",    OK, { INT_LITERAL, LESS, DOUBLE_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "dbl > int )",    OK, { DOUBLE_LITERAL, GREAT, INT_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "int <= dbl )",   OK, { INT_LITERAL, LESS_EQ, DOUBLE_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "dbl >= int )",   OK, { DOUBLE_LITERAL, GREAT_EQ, INT_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "int == dbl )",   OK, { INT_LITERAL, EQUAL, DOUBLE_LITERAL, RIGHT_BRACKET } },
+    { T_BOOL, TYPE_BOOL,   "dbl != int )",   OK, { DOUBLE_LITERAL, N_EQUAL, INT_LITERAL, RIGHT_BRACKET } },
 
     { T_BOOL, TYPE_ERROR,  ")",              SE, { RIGHT_BRACKET } },
     { T_MATH, TYPE_ERROR,  ";",              SY, { SEMICOLON } },

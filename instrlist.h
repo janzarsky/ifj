@@ -69,14 +69,39 @@
 // vsechny tokeny maji hodnotu mensi nez TOKEN_MAX
 #define TOKEN_MAX 72
 
-// seznam instrukci
-#define IN_ADD 0
-#define IN_SUB 1
-#define IN_MUL 2
-#define IN_DIV 3
-#define IN_PUSH 4
 
-#define IN_MAX 5
+// seznam instrukci
+#define IN_ADD          0   // operace pro int nad dvema prvky na zasobniku
+#define IN_SUB          1
+#define IN_MUL          2
+#define IN_DIV          3
+#define IN_F_ADD        4   // operace pro double
+#define IN_F_SUB        5
+#define IN_F_MUL        6
+#define IN_F_DIV        7
+#define IN_PUSH         8   // vloz na zasobnik
+#define IN_CONV         9   // preved vrchol zasobniku z int na double
+#define IN_SWAP         10  // vymen horni dva prvky zasobniku
+#define IN_CONCAT       11  // spoj horni dva retezce na zasobniku
+#define IN_LESS         12  // porovna horni dva inty
+#define IN_GREAT        13
+#define IN_LESS_EQ      14
+#define IN_GREAT_EQ     15
+#define IN_EQ           16
+#define IN_N_EQ         17
+#define IN_F_LESS       18  // porovna horni dva doubly
+#define IN_F_GREAT      19
+#define IN_F_LESS_EQ    20
+#define IN_F_GREAT_EQ   21
+#define IN_F_EQ         22
+#define IN_F_N_EQ       23
+
+#define IN_MAX          24
+
+// pomocne defines pro zjednoduseni kodu
+// instrukce pro double se daji ziskat jako (instrukce pro int) + F_***_OFFSET
+#define F_ARITH_OFFSET  (IN_F_ADD - IN_ADD)
+#define F_REL_OFFSET    (IN_F_LESS - IN_LESS)
 
 /*
 #define FALSE 0
