@@ -24,14 +24,6 @@ int debug_print_cnt = 0;
 enum nonterm_t { NT_EXPR = TOKEN_MAX, NT_MAX };
 enum table_entry_t { T_N = NT_MAX, T_L, T_E, T_R, T_MAX }; // none, <, =, >
 
-/* Priority:
- * 
- * 3: * /
- * 4: + -
- * 6: < > <= >=
- * 7: == != 
- */
-
 #define TABLE_SIZE 7
 
 const char table[TABLE_SIZE][TABLE_SIZE] = {
@@ -59,6 +51,178 @@ typedef struct stack{
 stack_t stack = { NULL };
 
 tListOfInstr instr_list;
+
+// debugging functions
+#ifdef DEBUG
+void print_instr(tInstr *instr) {
+    switch (instr->instType) {
+        case IN_ADD:
+            printf("ADD"); break;
+        case IN_SUB:
+            printf("SUB"); break;
+        case IN_MUL:
+            printf("MUL"); break;
+        case IN_DIV:
+            printf("DIV"); break;
+        case IN_F_ADD:
+            printf("FADD"); break;
+        case IN_F_SUB:
+            printf("FSUB"); break;
+        case IN_F_MUL:
+            printf("FMUL"); break;
+        case IN_F_DIV:
+            printf("FDIV"); break;
+        case IN_PUSH:
+            printf("PUSH"); break;
+        case IN_CONV:
+            printf("CONV"); break;
+        case IN_SWAP:
+            printf("SWAP"); break;
+        case IN_CONCAT:
+            printf("CONCAT"); break;
+        case IN_LESS:
+            printf("LESS"); break;
+        case IN_GREAT:
+            printf("GREAT"); break;
+        case IN_LESS_EQ:
+            printf("LES_EQ"); break;
+        case IN_GREAT_EQ:
+            printf("GREAT_EQ"); break;
+        case IN_EQ:
+            printf("EQ"); break;
+        case IN_N_EQ:
+            printf("N_EQ"); break;
+        case IN_F_LESS:
+            printf("F_LESS"); break;
+        case IN_F_GREAT:
+            printf("F_GREAT"); break;
+        case IN_F_LESS_EQ:
+            printf("F_LES_EQ"); break;
+        case IN_F_GREAT_EQ:
+            printf("F_GREAT_EQ"); break;
+        case IN_F_EQ:
+            printf("F_EQ"); break;
+        case IN_F_N_EQ:
+            printf("F_N_EQ"); break;
+        default:
+            printf("%d", instr->instType);
+    }
+
+    printf(" %p %p %p, ", instr->addr1, instr->addr2, instr->addr3);
+}
+
+void print_type(int type) {
+    switch (type) {
+        case TYPE_NONE:
+            printf("none   "); break;
+        case TYPE_ERROR:
+            printf("error  "); break;
+        case TYPE_VOID:
+            printf("void   "); break;
+        case TYPE_INT:
+            printf("int    "); break;
+        case TYPE_DOUBLE:
+            printf("double "); break;
+        case TYPE_STRING:
+            printf("string "); break;
+        case TYPE_BOOL:
+            printf("bool   "); break;
+        default:
+            printf("other  ");
+    }
+}
+
+void print_symbol(int symbol) {
+    debug_print_cnt++;
+
+    switch (symbol) {
+        case PLUS:
+            printf("+"); break;
+        case MINUS:
+            printf("-"); break;
+        case MUL:
+            printf("*"); break;
+        case DIV:
+            printf("/"); break;
+        case LESS:
+            printf("'<'"); debug_print_cnt += 2; break;
+        case GREAT:
+            printf("'>'"); debug_print_cnt += 2; break;
+        case LESS_EQ:
+            printf("'<='"); debug_print_cnt += 3; break;
+        case GREAT_EQ:
+            printf("'>='"); debug_print_cnt += 3; break;
+        case EQUAL:
+            printf("=="); debug_print_cnt += 1; break;
+        case N_EQUAL:
+            printf("!="); debug_print_cnt += 1; break;
+        case LEFT_BRACKET:
+            printf("("); break;
+        case RIGHT_BRACKET:
+            printf(")"); break;
+        case INT_LITERAL:
+            printf("int"); debug_print_cnt += 2; break;
+        case DOUBLE_LITERAL:
+            printf("dbl"); debug_print_cnt += 2; break;
+        case STRING_LITERAL:
+            printf("str"); debug_print_cnt += 2; break;
+        case ID:
+            printf("id"); debug_print_cnt += 1; break;
+        case SEMICOLON:
+            printf(";"); break;
+        case END_OF_FILE:
+            printf("$"); break;
+        case T_L:
+            printf("<"); break;
+        case T_R:
+            printf(">"); break;
+        case NT_EXPR:
+            printf("E"); break;
+        default:
+            printf("%d", symbol); break;
+    }
+}
+
+void print_stack_item(stack_item_t *item) {
+    if (item->next != NULL)
+        print_stack_item(item->next);
+
+    print_symbol(item->symbol);
+}
+
+void print_stack() {
+    debug_print_cnt = 0;
+
+    print_stack_item(stack.top);
+
+    for (int i = debug_print_cnt; i < DEBUG_PRINT_STACK_WIDTH; i++)
+        printf(" ");
+}
+
+void print_symbol_aligned(int symbol) {
+    debug_print_cnt = 0;
+
+    print_symbol(symbol);
+
+    for (int i = debug_print_cnt; i < 6; i++)
+        printf(" ");
+}
+
+void print_instr_list() {
+    tInstr *instr;
+
+    listFirst(&instr_list);
+
+    while (instr_list.active != NULL) {
+        instr = listGetData(&instr_list);
+
+        print_instr(instr);
+        printf("\n");
+
+        listNext(&instr_list);
+    }
+}
+#endif
 
 int map_token(int token) {
     switch (token) {
@@ -126,12 +290,10 @@ void pop_n_times(int n) {
 }
 
 int top() {
-    if (stack.top != NULL) {
+    if (stack.top != NULL)
         return stack.top->symbol;
-    }
-    else {
+    else
         return END_OF_FILE;
-    }
 }
 
 int is_term(int symbol) {
@@ -142,12 +304,10 @@ int top_term() {
     stack_item_t *temp = stack.top;
 
     while (temp != NULL) {
-        if (is_term(temp->symbol)) {
+        if (is_term(temp->symbol))
             return temp->symbol;
-        }
-        else {
+        else
             temp = temp->next;
-        }
     }
 
     return END_OF_FILE;
@@ -167,12 +327,10 @@ void insert_after_top_term(int symbol) {
             new_item->symbol = symbol;
             new_item->next = temp;
             
-            if (prev == NULL) {
+            if (prev == NULL)
                 stack.top = new_item;
-            }
-            else {
+            else
                 prev->next = new_item;
-            }
 
             return;
         }
@@ -182,48 +340,6 @@ void insert_after_top_term(int symbol) {
         }
     }
 }
-
-#ifdef DEBUG
-void print_instr(tInstr *instr) {
-    switch (instr->instType) {
-        case IN_ADD:
-            printf("ADD"); break;
-        case IN_SUB:
-            printf("SUB"); break;
-        case IN_MUL:
-            printf("MUL"); break;
-        case IN_DIV:
-            printf("DIV"); break;
-        case IN_PUSH:
-            printf("PUSH"); break;
-        default:
-            printf("%d", instr->instType);
-    }
-
-    printf(" %p %p %p", instr->addr1, instr->addr2, instr->addr3);
-}
-
-void print_type(int type) {
-    switch (type) {
-        case TYPE_NONE:
-            printf("none   "); break;
-        case TYPE_ERROR:
-            printf("error  "); break;
-        case TYPE_VOID:
-            printf("void   "); break;
-        case TYPE_INT:
-            printf("int    "); break;
-        case TYPE_DOUBLE:
-            printf("double "); break;
-        case TYPE_STRING:
-            printf("string "); break;
-        case TYPE_BOOL:
-            printf("bool   "); break;
-        default:
-            printf("other  ");
-    }
-}
-#endif
 
 void add_instr(int type, void * ptr1, void * ptr2, void * ptr3) {
     tInstr instr = { type, ptr1, ptr2, ptr3 };
@@ -248,9 +364,8 @@ bool check_rule(int num, ...) {
         return false;
     }
 
-    for (int i = 0; i < num; i++) {
+    for (int i = 0; i < num; i++)
         symbols[num - 1 - i] = va_arg(valist, int);
-    }
     
     // compare stack with arguments
     stack_item_t *temp = stack.top;
@@ -278,7 +393,10 @@ bool check_rule(int num, ...) {
     return true;
 }
 
-void execute_rule(int num, int symbol, int type) {
+int execute_rule(int num, int symbol, int type) {
+    if (type == TYPE_ERROR)
+        return SEMANTIC_ERROR;
+
     // pop additional '<' from stack
     pop_n_times(num + 1);
 
@@ -289,328 +407,168 @@ void execute_rule(int num, int symbol, int type) {
 #endif
 
     push(symbol, type);
+
+    return SYNTAX_OK;
 }
 
-int get_type_add() {
+int check_and_convert_numeric_types() {
     int type1 = stack.top->type;
     int type2 = stack.top->next->next->type;
 
-    if (((type1 == TYPE_INT) || (type1 == TYPE_DOUBLE))
-        && ((type2 == TYPE_INT) || (type2 == TYPE_DOUBLE))) {
-        if ((type1 == TYPE_INT) && (type2 == TYPE_INT))
-            return TYPE_INT;
-        else
-            return TYPE_DOUBLE;
+    if ((type1 == TYPE_INT) && (type2 == TYPE_INT))
+        return TYPE_INT;
 
+    if ((type1 == TYPE_DOUBLE) && (type2 == TYPE_DOUBLE))
+        return TYPE_DOUBLE;
+
+    if ((type1 == TYPE_INT) && (type2 == TYPE_DOUBLE)) {
+        add_instr(IN_CONV, NULL, NULL, NULL);
+        return TYPE_DOUBLE;
     }
-    else if ((type1 == TYPE_STRING) && (type2 == TYPE_STRING)) {
-        return TYPE_STRING;
+
+    if ((type1 == TYPE_DOUBLE) && (type2 == TYPE_INT)) {
+        add_instr(IN_SWAP, NULL, NULL, NULL);
+        add_instr(IN_CONV, NULL, NULL, NULL);
+        add_instr(IN_SWAP, NULL, NULL, NULL);
+        return TYPE_DOUBLE;
     }
-    else {
-        return TYPE_ERROR;
-    }
+
+    return TYPE_ERROR;
 }
 
-int get_type_minus_mul_div() {
-    int type1 = stack.top->type;
-    int type2 = stack.top->next->next->type;
+int check_type_arithmetic(int instr) {
+    int type = check_and_convert_numeric_types();
 
-    if (((type1 == TYPE_INT) || (type1 == TYPE_DOUBLE))
-        && ((type2 == TYPE_INT) || (type2 == TYPE_DOUBLE))) {
-        if ((type1 == TYPE_INT) && (type2 == TYPE_INT))
-            return TYPE_INT;
-        else
-            return TYPE_DOUBLE;
+    if (type == TYPE_INT) {
+        add_instr(instr, NULL, NULL, NULL);
+    }
+    else if (type == TYPE_DOUBLE) {
+        add_instr(instr + F_ARITH_OFFSET, NULL, NULL, NULL);
+    }
+    else if (instr == IN_ADD &&
+             (stack.top->type == TYPE_STRING) &&
+             (stack.top->next->next->type == TYPE_STRING)) {
+        type = TYPE_STRING;
+        add_instr(IN_CONCAT, NULL, NULL, NULL);
+    }
 
-    }
-    else {
-        return TYPE_ERROR;
-    }
+    return type;
 }
 
-int get_type_brackets() {
+int check_type_brackets() {
     return stack.top->next->type;
 }
 
-int get_type_id() {
+int check_type_id() {
+    // TODO get type from table of symbols
     return TYPE_INT;
 }
 
-int get_type_rel() {
-    int type1 = stack.top->type;
-    int type2 = stack.top->next->next->type;
+int check_type_rel(int instr) {
+    int type = check_and_convert_numeric_types();
 
-    if (((type1 == TYPE_INT) || (type1 == TYPE_DOUBLE))
-        && ((type2 == TYPE_INT) || (type2 == TYPE_DOUBLE)))
-        return TYPE_BOOL;
-    else
-        return TYPE_ERROR;
+    if (type == TYPE_INT) {
+        type = TYPE_BOOL;
+        add_instr(instr, NULL, NULL, NULL);
+    }
+    else if (type == TYPE_DOUBLE) {
+        type = TYPE_BOOL;
+        add_instr(instr + F_REL_OFFSET, NULL, NULL, NULL);
+    }
+    
+    return type;
 }
 
 int rules() {
-    int type = TYPE_VOID;
+    int result, type;
 
     if (check_rule(3, NT_EXPR, PLUS, NT_EXPR)) {
-        type = get_type_add();
-
-        if (type == TYPE_ERROR)
-            return SEMANTIC_ERROR;
-
-        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E + E  ");
-        add_instr(IN_ADD, NULL, NULL, NULL);
+        type = check_type_arithmetic(IN_ADD);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, MINUS, NT_EXPR)) {
-        type = get_type_minus_mul_div();
-
-        if (type == TYPE_ERROR)
-            return SEMANTIC_ERROR;
-
-        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E - E  ");
-        add_instr(IN_SUB, NULL, NULL, NULL);
+        type = check_type_arithmetic(IN_SUB);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, MUL, NT_EXPR)) {
-        type = get_type_minus_mul_div();
-
-        if (type == TYPE_ERROR)
-            return SEMANTIC_ERROR;
-
-        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E * E  ");
-        add_instr(IN_MUL, NULL, NULL, NULL);
+        type = check_type_arithmetic(IN_MUL);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, DIV, NT_EXPR)) {
-        type = get_type_minus_mul_div();
-
-        if (type == TYPE_ERROR)
-            return SEMANTIC_ERROR;
-
-        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E / E  ");
-        add_instr(IN_DIV, NULL, NULL, NULL);
+        type = check_type_arithmetic(IN_DIV);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, LEFT_BRACKET, NT_EXPR, RIGHT_BRACKET)) {
-        type = get_type_brackets();
-
-        if (type == TYPE_ERROR)
-            return SEMANTIC_ERROR;
-
-        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> (E)    ");
+        type = check_type_brackets();
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(1, ID)) {
-        type = get_type_id();
-
-        if (type == TYPE_ERROR)
-            return SEMANTIC_ERROR;
-
-        execute_rule(1, NT_EXPR, type);
         debug_printf("rule: E -> ID     ");
+        type = check_type_id();
+        result = execute_rule(1, NT_EXPR, type);
         add_instr(IN_PUSH, (void *) 0x42, NULL, NULL);
     }
     else if (check_rule(1, INT_LITERAL)) {
-        execute_rule(1, NT_EXPR, TYPE_INT);
         debug_printf("rule: E -> INT    ");
+        result = execute_rule(1, NT_EXPR, TYPE_INT);
         add_instr(IN_PUSH, (void *) 0x01, NULL, NULL);
     }
     else if (check_rule(1, DOUBLE_LITERAL)) {
-        execute_rule(1, NT_EXPR, TYPE_DOUBLE);
         debug_printf("rule: E -> DOUBLE ");
+        result = execute_rule(1, NT_EXPR, TYPE_DOUBLE);
         add_instr(IN_PUSH, (void *) 0x02, NULL, NULL);
     }
     else if (check_rule(1, STRING_LITERAL)) {
-        execute_rule(1, NT_EXPR, TYPE_STRING);
         debug_printf("rule: E -> STRING ");
+        result = execute_rule(1, NT_EXPR, TYPE_STRING);
         add_instr(IN_PUSH, (void *) 0x02, NULL, NULL);
     }
     else if (check_rule(3, NT_EXPR, LESS, NT_EXPR)) {
-        type = get_type_rel();
-
-        if (type == TYPE_ERROR)
-            return SEMANTIC_ERROR;
-
-        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E < E  ");
+        type = check_type_rel(IN_LESS);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, GREAT, NT_EXPR)) {
-        type = get_type_rel();
-
-        if (type == TYPE_ERROR)
-            return SEMANTIC_ERROR;
-
-        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E > E  ");
+        type = check_type_rel(IN_GREAT);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, LESS_EQ, NT_EXPR)) {
-        type = get_type_rel();
-
-        if (type == TYPE_ERROR)
-            return SEMANTIC_ERROR;
-
-        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E <= E ");
+        type = check_type_rel(IN_LESS_EQ);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, GREAT_EQ, NT_EXPR)) {
-        type = get_type_rel();
-
-        if (type == TYPE_ERROR)
-            return SEMANTIC_ERROR;
-
-        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E >= E ");
+        type = check_type_rel(IN_GREAT_EQ);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, EQUAL, NT_EXPR)) {
-        type = get_type_rel();
-
-        if (type == TYPE_ERROR)
-            return SEMANTIC_ERROR;
-
-        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E == E ");
+        type = check_type_rel(IN_EQ);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3,  NT_EXPR, N_EQUAL, NT_EXPR)) {
-        type = get_type_rel();
-
-        if (type == TYPE_ERROR)
-            return SEMANTIC_ERROR;
-
-        execute_rule(3, NT_EXPR, type);
         debug_printf("rule: E -> E != E ");
+        type = check_type_rel(IN_N_EQ);
+        result = execute_rule(3, NT_EXPR, type);
     }
     else {
         debug_printf("rule: no matching rule");
         return SYNTAX_ERROR;
     }
 
+    if (result == SEMANTIC_ERROR)
+        return SEMANTIC_ERROR;
+
     return SYNTAX_OK;
 }
 
-#ifdef DEBUG
-void print_symbol(int symbol) {
-    debug_print_cnt++;
-
-    switch (symbol) {
-        case PLUS:
-            printf("+");
-            break;
-        case MINUS:
-            printf("-");
-            break;
-        case MUL:
-            printf("*");
-            break;
-        case DIV:
-            printf("/");
-            break;
-        case LESS:
-            printf("'<'");
-            debug_print_cnt += 2;
-            break;
-        case GREAT:
-            printf("'>'");
-            debug_print_cnt += 2;
-            break;
-        case LESS_EQ:
-            printf("'<='");
-            debug_print_cnt += 3;
-            break;
-        case GREAT_EQ:
-            printf("'>='");
-            debug_print_cnt += 3;
-            break;
-        case EQUAL:
-            printf("==");
-            debug_print_cnt += 1;
-            break;
-        case N_EQUAL:
-            printf("!=");
-            debug_print_cnt += 1;
-            break;
-        case LEFT_BRACKET:
-            printf("(");
-            break;
-        case RIGHT_BRACKET:
-            printf(")");
-            break;
-        case INT_LITERAL:
-            printf("int");
-            debug_print_cnt += 2;
-            break;
-        case DOUBLE_LITERAL:
-            printf("dbl");
-            debug_print_cnt += 2;
-            break;
-        case STRING_LITERAL:
-            printf("str");
-            debug_print_cnt += 2;
-            break;
-        case ID:
-            printf("id");
-            debug_print_cnt += 1;
-            break;
-        case SEMICOLON:
-            printf(";");
-            break;
-        case END_OF_FILE:
-            printf("$");
-            break;
-        case T_L:
-            printf("<");
-            break;
-        case T_R:
-            printf(">");
-            break;
-        case NT_EXPR:
-            printf("E");
-            break;
-        default:
-            printf("%d", symbol);
-            break;
-    }
-}
-
-void print_stack_item(stack_item_t *item) {
-    if (item->next != NULL) {
-        print_stack_item(item->next);
-    }
-
-    print_symbol(item->symbol);
-}
-
-void print_stack() {
-    debug_print_cnt = 0;
-
-    print_stack_item(stack.top);
-
-    for (int i = debug_print_cnt; i < DEBUG_PRINT_STACK_WIDTH; i++)
-        printf(" ");
-}
-
-void print_symbol_aligned(int symbol) {
-    debug_print_cnt = 0;
-
-    print_symbol(symbol);
-
-    for (int i = debug_print_cnt; i < 6; i++)
-        printf(" ");
-}
-
-void print_instr_list() {
-    tInstr *instr;
-
-    listFirst(&instr_list);
-
-    while (instr_list.active != NULL) {
-        instr = listGetData(&instr_list);
-
-        print_instr(instr);
-        printf("\n");
-
-        listNext(&instr_list);
-    }
-}
-#endif
 
 extern int get_next_token();
 
