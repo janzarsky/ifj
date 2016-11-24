@@ -23,6 +23,59 @@ void setSourceFile(FILE *f)
   source = f;
 }
 
+// debug functions
+void print_token(int symbol) {
+    switch (symbol) {
+        case PLUS:
+            printf("+"); break;
+        case MINUS:
+            printf("-"); break;
+        case MUL:
+            printf("*"); break;
+       case DIV:
+            printf("/"); break;
+        case LESS:
+            printf("'<'"); break;
+        case GREAT:
+            printf("'>'"); break;
+        case LESS_EQ:
+            printf("'<='"); break;
+        case GREAT_EQ:
+            printf("'>='"); break;
+        case EQUAL:
+            printf("=="); break;
+        case N_EQUAL:
+            printf("!="); break;
+        case LEFT_BRACKET:
+            printf("("); break;
+        case RIGHT_BRACKET:
+            printf(")"); break;
+        case LEFT_VINCULUM:
+            printf("{"); break;
+        case RIGHT_VINCULUM:
+            printf("}"); break;
+        case COMMA:
+            printf(","); break;
+        //case :
+        //    printf(""); break;
+        case INT_LITERAL:
+            printf("int"); break;
+        case DOUBLE_LITERAL:
+            printf("dbl"); break;
+        case STRING_LITERAL:
+            printf("str"); break;
+        case ID:
+            printf("id"); break;
+        case SEMICOLON:
+            printf(";"); break;
+        case END_OF_FILE:
+            printf("$"); break;
+        default:
+            printf("%d", symbol); break;
+    }
+}
+
+
 void return_token(int token, char *buffer) {
     token_t *temp = malloc(sizeof(token_t));
 
@@ -34,6 +87,10 @@ void return_token(int token, char *buffer) {
     temp->next = token_buffer;
 
     token_buffer = temp;
+
+    printf("SCANNER: sending token ");
+    print_token(token);
+    printf(", %s\n", buffer);
 }
 
 int lexer(string *buffer);
@@ -46,6 +103,11 @@ int get_next_token(char **buffer) {
         strInit(&str);
         result = lexer(&str);
         *buffer = str.str;
+
+        printf("SCANNER: sending token ");
+        print_token(result);
+        printf(", %s\n", *buffer);
+
         return result;
     }
 
@@ -55,6 +117,10 @@ int get_next_token(char **buffer) {
     token_t *temp = token_buffer;
     token_buffer = token_buffer->next;
     free(temp);
+
+    printf("SCANNER: sending token ");
+    print_token(result);
+    printf(", %s\n", *buffer);
 
     return result;
 }

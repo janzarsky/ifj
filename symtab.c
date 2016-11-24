@@ -28,7 +28,6 @@ int st_init(symtab_t **table){
 
 symtab_elem_t *st_add(symtab_t *tabulka, char *token) {
     unsigned int klic = hash_function(token, TABLE_SIZE);
-    printf("%u\n",klic);
 
     symtab_elem_t *synon = (symtab_elem_t *) malloc(sizeof(symtab_elem_t));
 
@@ -52,25 +51,16 @@ symtab_elem_t *st_add(symtab_t *tabulka, char *token) {
 symtab_elem_t *st_find (symtab_t *tabulka, char *token){
     unsigned int klic = hash_function(token, TABLE_SIZE);
 
-    if (tabulka->elements[klic]->nextElem == NULL) {
-        if (tabulka->elements[klic]->id != token)
-            return NULL;//SYNTAX_ERROR;
-        else
-            return tabulka->elements[klic];
-    }
-    else {
-        symtab_elem_t *ptr = tabulka->elements[klic]->nextElem;
-        symtab_elem_t *found = NULL;
+    symtab_elem_t *ptr = tabulka->elements[klic];
 
-        while (ptr != NULL)
-        {
-            if (ptr->id == token)
-                found = ptr;
+    while (ptr != NULL) {
+        if (ptr->id == token)
+            return ptr;
 
-            ptr = ptr->nextElem;
-        }
-        return found;
+        ptr = ptr->nextElem;
     }
+
+    return NULL;
 }
 
 void st_free(symtab_t *table) {

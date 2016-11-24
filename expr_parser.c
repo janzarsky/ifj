@@ -24,9 +24,9 @@ int debug_print_cnt = 0;
 enum nonterm_t { NT_EXPR = TOKEN_MAX, NT_MAX };
 enum table_entry_t { T_N = NT_MAX, T_L, T_E, T_R, T_MAX }; // none, <, =, >
 
-#define TABLE_SIZE 7
+#define T_SIZE 7
 
-const char table[TABLE_SIZE][TABLE_SIZE] = {
+const char table[T_SIZE][T_SIZE] = {
 //             0    1    2    3    4    5    6
 //             + -  * /  rel  (    )    ID   $
 /*  0 + - */ { T_R, T_L, T_R, T_L, T_R, T_L, T_R },
