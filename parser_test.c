@@ -32,6 +32,7 @@ int token;
 string *token_data;
 symtab_elem_t * item;
 string * id;
+int type;
 
 /*int get_next_token(){
 	static int number=0;
@@ -154,7 +155,7 @@ int statement_list(){
 // 2) <st-list>   -> WHILE LEFT_BRACKET <bool-expr> RIGHT_BRACKET LEFT_VINCULUM <st-list> <st-list>			
 		case WHILE:
 			if ( (token = get_next_token(token_data)) != LEX_ERROR && token == LEFT_BRACKET){
-				if ( (result = bool_expr()) != SYNTAX_OK)
+				if ( (result = bool_expr(&type)) != SYNTAX_OK)
 					return result;
 				if ( (token = get_next_token(token_data)) != LEX_ERROR && token == RIGHT_BRACKET)
 					if ( (token = get_next_token(token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
@@ -172,7 +173,7 @@ int statement_list(){
 // 3) <st-list>   -> IF LEFT_BRACKET <bool-expr> RIGHT_BRACKET LEFT_VINCULUM <st-list> ELSE LEFT_VINCULUM <st-list> <st-list>			
 		case IF:
 			if ( (token = get_next_token(token_data)) != LEX_ERROR && token == LEFT_BRACKET){
-				if ( (result = bool_expr()) != SYNTAX_OK)
+				if ( (result = bool_expr(&type)) != SYNTAX_OK)
 					return result;
 				if ( (token = get_next_token(token_data)) != LEX_ERROR && token == RIGHT_BRACKET)
 					if ( (token = get_next_token(token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
@@ -380,7 +381,7 @@ int return_args(){
 // 			break;
 		default:
 			return_token();
-			if( (result = math_expr()) == SYNTAX_OK){
+			if( (result = math_expr(&type)) == SYNTAX_OK){
 
 				//FIXME insert to symbol table
 				//FIXME check function return type
@@ -452,7 +453,7 @@ int equal(){
 					break;
 				default:
 					return_token();
-					if( (result = math_expr()) == SYNTAX_OK){
+					if( (result = math_expr(&type)) == SYNTAX_OK){
 
 						//FIXME insert to symbol table
 
