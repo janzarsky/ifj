@@ -5,6 +5,9 @@
 
 #define INPUT_SIZE 200
 
+int token;
+char *token_data;
+
 typedef struct {
     int expr_type;
     int type;
