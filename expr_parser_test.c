@@ -7,6 +7,7 @@
 
 int token;
 char *token_data;
+symtab_t symtab;
 
 typedef struct {
     int expr_type;

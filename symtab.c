@@ -54,7 +54,7 @@ symtab_elem_t *st_find (symtab_t *tabulka, char *token){
     symtab_elem_t *ptr = tabulka->elements[klic];
 
     while (ptr != NULL) {
-        if (ptr->id == token)
+        if (strcmp(ptr->id, token) == 0)
             return ptr;
 
         ptr = ptr->nextElem;

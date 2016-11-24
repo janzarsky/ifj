@@ -6,9 +6,14 @@
 #include "instrlist.h"
 #include "expr_parser.h"
 #include "scanner.h"
+#include "symtab.h"
 
+extern symtab_t *tabulka;
+extern symtab_t *local_tabulka;
 extern int token;
 extern char *token_data;
+
+char *token_data_prev;
 
 #ifdef DEBUG
 
@@ -115,19 +120,17 @@ void print_instr(tInstr *instr) {
 
 void print_type(int type) {
     switch (type) {
-        case TYPE_NONE:
-            printf("none   "); break;
-        case TYPE_ERROR:
+        case ST_DATATYPE_ERROR:
             printf("error  "); break;
-        case TYPE_VOID:
+        case ST_DATATYPE_VOID:
             printf("void   "); break;
-        case TYPE_INT:
+        case ST_DATATYPE_INT:
             printf("int    "); break;
-        case TYPE_DOUBLE:
+        case ST_DATATYPE_DOUBLE:
             printf("double "); break;
-        case TYPE_STRING:
+        case ST_DATATYPE_STRING:
             printf("string "); break;
-        case TYPE_BOOL:
+        case ST_DATATYPE_BOOL:
             printf("bool   "); break;
         default:
             printf("other  ");
@@ -396,7 +399,7 @@ bool check_rule(int num, ...) {
 }
 
 int execute_rule(int num, int symbol, int type) {
-    if (type == TYPE_ERROR)
+    if (type == ST_DATATYPE_ERROR)
         return SEMANTIC_ERROR;
 
     // pop additional '<' from stack
@@ -417,40 +420,40 @@ int check_and_convert_numeric_types() {
     int type1 = stack.top->type;
     int type2 = stack.top->next->next->type;
 
-    if ((type1 == TYPE_INT) && (type2 == TYPE_INT))
-        return TYPE_INT;
+    if ((type1 == ST_DATATYPE_INT) && (type2 == ST_DATATYPE_INT))
+        return ST_DATATYPE_INT;
 
-    if ((type1 == TYPE_DOUBLE) && (type2 == TYPE_DOUBLE))
-        return TYPE_DOUBLE;
+    if ((type1 == ST_DATATYPE_DOUBLE) && (type2 == ST_DATATYPE_DOUBLE))
+        return ST_DATATYPE_DOUBLE;
 
-    if ((type1 == TYPE_INT) && (type2 == TYPE_DOUBLE)) {
+    if ((type1 == ST_DATATYPE_INT) && (type2 == ST_DATATYPE_DOUBLE)) {
         add_instr(IN_CONV, NULL, NULL, NULL);
-        return TYPE_DOUBLE;
+        return ST_DATATYPE_DOUBLE;
     }
 
-    if ((type1 == TYPE_DOUBLE) && (type2 == TYPE_INT)) {
+    if ((type1 == ST_DATATYPE_DOUBLE) && (type2 == ST_DATATYPE_INT)) {
         add_instr(IN_SWAP, NULL, NULL, NULL);
         add_instr(IN_CONV, NULL, NULL, NULL);
         add_instr(IN_SWAP, NULL, NULL, NULL);
-        return TYPE_DOUBLE;
+        return ST_DATATYPE_DOUBLE;
     }
 
-    return TYPE_ERROR;
+    return ST_DATATYPE_ERROR;
 }
 
 int check_type_arithmetic(int instr) {
     int type = check_and_convert_numeric_types();
 
-    if (type == TYPE_INT) {
+    if (type == ST_DATATYPE_INT) {
         add_instr(instr, NULL, NULL, NULL);
     }
-    else if (type == TYPE_DOUBLE) {
+    else if (type == ST_DATATYPE_DOUBLE) {
         add_instr(instr + F_ARITH_OFFSET, NULL, NULL, NULL);
     }
     else if (instr == IN_ADD &&
-             (stack.top->type == TYPE_STRING) &&
-             (stack.top->next->next->type == TYPE_STRING)) {
-        type = TYPE_STRING;
+             (stack.top->type == ST_DATATYPE_STRING) &&
+             (stack.top->next->next->type == ST_DATATYPE_STRING)) {
+        type = ST_DATATYPE_STRING;
         add_instr(IN_CONCAT, NULL, NULL, NULL);
     }
 
@@ -462,19 +465,30 @@ int check_type_brackets() {
 }
 
 int check_type_id() {
-    // TODO get type from table of symbols
-    return TYPE_INT;
+    symtab_elem_t *var = st_find(local_tabulka, token_data_prev);
+
+    if (var == NULL) {
+        var = st_find(tabulka, token_data_prev);
+
+        if (var == NULL)
+            return ST_DATATYPE_ERROR;
+    }
+
+    if (var->elem_type == ST_ELEMTYPE_VAR)
+        return var->data_type;
+
+    return ST_DATATYPE_ERROR;
 }
 
 int check_type_rel(int instr) {
     int type = check_and_convert_numeric_types();
 
-    if (type == TYPE_INT) {
-        type = TYPE_BOOL;
+    if (type == ST_DATATYPE_INT) {
+        type = ST_DATATYPE_BOOL;
         add_instr(instr, NULL, NULL, NULL);
     }
-    else if (type == TYPE_DOUBLE) {
-        type = TYPE_BOOL;
+    else if (type == ST_DATATYPE_DOUBLE) {
+        type = ST_DATATYPE_BOOL;
         add_instr(instr + F_REL_OFFSET, NULL, NULL, NULL);
     }
     
@@ -517,17 +531,17 @@ int rules() {
     }
     else if (check_rule(1, INT_LITERAL)) {
         debug_printf("rule: E -> INT    ");
-        result = execute_rule(1, NT_EXPR, TYPE_INT);
+        result = execute_rule(1, NT_EXPR, ST_DATATYPE_INT);
         add_instr(IN_PUSH, (void *) 0x01, NULL, NULL);
     }
     else if (check_rule(1, DOUBLE_LITERAL)) {
         debug_printf("rule: E -> DOUBLE ");
-        result = execute_rule(1, NT_EXPR, TYPE_DOUBLE);
+        result = execute_rule(1, NT_EXPR, ST_DATATYPE_DOUBLE);
         add_instr(IN_PUSH, (void *) 0x02, NULL, NULL);
     }
     else if (check_rule(1, STRING_LITERAL)) {
         debug_printf("rule: E -> STRING ");
-        result = execute_rule(1, NT_EXPR, TYPE_STRING);
+        result = execute_rule(1, NT_EXPR, ST_DATATYPE_STRING);
         add_instr(IN_PUSH, (void *) 0x02, NULL, NULL);
     }
     else if (check_rule(3, NT_EXPR, LESS, NT_EXPR)) {
@@ -582,7 +596,7 @@ int expr(int expr_type, int *type) {
 
     stack_init();
 
-    push(END_OF_FILE, TYPE_NONE);
+    push(END_OF_FILE, ST_DATATYPE_VOID);
 
     b = get_next_token(&token_data);
     
@@ -594,7 +608,6 @@ int expr(int expr_type, int *type) {
         print_symbol_aligned(b);
 #endif
         if (expr_type == MATH_EXPR && b == SEMICOLON) {
-            debug_printf(", ");
             b = END_OF_FILE;
         }
         else if (expr_type == BOOL_EXPR
@@ -606,13 +619,15 @@ int expr(int expr_type, int *type) {
         switch (table[map_token(top_term())][map_token(b)]) {
             case T_E:
                 debug_printf("op: =    ");
-                push(b, TYPE_NONE);
+                push(b, ST_DATATYPE_VOID);
+                token_data_prev = token_data;
                 b = get_next_token(&token_data);
                 break;
             case T_L:
                 debug_printf("op: <    ");
                 insert_after_top_term(T_L);
-                push(b, TYPE_NONE);
+                push(b, ST_DATATYPE_VOID);
+                token_data_prev = token_data;
                 b = get_next_token(&token_data);
                 break;
             case T_R:
@@ -620,23 +635,22 @@ int expr(int expr_type, int *type) {
                 result = rules();
                 if (result == SYNTAX_ERROR) {
                     debug_printf("\n");
-                    *type = TYPE_ERROR;
+                    *type = ST_DATATYPE_ERROR;
                     return SYNTAX_ERROR;
                 }
                 else if (result == SEMANTIC_ERROR) {
                     debug_printf("\n");
-                    *type = TYPE_ERROR;
+                    *type = ST_DATATYPE_ERROR;
                     return SEMANTIC_ERROR;
                 }
+                debug_printf("\n");
                 break;
             case T_N:
             default:
                 debug_printf("op: none, \n");
-                *type = TYPE_ERROR;
+                *type = ST_DATATYPE_ERROR;
                 return SYNTAX_ERROR;
         }
-
-        debug_printf("\n");
 
     } while (top_term() != END_OF_FILE || b != END_OF_FILE);
 
@@ -656,23 +670,23 @@ int expr(int expr_type, int *type) {
     *type = stack.top->type;
 
     if (expr_type == MATH_EXPR) {
-        if ((*type == TYPE_INT) || 
-            (*type == TYPE_DOUBLE) ||
-            (*type == TYPE_STRING)) {
+        if ((*type == ST_DATATYPE_INT) || 
+            (*type == ST_DATATYPE_DOUBLE) ||
+            (*type == ST_DATATYPE_STRING)) {
             return SYNTAX_OK;
         }
         else {
-            *type = TYPE_ERROR;
+            *type = ST_DATATYPE_ERROR;
             return SEMANTIC_ERROR;
         }
     }
 
     if (expr_type == BOOL_EXPR) {
-        if (*type == TYPE_BOOL) {
+        if (*type == ST_DATATYPE_BOOL) {
             return SYNTAX_OK;
         }
         else {
-            *type = TYPE_ERROR;
+            *type = ST_DATATYPE_ERROR;
             return SEMANTIC_ERROR;
         }
     }
@@ -682,11 +696,22 @@ int expr(int expr_type, int *type) {
 
 int bool_expr() {
     int type;
-    printf("EXPR_PARSER: function bool_expr()\n");
-    return expr(BOOL_EXPR, &type);
+
+    debug_printf("*****\nEXPR_PARSER: function bool_expr()\n");
+
+    int result = expr(BOOL_EXPR, &type);
+
+    printf("*****\n");
+
+    return result;
 }
 
 int math_expr(int *type) {
-    printf("EXPR_PARSER: function math_expr()\n");
-    return expr(MATH_EXPR, type);
+    printf("*****\nEXPR_PARSER: function math_expr()\n");
+
+    int result = expr(MATH_EXPR, type);
+
+    printf("*****\n");
+    
+    return result;
 }
