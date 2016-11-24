@@ -75,8 +75,7 @@ void symtab_test()
 }
 
 int main(int argc, char** argv) {
-    symtab_test();
-/*
+    //symtab_test();
 
     if (argc != 2) {
         return 99;
@@ -89,8 +88,8 @@ int main(int argc, char** argv) {
     }
 
     // initialize table of symbols
-    symtab_t *symtab = malloc(sizeof(symtab_t));
-    st_init(symtab);
+    symtab_t *symtab;
+    st_init(&symtab);
 
     tListOfInstr *ilist = malloc(sizeof(tListOfInstr));
     listInit(ilist);
@@ -106,6 +105,6 @@ int main(int argc, char** argv) {
     // free table of symbols
     // free instruction list
     fclose(source);
-*/
+
     return 0;
 }

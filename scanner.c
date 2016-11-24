@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 #include "instrlist.h"
 #include "string.h"
@@ -9,13 +10,49 @@ FILE *source;
 int token; 
 string attr; 
 
+typedef struct token_t {
+    int token;
+    string *buffer;
+    struct token_t *next;
+} token_t;
+
+token_t *token_buffer;
+
 void setSourceFile(FILE *f)
 {
   source = f;
 }
 
-int get_next_token(string *buffer){
+void return_token(int token, string *buffer) {
+    token_t *temp = malloc(sizeof(token_t));
 
+    if (temp == NULL)
+        return;
+
+    temp->token = token;
+    temp->buffer = buffer;
+    temp->next = token_buffer;
+
+    token_buffer = temp;
+}
+
+int lexer(string *buffer);
+
+int get_next_token(string *buffer) {
+    if (token_buffer == NULL)
+        return lexer(buffer);
+
+    int result = token_buffer->token;
+    buffer = token_buffer->buffer;
+
+    token_t *temp = token_buffer;
+    token_buffer = token_buffer->next;
+    free(temp);
+
+    return result;
+}
+
+int lexer(string *buffer) {
     int state = 0; // stav automatu
     int c; // promenna pro znak
 
@@ -318,7 +355,8 @@ int get_next_token(string *buffer){
      else if (quote_count == 1 && c != '/' && c != '*') {ungetc(c, source); return DIV; } // nejedna se o komentar ale o operator deleni
      else if (quote_count == 1 && c == '/') state = 1; // jedna se o jednoradkovy komentar
      else if (quote_count == 1 && c == '*') {state = 2;} // jedna se o blokovy komentar
-     else return LEX_ERROR; break;
+     else return LEX_ERROR;
+     break;
 
   } // konec switche
  } // konec while

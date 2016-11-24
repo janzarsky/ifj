@@ -17,6 +17,17 @@ int parse(tListOfInstr * ilist, symtab_t * symtab , FILE* source) {
     
         fprintf(stderr, "DEBUG: got token %d, %s\n", token, attr.str);
     } while (token != END_OF_FILE && token != LEX_ERROR);
+
+    fprintf(stderr, "DEBUG: return token %d\n", ID);
+    return_token(ID, &attr);
+    fprintf(stderr, "DEBUG: return token %d\n", INT_LITERAL);
+    return_token(INT_LITERAL, &attr);
+
+    token = get_next_token(&attr);
+    fprintf(stderr, "DEBUG: got token %d, %s\n", token, attr.str);
+
+    token = get_next_token(&attr);
+    fprintf(stderr, "DEBUG: got token %d, %s\n", token, attr.str);
     
     return 42;
 }

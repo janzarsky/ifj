@@ -42,7 +42,8 @@ int type;
 		return END_STATEMENT;
 }*/
 
-void return_token(){printf("111111111111111111111111");
+void my_return_token(int token, string *buffer) {
+    printf("111111111111111111111111");
 }
 
 
@@ -380,7 +381,7 @@ int return_args(){
 // 			return SYNTAX_ERROR;	
 // 			break;
 		default:
-			return_token();
+			my_return_token(0, NULL);
 			if( (result = math_expr(&type)) == SYNTAX_OK){
 
 				//FIXME insert to symbol table
@@ -452,7 +453,7 @@ int equal(){
 					else return SYNTAX_OK;
 					break;
 				default:
-					return_token();
+					my_return_token(0, NULL);
 					if( (result = math_expr(&type)) == SYNTAX_OK){
 
 						//FIXME insert to symbol table
