@@ -39,9 +39,9 @@
 #define GREAT    35 // >
 #define LESS_EQ  36 // <=
 #define GREAT_EQ 37 // >=
-#define EQUAL    38
-#define N_EQUAL  39
-#define ASSIGN   40 // ==
+#define EQUAL    38 // ==
+#define N_EQUAL  39 // !=
+#define ASSIGN   40 // =
 
 //znaky
 #define LEFT_VINCULUM  41 // '{'   - pouzivano u trid a funkci

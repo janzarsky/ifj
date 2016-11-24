@@ -5,8 +5,10 @@
 #include "parser_test.h"
 #include "instrlist.h"
 #include "expr_parser.h"
+#include "scanner.h"
 
-int token;
+extern int token;
+extern char *token_data;
 
 #ifdef DEBUG
 
@@ -570,8 +572,6 @@ int rules() {
 }
 
 
-extern int get_next_token();
-
 #define MATH_EXPR 1
 #define BOOL_EXPR 2
 
@@ -584,7 +584,7 @@ int expr(int expr_type, int *type) {
 
     push(END_OF_FILE, TYPE_NONE);
 
-    b = get_next_token();
+    b = get_next_token(&token_data);
     
     do {
 #ifdef DEBUG
@@ -607,13 +607,13 @@ int expr(int expr_type, int *type) {
             case T_E:
                 debug_printf("op: =    ");
                 push(b, TYPE_NONE);
-                b = get_next_token();
+                b = get_next_token(&token_data);
                 break;
             case T_L:
                 debug_printf("op: <    ");
                 insert_after_top_term(T_L);
                 push(b, TYPE_NONE);
-                b = get_next_token();
+                b = get_next_token(&token_data);
                 break;
             case T_R:
                 debug_printf("op: >    ");
@@ -680,10 +680,13 @@ int expr(int expr_type, int *type) {
     return SYNTAX_ERROR;
 }
 
-int bool_expr(int *type) {
-    return expr(BOOL_EXPR, type);
+int bool_expr() {
+    int type;
+    printf("EXPR_PARSER: function bool_expr()\n");
+    return expr(BOOL_EXPR, &type);
 }
 
 int math_expr(int *type) {
+    printf("EXPR_PARSER: function math_expr()\n");
     return expr(MATH_EXPR, type);
 }

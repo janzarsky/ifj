@@ -56,14 +56,16 @@ void print_token(int symbol) {
             printf("}"); break;
         case COMMA:
             printf(","); break;
+        case ASSIGN:
+            printf("="); break;
         //case :
         //    printf(""); break;
         case INT_LITERAL:
-            printf("int"); break;
+            printf("int literal"); break;
         case DOUBLE_LITERAL:
-            printf("dbl"); break;
+            printf("double literal"); break;
         case STRING_LITERAL:
-            printf("str"); break;
+            printf("str literal"); break;
         case ID:
             printf("id"); break;
         case SEMICOLON:
@@ -88,7 +90,7 @@ void return_token(int token, char *buffer) {
 
     token_buffer = temp;
 
-    printf("SCANNER: sending token ");
+    printf("SCANNER: returning token ");
     print_token(token);
     printf(", %s\n", buffer);
 }
@@ -423,8 +425,8 @@ int lexer(string *buffer) {
      else if (great_count == 1 && c == '=') {return GREAT_EQ;}
      else if (great_count == 1 && c != '=') {ungetc(c, source); return GREAT; } // vrat neplatny znak, je to vetsi nez
      else if (excl_count == 1 && c == '=')  {return N_EQUAL;}
-     else if (eq_count == 1 && c != '=')    {ungetc(c, source); return EQUAL; } // vrat neplatny znak, je to rovnitko
-     else if (eq_count == 1 && c == '=')    {return ASSIGN;} // vrat operator ==
+     else if (eq_count == 1 && c != '=')    {ungetc(c, source); return ASSIGN; } // vrat neplatny znak, je to rovnitko
+     else if (eq_count == 1 && c == '=')    {return EQUAL;} // vrat operator ==
      else if (quote_count == 1 && c != '/' && c != '*') {ungetc(c, source); return DIV; } // nejedna se o komentar ale o operator deleni
      else if (quote_count == 1 && c == '/') state = 1; // jedna se o jednoradkovy komentar
      else if (quote_count == 1 && c == '*') {state = 2;} // jedna se o blokovy komentar

@@ -2,9 +2,18 @@
 #include "parser_test.h"
 #include "instrlist.h"
 #include "expr_parser.h"
-#include "string.h"
 #include "symtab.h"
 #include "scanner.h"
+
+int return_args();
+int statement_list();
+int func_var();
+int assign();
+int class_dec();
+int func_args();
+int func_args_list();
+int func_params();
+int func_params_list();
 
 /*void generateInstruction(int instType, void *addr1, void *addr2, void *addr3)
 // vlozi novou instrukci do seznamu instrukci
@@ -22,7 +31,7 @@
 
 		// 2) <prog>      -> CLASS ID LEFT_VINCULUM <class-dec>  // declaration of clas
 // int statement[] = {CLASS, ID, LEFT_VINCULUM,STATIC, INT, ID , LEFT_BRACKET, INT, ID, COMMA, DOUBLE, ID,COMMA,STRING,ID, RIGHT_BRACKET, LEFT_VINCULUM, RIGHT_VINCULUM, RIGHT_VINCULUM, END_OF_FILE}; 
-int statement[] = {CLASS, ID, LEFT_VINCULUM,STATIC, INT, ID, EQUAL, ID, LEFT_BRACKET, ID,COMMA, STRING_LITERAL, RIGHT_BRACKET,  SEMICOLON, RIGHT_VINCULUM, END_STATEMENT}; 
+int statement[] = {CLASS, ID, LEFT_VINCULUM,STATIC, INT, ID, ASSIGN, ID, LEFT_BRACKET, ID,COMMA, STRING_LITERAL, RIGHT_BRACKET,  SEMICOLON, RIGHT_VINCULUM, END_STATEMENT}; 
 
 		// 3) <prog>      -> STATIC [INT/DOUBLE/SRING/VOID] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>
 // int statement[] = { STATIC, INT, ID , LEFT_BRACKET, INT, ID, COMMA, DOUBLE, ID,COMMA,STRING,ID, RIGHT_BRACKET, LEFT_VINCULUM, RIGHT_VINCULUM, END_OF_FILE}; 
@@ -31,7 +40,7 @@ symtab_t *local_tabulka;
 int token;
 char *token_data;
 symtab_elem_t * item;
-string * id;
+char *id;
 int type;
 
 void set_symtable(symtab_t *table) {
@@ -130,10 +139,10 @@ int program(){
 
 /*st-list>//function body
 		1) <st-list>   -> RETURN <return-args> <st-list> //return in function
-		2) <st-list>   -> WHILE LEFT_BRACKET <bool-expr> RIGHT_BRACKET LEFT_VINCULUM <st-list> <st-list>//cycle while
-		3) <st-list>   -> IF LEFT_BRACKET <bool-expr> RIGHT_BRACKET LEFT_VINCULUM <st-list> ELSE LEFT_VINCULUM <st-list> <st-list> //if-else statement
+		2) <st-list>   -> WHILE LEFT_BRACKET <bool-expr> LEFT_VINCULUM <st-list> <st-list>//cycle while
+		3) <st-list>   -> IF LEFT_BRACKET <bool-expr> LEFT_VINCULUM <st-list> ELSE LEFT_VINCULUM <st-list> <st-list> //if-else statement
 		4) <st-list>   -> RIGHT_VINCULUM	// end of sequence
-		6) <st-list>   -> [INT/DOUBLE/SRING] ID [ SEMICOLON / EQUAL <equal>] <st-list>
+		6) <st-list>   -> [INT/DOUBLE/SRING] ID [ SEMICOLON / ASSIGN <assign>] <st-list>
 		7) <st-list>   -> ID <func_var>(we must give pointer to ID) <st-list> //it can be function call OR inicialization of var*/
 int statement_list(){
     printf("PARSER: function statement_list()\n");
@@ -150,30 +159,28 @@ int statement_list(){
 				return result;
 			else return SYNTAX_OK;
 			break;
-// 2) <st-list>   -> WHILE LEFT_BRACKET <bool-expr> RIGHT_BRACKET LEFT_VINCULUM <st-list> <st-list>			
+// 2) <st-list>   -> WHILE LEFT_BRACKET <bool-expr> LEFT_VINCULUM <st-list> <st-list>			
 		case WHILE:
 			if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
-				if ( (result = bool_expr(&type)) != SYNTAX_OK)
+				if ( (result = bool_expr()) != SYNTAX_OK)
 					return result;
-				if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == RIGHT_BRACKET)
-					if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
-						if ( (result = statement_list()) != SYNTAX_OK)
-							return result;
-						if ( (result = statement_list()) != SYNTAX_OK)
-							return result;
-						else return SYNTAX_OK;
-					}
+                if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
+                    if ( (result = statement_list()) != SYNTAX_OK)
+                        return result;
+                    if ( (result = statement_list()) != SYNTAX_OK)
+                        return result;
+                    else return SYNTAX_OK;
+                }
 			}
 			if(token == LEX_ERROR)
 				return LEX_ERROR;
 			return SYNTAX_ERROR;
 			break;
-// 3) <st-list>   -> IF LEFT_BRACKET <bool-expr> RIGHT_BRACKET LEFT_VINCULUM <st-list> ELSE LEFT_VINCULUM <st-list> <st-list>			
+// 3) <st-list>   -> IF LEFT_BRACKET <bool-expr> LEFT_VINCULUM <st-list> ELSE LEFT_VINCULUM <st-list> <st-list>			
 		case IF:
 			if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
-				if ( (result = bool_expr(&type)) != SYNTAX_OK)
+				if ( (result = bool_expr()) != SYNTAX_OK)
 					return result;
-				if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == RIGHT_BRACKET)
 					if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
 						if ( (result = statement_list()) != SYNTAX_OK)
 							return result;
@@ -195,7 +202,7 @@ int statement_list(){
 		case RIGHT_VINCULUM:
 			return SYNTAX_OK;
 			break;
-// 6) <st-list>   -> [INT/DOUBLE/SRING] ID [ SEMICOLON / EQUAL <equal>] <st-list>
+// 6) <st-list>   -> [INT/DOUBLE/SRING] ID [ SEMICOLON / ASSIGN <assign>] <st-list>
 		case INT:
 		case DOUBLE:
 		case STRING:
@@ -220,12 +227,25 @@ int statement_list(){
 
 				if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == SEMICOLON){
 					item->elem_type = ST_ELEMTYPE_VAR;
+					if( (result = statement_list()) != SYNTAX_OK){
+						return result;
+					}
+					else{
+						return SYNTAX_OK;
+					}
 //???????????????????????????????????????????????????????????? item->local_table = 
 				}
-				else if(token == EQUAL){
-					if( (result = equal()) != SYNTAX_OK )
+				else if(token == ASSIGN){
+					if( (result = assign()) != SYNTAX_OK )
 						return result;
-					else return SYNTAX_OK;
+					else{
+						if( (result = statement_list()) != SYNTAX_OK){
+							return result;
+						}
+						else{
+							return SYNTAX_OK;
+						}
+					}
 				}
 			if(token == LEX_ERROR)
 				return LEX_ERROR;
@@ -308,7 +328,7 @@ int func_params_list(){
 
 // <func_var>
 // 		1) LEFT_BRACKET <func-args> SEMICOLON //its function call
-// 		2) EQUAL <equal> //its inicialization of var
+// 		2) ASSIGN <assign> //its inicialization of var
 int func_var(){
     printf("PARSER: function func_var()\n");
 	int result;
@@ -320,8 +340,8 @@ int func_var(){
 		case LEFT_BRACKET:
 			
 			
-			if(st_find(tabulka, id->str) == NULL){
-				item = st_add(tabulka, id->str);
+			if(st_find(tabulka, id) == NULL){
+				item = st_add(tabulka, id);
 				item->elem_type = ST_ELEMTYPE_FUN;
 				item->initialized = item->declared = 0;
 			}
@@ -335,9 +355,9 @@ int func_var(){
 				return LEX_ERROR;
 			return SYNTAX_ERROR;	
 			break;
-// 2) EQUAL <equal> //its inicialization of var			
-		case EQUAL:
-			if ( (result = equal()) != SYNTAX_OK)
+// 2) ASSIGN <assign> //its inicialization of var			
+		case ASSIGN:
+			if ( (result = assign()) != SYNTAX_OK)
 				return result;
 			else return SYNTAX_OK;
 			break;
@@ -401,14 +421,17 @@ int return_args(){
 }
 
 
-// <equal>	
-//-- 		1) <equal>	   -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON
-// 		2) <equal>	   -> ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) SEMICOLON 
-// 		3) <equal>	   -> ID [SEMICOLON/EQUAL <equal>]
-// 		4) <equal>	   -> <math-expr> SEMICOLON
-int equal(){
-    printf("PARSER: function equal()\n");
+// <assign>	
+//-- 		1) <assign>	   -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON
+// 		2) <assign>	   -> ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) SEMICOLON 
+// 		3) <assign>	   -> ID [SEMICOLON/ASSIGN <assign>]
+// 		4) <assign>	   -> <math-expr> SEMICOLON
+int assign(){
+    printf("PARSER: function assign()\n");
 	int result;
+    int temp_token;
+    char *temp_token_data;
+
 	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 		return LEX_ERROR;
 	switch(token){
@@ -422,10 +445,13 @@ int equal(){
 			return SYNTAX_ERROR;	
 			break;*/
 		case ID:
+            temp_token = token;
+            temp_token_data = token_data;
+
 			if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 				return LEX_ERROR;
 			switch(token){
-// 2) <equal>	   -> ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) SEMICOLON //function call			
+// 2) <assign>	   -> ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) SEMICOLON //function call			
 				case LEFT_BRACKET: 
 
 						//FIXME add insert function to symTab 
@@ -438,38 +464,38 @@ int equal(){
 						return LEX_ERROR;
 					return SYNTAX_ERROR;	
 					break;
-// 3) <equal>	   -> ID SEMICOLON					
+// 3) <assign>	   -> ID SEMICOLON					
 				case SEMICOLON:
 
 						//FIXME add insert var to symTab
 
 					return SYNTAX_OK;
 					break;
-// 3) <equal>	   -> ID EQUAL <equal>					
-				case EQUAL:	
+// 3) <assign>	   -> ID ASSIGN <assign>					
+                default:
+                    return_token(token, token_data);
+                    return_token(temp_token, temp_token_data);
 
-						//FIXME add insert var to symTab
+                    result = math_expr(&type);
 
-					if ( (result = equal()) != SYNTAX_OK)
-						return result;
-					else return SYNTAX_OK;
-					break;
-				default:
-					return_token(token, token_data);
-					if( (result = math_expr(&type)) == SYNTAX_OK){
+                    if(result == SYNTAX_OK){
+                        //FIXME insert to symbol table
+                        ;
+                    }
 
-						//FIXME insert to symbol table
+                    return result;
+            }
+        default:
+            return_token(token, token_data);
 
-						if(token == SEMICOLON)
-							return SYNTAX_OK;
-						else 
-							return SYNTAX_ERROR;
-					}
-					else{
-						return result;
-					}	
-			}
-			return SYNTAX_ERROR;
+            result = math_expr(&type);
+
+            if(result == SYNTAX_OK){
+                //FIXME insert to symbol table
+                ;
+            }
+
+			return result;
 	}
 	return SYNTAX_ERROR;
 }
@@ -534,7 +560,7 @@ int func_args_list(){
 
 // <class-dec>
 // 		1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID \n
-//               [SEMICOLON/ EQUAL <equal>/LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>] <class-dec>
+//               [SEMICOLON/ ASSIGN <assign>/LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>] <class-dec>
 // 		2) <class-dec> -> RIGHT_VINCULUM
 // 		3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>
 int class_dec(){
@@ -586,14 +612,14 @@ int class_dec(){
 									return result;
 								else return SYNTAX_OK;
 								break;
-// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID  EQUAL <equal> <class-dec>								
-							case EQUAL:
+// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID  ASSIGN <assign> <class-dec>								
+							case ASSIGN:
 
 								item->declared = 1;
 								item->elem_type = ST_ELEMTYPE_VAR;
 								item->initialized = 1;
 
-								if ( (result = equal()) != SYNTAX_OK)
+								if ( (result = assign()) != SYNTAX_OK)
 									return result;
 								if ( (result = class_dec()) != SYNTAX_OK)
 									return result;

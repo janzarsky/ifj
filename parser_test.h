@@ -14,15 +14,6 @@
 void set_symtable(symtab_t *table);
 void set_symtable_local(symtab_t *table);
 
-int return_args();
-int statement_list();
-int func_var();
 int program();
-int equal();
-int class_dec();
-int func_args();
-int func_args_list();
-int func_params();
-int func_params_list();
 
 #endif
