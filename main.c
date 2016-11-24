@@ -13,7 +13,8 @@
 #include <stdlib.h>
 
 #include "instrlist.h"
-#include "parser.h"
+#include "parser_test.h"
+#include "scanner.h"
 #include "symtab.h"
 
 //DEBUG
@@ -75,8 +76,7 @@ void symtab_test()
 }
 
 int main(int argc, char** argv) {
-    symtab_test();
-/*
+    //symtab_test();
 
     if (argc != 2) {
         return 99;
@@ -89,23 +89,36 @@ int main(int argc, char** argv) {
     }
 
     // initialize table of symbols
-    symtab_t *symtab = malloc(sizeof(symtab_t));
-    st_init(symtab);
+    symtab_t *symtab;
+    st_init(&symtab);
+
+    symtab_t *symtab_local;
+    st_init(&symtab_local);
 
     tListOfInstr *ilist = malloc(sizeof(tListOfInstr));
     listInit(ilist);
 
     // table of symbols == NULL (no table implemented yet)
     setSourceFile(source);
-    int parse_result = parse(ilist, symtab, source);
+    set_symtable(symtab);
+    set_symtable_local(symtab_local);
+
+    int parse_result = program();
+
+    printf("MAIN: symtab\n");
+    st_print(symtab);
+
+    printf("MAIN: symtab_local\n");
+    st_print(symtab_local);
 
     // check error code
+    printf("result: %d\n", parse_result);
 
     // interpret code
 
     // free table of symbols
     // free instruction list
     fclose(source);
-*/
+
     return 0;
 }

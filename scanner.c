@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 #include "instrlist.h"
 #include "string.h"
@@ -9,13 +10,124 @@ FILE *source;
 int token; 
 string attr; 
 
+typedef struct token_t {
+    int token;
+    char *buffer;
+    struct token_t *next;
+} token_t;
+
+token_t *token_buffer;
+
 void setSourceFile(FILE *f)
 {
   source = f;
 }
 
-int get_next_token(string *buffer){
+// debug functions
+void print_token(int symbol) {
+    switch (symbol) {
+        case PLUS:
+            printf("+"); break;
+        case MINUS:
+            printf("-"); break;
+        case MUL:
+            printf("*"); break;
+       case DIV:
+            printf("/"); break;
+        case LESS:
+            printf("'<'"); break;
+        case GREAT:
+            printf("'>'"); break;
+        case LESS_EQ:
+            printf("'<='"); break;
+        case GREAT_EQ:
+            printf("'>='"); break;
+        case EQUAL:
+            printf("=="); break;
+        case N_EQUAL:
+            printf("!="); break;
+        case LEFT_BRACKET:
+            printf("("); break;
+        case RIGHT_BRACKET:
+            printf(")"); break;
+        case LEFT_VINCULUM:
+            printf("{"); break;
+        case RIGHT_VINCULUM:
+            printf("}"); break;
+        case COMMA:
+            printf(","); break;
+        case ASSIGN:
+            printf("="); break;
+        //case :
+        //    printf(""); break;
+        case INT_LITERAL:
+            printf("int literal"); break;
+        case DOUBLE_LITERAL:
+            printf("double literal"); break;
+        case STRING_LITERAL:
+            printf("str literal"); break;
+        case ID:
+            printf("id"); break;
+        case SEMICOLON:
+            printf(";"); break;
+        case END_OF_FILE:
+            printf("$"); break;
+        default:
+            printf("%d", symbol); break;
+    }
+}
 
+
+void return_token(int token, char *buffer) {
+    token_t *temp = malloc(sizeof(token_t));
+
+    if (temp == NULL)
+        return;
+
+    temp->token = token;
+    temp->buffer = buffer;
+    temp->next = token_buffer;
+
+    token_buffer = temp;
+
+    printf("SCANNER: returning token ");
+    print_token(token);
+    printf(", %s\n", buffer);
+}
+
+int lexer(string *buffer);
+
+int get_next_token(char **buffer) {
+    int result;
+
+    if (token_buffer == NULL) {
+        string str;
+        strInit(&str);
+        result = lexer(&str);
+        *buffer = str.str;
+
+        printf("SCANNER: sending token ");
+        print_token(result);
+        printf(", %s\n", *buffer);
+
+        return result;
+    }
+
+    result = token_buffer->token;
+    *buffer = token_buffer->buffer;
+
+    token_t *temp = token_buffer;
+    token_buffer = token_buffer->next;
+    free(temp);
+
+    printf("SCANNER: sending token ");
+    print_token(result);
+    printf(", %s\n", *buffer);
+
+    return result;
+}
+
+int lexer(string *buffer) {
     int state = 0; // stav automatu
     int c; // promenna pro znak
 
@@ -313,12 +425,13 @@ int get_next_token(string *buffer){
      else if (great_count == 1 && c == '=') {return GREAT_EQ;}
      else if (great_count == 1 && c != '=') {ungetc(c, source); return GREAT; } // vrat neplatny znak, je to vetsi nez
      else if (excl_count == 1 && c == '=')  {return N_EQUAL;}
-     else if (eq_count == 1 && c != '=')    {ungetc(c, source); return EQUAL; } // vrat neplatny znak, je to rovnitko
-     else if (eq_count == 1 && c == '=')    {return ASSIGN;} // vrat operator ==
+     else if (eq_count == 1 && c != '=')    {ungetc(c, source); return ASSIGN; } // vrat neplatny znak, je to rovnitko
+     else if (eq_count == 1 && c == '=')    {return EQUAL;} // vrat operator ==
      else if (quote_count == 1 && c != '/' && c != '*') {ungetc(c, source); return DIV; } // nejedna se o komentar ale o operator deleni
      else if (quote_count == 1 && c == '/') state = 1; // jedna se o jednoradkovy komentar
      else if (quote_count == 1 && c == '*') {state = 2;} // jedna se o blokovy komentar
-     else return LEX_ERROR; break;
+     else return LEX_ERROR;
+     break;
 
   } // konec switche
  } // konec while

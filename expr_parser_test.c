@@ -203,8 +203,14 @@ int main(int __attribute__((unused)) argc, char __attribute__((unused)) **argv) 
         test_tokens_counter = 0;
         test_number = i;
 
-        if (tests[i].expr_type == T_BOOL)
-            result = bool_expr(&type);
+        if (tests[i].expr_type == T_BOOL) {
+            result = bool_expr();
+
+            if (result == SYNTAX_OK)
+                type = TYPE_BOOL;
+            else
+                type = TYPE_ERROR;
+        }
         else if (tests[i].expr_type == T_MATH)
             result = math_expr(&type);
         else

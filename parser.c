@@ -9,14 +9,24 @@ int parse(tListOfInstr * ilist, symtab_t * symtab , FILE* source) {
     fprintf(stderr, "DEBUG: Function parse\n");
 
     int token;
-    string attr;
-    strInit(&attr);
+    char *attr;
     
     do {
         token = get_next_token(&attr);
     
-        fprintf(stderr, "DEBUG: got token %d, %s\n", token, attr.str);
+        fprintf(stderr, "DEBUG: got token %d, %s\n", token, attr);
     } while (token != END_OF_FILE && token != LEX_ERROR);
+
+    fprintf(stderr, "DEBUG: return token %d\n", ID);
+    return_token(ID, "asdf");
+    fprintf(stderr, "DEBUG: return token %d\n", INT_LITERAL);
+    return_token(INT_LITERAL, "qwerty");
+
+    token = get_next_token(&attr);
+    fprintf(stderr, "DEBUG: got token %d, %s\n", token, attr);
+
+    token = get_next_token(&attr);
+    fprintf(stderr, "DEBUG: got token %d, %s\n", token, attr);
     
     return 42;
 }
