@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "parser_test.h"
 #include "instrlist.h"
 #include "expr_parser.h"
@@ -31,7 +32,7 @@ int func_params_list();
 
 		// 2) <prog>      -> CLASS ID LEFT_VINCULUM <class-dec>  // declaration of clas
 // int statement[] = {CLASS, ID, LEFT_VINCULUM,STATIC, INT, ID , LEFT_BRACKET, INT, ID, COMMA, DOUBLE, ID,COMMA,STRING,ID, RIGHT_BRACKET, LEFT_VINCULUM, RIGHT_VINCULUM, RIGHT_VINCULUM, END_OF_FILE}; 
-int statement[] = {CLASS, ID, LEFT_VINCULUM,STATIC, INT, ID, ASSIGN, ID, LEFT_BRACKET, ID,COMMA, STRING_LITERAL, RIGHT_BRACKET,  SEMICOLON, RIGHT_VINCULUM, END_STATEMENT}; 
+//int statement[] = {CLASS, ID, LEFT_VINCULUM,STATIC, INT, ID, ASSIGN, ID, LEFT_BRACKET, ID,COMMA, STRING_LITERAL, RIGHT_BRACKET,  SEMICOLON, RIGHT_VINCULUM, END_STATEMENT}; 
 
 		// 3) <prog>      -> STATIC [INT/DOUBLE/SRING/VOID] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>
 // int statement[] = { STATIC, INT, ID , LEFT_BRACKET, INT, ID, COMMA, DOUBLE, ID,COMMA,STRING,ID, RIGHT_BRACKET, LEFT_VINCULUM, RIGHT_VINCULUM, END_OF_FILE}; 
@@ -40,6 +41,7 @@ symtab_t *local_tabulka;
 int token;
 char *token_data;
 symtab_elem_t * item;
+symtab_elem_t * current_function;
 char *id;
 int type;
 
@@ -70,7 +72,17 @@ int program(){
 						if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM)
 							 if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == STATIC)
 							 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == VOID)
-							 		if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == RUN)
+							 		if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == RUN){
+							 			if(st_find(tabulka,token_data) == NULL){
+							 				current_function = st_add(tabulka,token_data);
+							 				current_function->data_type = ST_DATATYPE_VOID;
+							 				current_function->elem_type = ST_ELEMTYPE_FUN;
+							 			}
+							 			else{
+							 				;
+							 				//FIXME make new ramec for recursive RUN call
+							 				;
+							 			}
 									 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET)
 										 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == RIGHT_BRACKET)
 											 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
@@ -84,6 +96,7 @@ int program(){
 														 		return SYNTAX_OK;
 														}	 	
 												}
+									}			
 						if(token == LEX_ERROR)
 							return LEX_ERROR;						
 						return SYNTAX_ERROR;
@@ -142,7 +155,7 @@ int program(){
 		2) <st-list>   -> WHILE LEFT_BRACKET <bool-expr> LEFT_VINCULUM <st-list> <st-list>//cycle while
 		3) <st-list>   -> IF LEFT_BRACKET <bool-expr> LEFT_VINCULUM <st-list> ELSE LEFT_VINCULUM <st-list> <st-list> //if-else statement
 		4) <st-list>   -> RIGHT_VINCULUM	// end of sequence
-		6) <st-list>   -> [INT/DOUBLE/SRING] ID [ SEMICOLON / ASSIGN <assign>] <st-list>
+		// 6) <st-list>   -> [INT/DOUBLE/SRING] ID [ SEMICOLON / ASSIGN <assign>] <st-list>
 		7) <st-list>   -> ID <func_var>(we must give pointer to ID) <st-list> //it can be function call OR inicialization of var*/
 int statement_list(){
     printf("PARSER: function statement_list()\n");
@@ -227,13 +240,13 @@ int statement_list(){
 
 				if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == SEMICOLON){
 					item->elem_type = ST_ELEMTYPE_VAR;
+					item->local_table = local_tabulka; 
 					if( (result = statement_list()) != SYNTAX_OK){
 						return result;
 					}
 					else{
 						return SYNTAX_OK;
 					}
-//???????????????????????????????????????????????????????????? item->local_table = 
 				}
 				else if(token == ASSIGN){
 					if( (result = assign()) != SYNTAX_OK )
@@ -379,34 +392,32 @@ int return_args(){
 // 1) <return-args> -> SEMICOLON (ONLY if we in VOID function)		
 		case SEMICOLON:
 
-			//FIXME check if we are in VOID function
-
+			if(current_function->data_type != ST_DATATYPE_VOID){
+				return SEMANTIC_ERROR; //FIXME bad return type
+			} 
 			return SYNTAX_OK;
 			break;
-// // 2) <return-args> -> ID SEMICOLON			
-// 		case ID:
-// 			if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == SEMICOLON)
-// 				return SYNTAX_OK;
-// 			if(token == LEX_ERROR)
-// 				return LEX_ERROR;
-// 			return SYNTAX_ERROR;	
-// 			break;
-// // 3) <return-args> -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON			
-// 		case INT_LITERAL:
-// 		case DOUBLE_LITERAL:
-// 		case STRING_LITERAL:
-// 			if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == SEMICOLON)
-// 				return SYNTAX_OK;
-// 			if(token == LEX_ERROR)
-// 				return LEX_ERROR;
-// 			return SYNTAX_ERROR;	
-// 			break;
 		default:
+
+				if(current_function->data_type == ST_DATATYPE_VOID){
+					return 8; // return smth in void function
+				}
+
 			return_token(token, token_data);
 			if( (result = math_expr(&type)) == SYNTAX_OK){
 
 				//FIXME insert to symbol table
-				//FIXME check function return type
+				if(current_function->data_type == ST_DATATYPE_DOUBLE && type == ST_DATATYPE_INT){
+					//FIXME generate instr conv
+					type = ST_DATATYPE_DOUBLE;
+				}
+
+				if(current_function->data_type != type){
+					return SEMANTIC_ERROR; //FIXME bad return type
+				}
+				else{
+					//FIXME generate instr return_from_function
+				}
 
 				if(token == SEMICOLON)
 					return SYNTAX_OK;
@@ -422,31 +433,24 @@ int return_args(){
 
 
 // <assign>	
-//-- 		1) <assign>	   -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON
 // 		2) <assign>	   -> ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) SEMICOLON 
-// 		3) <assign>	   -> ID [SEMICOLON/ASSIGN <assign>]
+// 		3) <assign>	   -> ID [SEMICOLON/ <math-expr>]
 // 		4) <assign>	   -> <math-expr> SEMICOLON
 int assign(){
     printf("PARSER: function assign()\n");
 	int result;
     int temp_token;
     char *temp_token_data;
+    symtab_elem_t * temp_elem;
+    char *end;
 
 	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 		return LEX_ERROR;
 	switch(token){
-		/*case INT_LITERAL:
-		case DOUBLE_LITERAL:
-		case STRING_LITERAL:
-			if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == SEMICOLON)
-				return SYNTAX_OK;
-			if(token == LEX_ERROR)
-				return LEX_ERROR;
-			return SYNTAX_ERROR;	
-			break;*/
 		case ID:
             temp_token = token;
             temp_token_data = token_data;
+            temp_elem = st_find(local_tabulka,temp_token_data);
 
 			if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 				return LEX_ERROR;
@@ -466,12 +470,36 @@ int assign(){
 					break;
 // 3) <assign>	   -> ID SEMICOLON					
 				case SEMICOLON:
-
-						//FIXME add insert var to symTab
-
+				//FIXME type control
+					/*if(!(item->declared) ||  !(temp_elem->declared) || !(temp_elem->initialized) )
+						return SEMANTIC_ERROR;
+					switch(item->data_type){
+						case ST_DATATYPE_INT:
+								if(temp_elem->data_type != ST_DATATYPE_INT)
+									return 4; 			//type compatibility error
+								item->value.ival = strtol(temp_token_data,&end,10);
+								item->initialized = 1;
+							break;
+						case ST_DATATYPE_DOUBLE:
+								if(temp_elem->data_type != ST_DATATYPE_DOUBLE){
+									// FIXME
+								}
+								item->value.dval = strtod(temp_token_data,&end);
+								item->initialized = 1;
+							break;
+						case ST_DATATYPE_STRING:
+								if(temp_elem->data_type != ST_DATATYPE_STRING)
+									return 4; 			//type compatibility error
+								item->value.strval = temp_token_data;
+								item->initialized = 1;
+							break;
+						default:
+							return SEMANTIC_ERROR;
+					}*/
+						
 					return SYNTAX_OK;
 					break;
-// 3) <assign>	   -> ID ASSIGN <assign>					
+// 3) <assign>	   -> ID <math-expr>					
                 default:
                     return_token(token, token_data);
                     return_token(temp_token, temp_token_data);
@@ -479,8 +507,13 @@ int assign(){
                     result = math_expr(&type);
 
                     if(result == SYNTAX_OK){
-                        //FIXME insert to symbol table
-                        ;
+                        if(item->declared){
+								item->value.strval = temp_token_data;
+								item->initialized = 1;
+								//FIXME generate instruction MovFromStack
+						}
+						else
+							return SEMANTIC_ERROR;
                     }
 
                     return result;
@@ -628,9 +661,10 @@ int class_dec(){
 // 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>							
 							case LEFT_BRACKET:
 
-								item->declared = 1;
-								item->elem_type = ST_ELEMTYPE_FUN;
-								item->initialized = 1;
+								current_function = item;
+								current_function->declared = 1;
+								current_function->elem_type = ST_ELEMTYPE_FUN;
+								current_function->initialized = 1;
 
 								if ( (result = func_params()) != SYNTAX_OK)
 									return result;
@@ -659,10 +693,10 @@ int class_dec(){
 						if(st_find(tabulka,token_data) != NULL){
 							return SEMANTIC_ERROR; //redeclaration of existing symbol
 						}
-						item = st_add(tabulka,token_data);
-						item->elem_type = ST_ELEMTYPE_FUN;
-						item->data_type = ST_DATATYPE_VOID;
-						item->declared = item->initialized = 1;
+						current_function = st_add(tabulka,token_data);
+						current_function->elem_type = ST_ELEMTYPE_FUN;
+						current_function->data_type = ST_DATATYPE_VOID;
+						current_function->declared = current_function->initialized = 1;
 
 						id = token_data;
 						if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){

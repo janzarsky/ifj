@@ -10,18 +10,17 @@ rules:
 		1) <prog> 	   -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM <prog>
 		2) <prog>      -> CLASS ID LEFT_VINCULUM <class-dec> <prog> // declaration of class
 		3) <prog>      -> EOF
-///		3) <prog>      -> STATIC [INT/DOUBLE/STRING/VOID] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>	//declaration and 			                initialization of function
 	
 	<class-dec>
 		1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID \
-              [SEMICOLON/ EQ <assign>/LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>] <class-dec>
+              [SEMICOLON/ ASSIGN <assign>/LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>] <class-dec>
 		2) <class-dec> -> RIGHT_VINCULUM
 		3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>
 
 	<st-list>//function body
 		1) <st-list>   -> RETURN <return-args> <st-list> //return in function
-		2) <st-list>   -> WHILE LEFT_BRACKET <bool-expr> RIGHT_BRACKET LEFT_VINCULUM <st-list> <st-list>//cycle while
-		3) <st-list>   -> IF LEFT_BRACKET <bool-expr> RIGHT_BRACKET LEFT_VINCULUM <st-list> ELSE LEFT_VINCULUM <st-list> <st-list> //if-else statement
+		2) <st-list>   -> WHILE LEFT_BRACKET <bool-expr> LEFT_VINCULUM <st-list> <st-list>//cycle while
+		3) <st-list>   -> IF LEFT_BRACKET <bool-expr> LEFT_VINCULUM <st-list> ELSE LEFT_VINCULUM <st-list> <st-list> //if-else statement
 		4) <st-list>   -> RIGHT_VINCULUM	// end of sequence
 		6) <st-list>   -> [INT/DOUBLE/SRING] ID EQUAL <assign>(MUST return something OR we must give some data to this func) <st-list> //variable decl + init
 		7) <st-list>   -> ID <func_var>(we must give pointer to ID) <st-list> //it can be function CALL OR inicialization of var
@@ -31,10 +30,9 @@ rules:
 		2) <func-var>  ->EQUAL <assign> //its inicialization of var
 
 	<assign>	
-///		1) <assign>	   -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON //inicialization on const 
 		2) <assign>	   -> ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) SEMICOLON //inicialization on statement
 		3) <assign>	   -> ID [SEMICOLON/EQUAL <assign>] //inicialization on variable
-		4) <assign>	   -> <math-expr> SEMICOLON//mathematic expression
+		4) <assign>	   -> <math-expr> SEMICOLON //mathematic expression
 
 	<func-params>//function DECLARATION
 		1) <func-params> -> RIGHT_BRACKET
@@ -54,12 +52,5 @@ rules:
 
 	<return-args>
 		1) <return-args> -> SEMICOLON (ONLY if we in VOID function)
-///		2) <return-args> -> ID SEMICOLON
-///		3) <return-args> -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON
 		4) <return-args> -> <math-expr> SEMICOLON
 
-/*	<math-expr>
-		1) <math-expr> -> <bool-expr>(will return only true or false)
-		2) <math-expr> ->  SMTH like x+4*2/1+0+(2+4)/5 ... //FIXME
-	
-	<bool-expr> */
