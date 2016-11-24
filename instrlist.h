@@ -177,5 +177,7 @@ tInstr *listGetData(tListOfInstr *L); // vrati aktivni instrukci
 void listGoto(tListOfInstr *L, tListItem *gotoInstr); // nastavime aktivni instrukci podle zadaneho ukazatele
 void *listGetPointerLast(tListOfInstr *L); // vrati ukazatel na posledni instrukci
 
+void add_instr(int type, void * ptr1, void * ptr2, void * ptr3);
+void print_instr_list();
 
 #endif

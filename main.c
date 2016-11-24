@@ -17,6 +17,8 @@
 #include "scanner.h"
 #include "symtab.h"
 
+extern tListOfInstr *instr_list;
+
 //DEBUG
 void symtab_test()
 {
@@ -110,8 +112,8 @@ int main(int argc, char** argv) {
     symtab_t *symtab_local;
     st_init(&symtab_local);
 
-    tListOfInstr *ilist = malloc(sizeof(tListOfInstr));
-    listInit(ilist);
+    instr_list = malloc(sizeof(tListOfInstr));
+    listInit(instr_list);
 
     // table of symbols == NULL (no table implemented yet)
     setSourceFile(source);

@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "instrlist.h"
 
+tListOfInstr *instr_list;
+
 void listInit(tListOfInstr *L){
 
 	L->first = NULL;
@@ -41,6 +43,91 @@ void listInsertLast(tListOfInstr *L, tInstr I){
 		L->first = L->last = item;
 	}
 
+}
+
+#ifdef DEBUG
+void print_instr(tInstr *instr) {
+    switch (instr->instType) {
+        case IN_ADD:
+            printf("ADD"); break;
+        case IN_SUB:
+            printf("SUB"); break;
+        case IN_MUL:
+            printf("MUL"); break;
+        case IN_DIV:
+            printf("DIV"); break;
+        case IN_F_ADD:
+            printf("FADD"); break;
+        case IN_F_SUB:
+            printf("FSUB"); break;
+        case IN_F_MUL:
+            printf("FMUL"); break;
+        case IN_F_DIV:
+            printf("FDIV"); break;
+        case IN_PUSH:
+            printf("PUSH"); break;
+        case IN_CONV:
+            printf("CONV"); break;
+        case IN_SWAP:
+            printf("SWAP"); break;
+        case IN_CONCAT:
+            printf("CONCAT"); break;
+        case IN_LESS:
+            printf("LESS"); break;
+        case IN_GREAT:
+            printf("GREAT"); break;
+        case IN_LESS_EQ:
+            printf("LES_EQ"); break;
+        case IN_GREAT_EQ:
+            printf("GREAT_EQ"); break;
+        case IN_EQ:
+            printf("EQ"); break;
+        case IN_N_EQ:
+            printf("N_EQ"); break;
+        case IN_F_LESS:
+            printf("F_LESS"); break;
+        case IN_F_GREAT:
+            printf("F_GREAT"); break;
+        case IN_F_LESS_EQ:
+            printf("F_LES_EQ"); break;
+        case IN_F_GREAT_EQ:
+            printf("F_GREAT_EQ"); break;
+        case IN_F_EQ:
+            printf("F_EQ"); break;
+        case IN_F_N_EQ:
+            printf("F_N_EQ"); break;
+        default:
+            printf("%d", instr->instType);
+    }
+
+    printf(" %p %p %p, ", instr->addr1, instr->addr2, instr->addr3);
+}
+
+void print_instr_list() {
+    tInstr *instr;
+
+    listFirst(instr_list);
+
+    while (instr_list->active != NULL) {
+        instr = listGetData(instr_list);
+
+        print_instr(instr);
+        printf("\n");
+
+        listNext(instr_list);
+    }
+}
+#endif
+
+void add_instr(int type, void * ptr1, void * ptr2, void * ptr3) {
+    tInstr instr = { type, ptr1, ptr2, ptr3 };
+
+    listInsertLast(instr_list, instr);
+
+#ifdef DEBUG
+    printf("instr: ");
+    print_instr(&instr);
+#endif
 }
 
 void listFirst(tListOfInstr *L){
