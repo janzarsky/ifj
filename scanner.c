@@ -12,7 +12,7 @@ string attr;
 
 typedef struct token_t {
     int token;
-    string *buffer;
+    char *buffer;
     struct token_t *next;
 } token_t;
 
@@ -23,7 +23,7 @@ void setSourceFile(FILE *f)
   source = f;
 }
 
-void return_token(int token, string *buffer) {
+void return_token(int token, char *buffer) {
     token_t *temp = malloc(sizeof(token_t));
 
     if (temp == NULL)
@@ -38,12 +38,19 @@ void return_token(int token, string *buffer) {
 
 int lexer(string *buffer);
 
-int get_next_token(string *buffer) {
-    if (token_buffer == NULL)
-        return lexer(buffer);
+int get_next_token(char **buffer) {
+    int result;
 
-    int result = token_buffer->token;
-    buffer = token_buffer->buffer;
+    if (token_buffer == NULL) {
+        string str;
+        strInit(&str);
+        result = lexer(&str);
+        *buffer = str.str;
+        return result;
+    }
+
+    result = token_buffer->token;
+    *buffer = token_buffer->buffer;
 
     token_t *temp = token_buffer;
     token_buffer = token_buffer->next;
