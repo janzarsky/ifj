@@ -105,6 +105,12 @@ int main(int argc, char** argv) {
 
     int parse_result = program();
 
+    printf("MAIN: symtab\n");
+    st_print(symtab);
+
+    printf("MAIN: symtab_local\n");
+    st_print(symtab_local);
+
     // check error code
     printf("result: %d\n", parse_result);
 

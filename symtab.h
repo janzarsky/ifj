@@ -49,4 +49,5 @@ int st_init(symtab_t **table);
 symtab_elem_t *st_add(symtab_t *table, char *token);
 symtab_elem_t *st_find (symtab_t *table, char *token);
 void st_free(symtab_t *table);
+void st_print(symtab_t *table);
 #endif

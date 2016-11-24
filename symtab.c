@@ -79,3 +79,23 @@ void st_free(symtab_t *table) {
     }
     free(table);
 }
+
+void st_print_elem(symtab_elem_t *elem) {
+    printf("%s\n", elem->id);
+}
+
+void st_print(symtab_t *table) {
+    symtab_elem_t *ptr;
+
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        if (table->elements[i] != NULL) {
+            ptr = table->elements[i];
+
+            while (ptr != NULL) {
+                st_print_elem(ptr);
+
+                ptr = ptr->nextElem;
+            }
+        }
+    }
+}
