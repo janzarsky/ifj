@@ -88,6 +88,21 @@ int main(int argc, char** argv) {
         return 99;
     }
 
+    printf("MAIN: source code:\n");
+
+    int c;
+
+    while ((c = getc(source)) != EOF)
+        putchar(c);
+    
+    printf("*****\n");
+    
+    fclose(source);
+
+    if ((source = fopen(argv[1], "r")) == NULL) {
+        return 99;
+    }
+
     // initialize table of symbols
     symtab_t *symtab;
     st_init(&symtab);
@@ -102,6 +117,8 @@ int main(int argc, char** argv) {
     setSourceFile(source);
     set_symtable(symtab);
     set_symtable_local(symtab_local);
+
+    printf("MAIN: parse code\n");
 
     int parse_result = program();
 

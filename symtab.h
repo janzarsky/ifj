@@ -12,10 +12,12 @@ typedef enum {
 } st_elemtype_t;
 
 typedef enum {
+    ST_DATATYPE_ERROR,
+    ST_DATATYPE_VOID,
     ST_DATATYPE_INT,
     ST_DATATYPE_DOUBLE,
     ST_DATATYPE_STRING,
-    ST_DATATYPE_VOID
+    ST_DATATYPE_BOOL
 } st_datatype_t;
 
 typedef union {
@@ -49,5 +51,6 @@ int st_init(symtab_t **table);
 symtab_elem_t *st_add(symtab_t *table, char *token);
 symtab_elem_t *st_find (symtab_t *table, char *token);
 void st_free(symtab_t *table);
+void st_print_elem(symtab_elem_t *elem);
 void st_print(symtab_t *table);
 #endif

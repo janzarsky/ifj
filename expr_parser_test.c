@@ -5,6 +5,10 @@
 
 #define INPUT_SIZE 200
 
+int token;
+char *token_data;
+symtab_t symtab;
+
 typedef struct {
     int expr_type;
     int type;
