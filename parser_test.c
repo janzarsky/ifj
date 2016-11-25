@@ -44,7 +44,7 @@ symtab_elem_t * item;
 symtab_elem_t * current_function;
 char *id;
 int type;
-extern tListOfInstr instr_list;
+extern tListOfInstr *instr_list;
 
 
 void set_symtable(symtab_t *table) {
@@ -157,16 +157,16 @@ int program(){
 		2) <st-list>   -> WHILE LEFT_BRACKET <bool-expr> LEFT_VINCULUM <st-list> <st-list>//cycle while
 		3) <st-list>   -> IF LEFT_BRACKET <bool-expr> LEFT_VINCULUM <st-list> ELSE LEFT_VINCULUM <st-list> <st-list> //if-else statement
 		4) <st-list>   -> RIGHT_VINCULUM	// end of sequence
-		// 6) <st-list>   -> [INT/DOUBLE/SRING] ID [ SEMICOLON / ASSIGN <assign>] <st-list>
+		6) <st-list>   -> [INT/DOUBLE/SRING] ID [ SEMICOLON / ASSIGN <assign>] <st-list>
 		7) <st-list>   -> ID <func_var>(we must give pointer to ID) <st-list> //it can be function call OR inicialization of var*/
 int statement_list(){
     printf("PARSER: function statement_list()\n");
 	int result;
 	int prev_token;
-	tInstr * label1;
-	tInstr * label2;
-	tInstr * temp_instr;
-	tInstr * temp_instr_else;
+	tListItem * label1;
+	tListItem * label2;
+	tListItem * temp_item_list;
+	tListItem * temp_item_list_else;
 
 	if ( (prev_token = token = get_next_token(&token_data)) == LEX_ERROR )
 		return LEX_ERROR;
@@ -183,23 +183,23 @@ int statement_list(){
 		case WHILE:
 
 			add_instr(IN_LABEL,NULL,NULL,NULL); //generate label for start of WHILE cyclus
-			label1 = (tInstr *)listGetPointerLast(&instr_list);
+			label1 = (tListItem *)listGetPointerLast(instr_list);
 
 			if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
 				if ( (result = bool_expr()) != SYNTAX_OK)
 					return result;
 
 				add_instr(IN_IFNGOTO,NULL,NULL,NULL);	//IF FALSE GOTO end of WHILE cyclus
-				temp_instr = (tInstr *)listGetPointerLast(&instr_list);
+				temp_item_list = (tListItem *)listGetPointerLast(instr_list);
 
                 if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
                     if ( (result = statement_list()) != SYNTAX_OK)
                         return result;
 
-                    add_instr(IN_GOTO,NULL,NULL,(void *)label1); // GOTO start of WHILE cyclus
+                    add_instr(IN_GOTO,NULL,NULL,&(label1->instruction)); // GOTO start of WHILE cyclus
                     add_instr(IN_LABEL,NULL,NULL,NULL);	//generate label for end of WHILE cyclus
-                    label2 = (tInstr *)listGetPointerLast(&instr_list);
-                    temp_instr->addr3 = label2;
+                    label2 = (tListItem *)listGetPointerLast(instr_list);
+                    temp_item_list->instruction.addr3 = &(label2->instruction);
 
                     if ( (result = statement_list()) != SYNTAX_OK)
                         return result;
@@ -217,28 +217,28 @@ int statement_list(){
 					return result;
 
 				add_instr(IN_IFNGOTO,NULL,NULL,NULL); //IF FALSE GOTO ELSE branch
-				temp_instr = (tInstr *)listGetPointerLast(&instr_list);
+				temp_item_list = (tListItem *)listGetPointerLast(instr_list);
 
 				if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
 					if ( (result = statement_list()) != SYNTAX_OK)
 						return result;
 
 					add_instr(IN_GOTO,NULL,NULL,NULL);	// GOTO end of if-else statement
-					temp_instr_else = (tInstr *)listGetPointerLast(&instr_list);
+					temp_item_list_else = (tListItem *)listGetPointerLast(instr_list);
 
 					if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ELSE)
 						if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
 
 							add_instr(IN_LABEL,NULL,NULL,NULL);	//generate label for start of ELSE branch
-							label1 = (tInstr *)listGetPointerLast(&instr_list);
-							temp_instr->addr3 = (void *)label1;
+							label1 = (tListItem *)listGetPointerLast(instr_list);
+							temp_item_list->instruction.addr3 = &(label1->instruction);
 
 							if ( (result = statement_list()) != SYNTAX_OK)
 								return result;
 
 							add_instr(IN_LABEL,NULL,NULL,NULL);	//generate label for end of if-else statement
-							label2 = (tInstr *)listGetPointerLast(&instr_list);
-							temp_instr_else->addr3 = (void *)label2;
+							label2 = (tListItem *)listGetPointerLast(instr_list);
+							temp_item_list_else->instruction.addr3 = &(label2->instruction);
 
 							if ( (result = statement_list()) != SYNTAX_OK)
 								return result;
@@ -392,12 +392,12 @@ int func_var(){
 		case LEFT_BRACKET:
 			
 			current_function = item;
-			if( (current_function = st_find(tabulka, id)) == NULL){
+			if( (current_function = st_find(tabulka, id)) == NULL){ //if function not in symtab we add it there.
 				current_function = st_add(tabulka, id);
 				current_function->elem_type = ST_ELEMTYPE_FUN;
 				current_function->initialized = current_function->declared = 0;
 			}
-//FIXME			add_instr(CALL, (void*)current_function,NULL,NULL); // instruction for FUNCTION CALL
+//FIXME			add_instr(IN_CALL,NULL,NULL, (void*)current_function); // instruction for FUNCTION CALL
 
 			if ( (result = func_args()) != SYNTAX_OK)
 				return result;
@@ -419,8 +419,6 @@ int func_var(){
 
 // <return-args>
 // 		1) <return-args> -> SEMICOLON (ONLY if we in VOID function)
-//-- 		2) <return-args> -> ID SEMICOLON
-//-- 		3) <return-args> -> [INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] SEMICOLON
 // 		4) <return-args> -> <math-expr> SEMICOLON
 int return_args(){
     printf("PARSER: function return_args()\n");
@@ -432,7 +430,7 @@ int return_args(){
 		case SEMICOLON:
 
 			if(current_function->data_type != ST_DATATYPE_VOID){
-				return SEMANTIC_ERROR; //FIXME bad return type
+				return SEMANTIC_ERROR; //FIXME check return type
 			} 
 			return SYNTAX_OK;
 			break;
@@ -452,11 +450,11 @@ int return_args(){
 				}
 
 				if(current_function->data_type != type){
-					return SEMANTIC_ERROR; //FIXME bad return type
+					return SEMANTIC_ERROR; //FIXME check return type
 				}
 				else{
 					add_instr(IN_MOVSTACK, NULL, NULL, (void*)current_function);
-					add_instr(IN_RETURN, NULL, NULL, (void*)current_function);
+					add_instr(IN_RETURN, NULL, NULL, (void*)current_function); //FIXME current function must be changed to previous function
 				}
 
 				if(token == SEMICOLON)
@@ -495,10 +493,17 @@ int assign(){
 			if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 				return LEX_ERROR;
 			switch(token){
-// 2) <assign>	   -> ID LEFT_BRACKET <func-args>(we MUST give pointer to funtion) SEMICOLON //function call			
+// 2) <assign>	   -> ID LEFT_BRACKET <func-args> SEMICOLON //function call			
 				case LEFT_BRACKET: 
 
-						//FIXME add insert function to symTab 
+
+						current_function = temp_elem;
+						if( (current_function = st_find(tabulka, id)) == NULL){ //if function not in symtab we add it there.
+							current_function = st_add(tabulka, id);
+							current_function->elem_type = ST_ELEMTYPE_FUN;
+							current_function->initialized = current_function->declared = 0;
+						}
+				        //FIXME function call	add_instr(IN_CALL,NULL,NULL,(void *)current_function);
 
 					if ( (result = func_args()) != SYNTAX_OK)
 						return result;
@@ -510,7 +515,7 @@ int assign(){
 					break;
 // 3) <assign>	   -> ID SEMICOLON					
 				case SEMICOLON:
-				//FIXME type control
+				//FIXME type control for local var and fot gloval var
 					/*if(!(item->declared) ||  !(temp_elem->declared) || !(temp_elem->initialized) )
 						return SEMANTIC_ERROR;
 					switch(item->data_type){
@@ -546,17 +551,17 @@ int assign(){
 
                     result = math_expr(&type);
 
-                    if(result == SYNTAX_OK){
+                    /*if(result == SYNTAX_OK){
                         if(item->declared ){
 
-                        		//FIXME type control [ID = <math-expr>]
+                        		//FIXME type and init and decl control [ID = <math-expr>]
 
 								item->initialized = 1;
 								add_instr(IN_MOVSTACK, NULL, NULL, (void*)item);
 						}
 						else
 							return SEMANTIC_ERROR;
-                    }
+                    }*/
 
                     return result;
             }
@@ -565,12 +570,12 @@ int assign(){
 
             result = math_expr(&type);
 
-            if(result == SYNTAX_OK){
+            /*if(result == SYNTAX_OK){
 
-            	//FIXME type control [ID = <math-expr>]
+            	//FIXME type and init and decl control [ID = <math-expr>]>]
 
                 add_instr(IN_MOVSTACK, NULL, NULL, (void*)item);
-            }
+            }*/
 
 			return result;
 	}

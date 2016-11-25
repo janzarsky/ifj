@@ -13,6 +13,7 @@
 #define IN_IFNGOTO 27
 #define IN_MOVSTACK 28
 #define IN_RETURN 29
+#define IN_CALL 30
 
 
 void set_symtable(symtab_t *table);
