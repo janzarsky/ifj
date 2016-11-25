@@ -44,6 +44,8 @@ symtab_elem_t * item;
 symtab_elem_t * current_function;
 char *id;
 int type;
+extern tListOfInstr instr_list;
+
 
 void set_symtable(symtab_t *table) {
     tabulka = table;
@@ -161,6 +163,11 @@ int statement_list(){
     printf("PARSER: function statement_list()\n");
 	int result;
 	int prev_token;
+	tInstr * label1;
+	tInstr * label2;
+	tInstr * temp_instr;
+	tInstr * temp_instr_else;
+
 	if ( (prev_token = token = get_next_token(&token_data)) == LEX_ERROR )
 		return LEX_ERROR;
 	switch(token){
@@ -174,12 +181,26 @@ int statement_list(){
 			break;
 // 2) <st-list>   -> WHILE LEFT_BRACKET <bool-expr> LEFT_VINCULUM <st-list> <st-list>			
 		case WHILE:
+
+			add_instr(IN_LABEL,NULL,NULL,NULL); //generate label for start of WHILE cyclus
+			label1 = (tInstr *)listGetPointerLast(&instr_list);
+
 			if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
 				if ( (result = bool_expr()) != SYNTAX_OK)
 					return result;
+
+				add_instr(IN_IFNGOTO,NULL,NULL,NULL);	//IF FALSE GOTO end of WHILE cyclus
+				temp_instr = (tInstr *)listGetPointerLast(&instr_list);
+
                 if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
                     if ( (result = statement_list()) != SYNTAX_OK)
                         return result;
+
+                    add_instr(IN_GOTO,NULL,NULL,(void *)label1); // GOTO start of WHILE cyclus
+                    add_instr(IN_LABEL,NULL,NULL,NULL);	//generate label for end of WHILE cyclus
+                    label2 = (tInstr *)listGetPointerLast(&instr_list);
+                    temp_instr->addr3 = label2;
+
                     if ( (result = statement_list()) != SYNTAX_OK)
                         return result;
                     else return SYNTAX_OK;
@@ -194,18 +215,36 @@ int statement_list(){
 			if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
 				if ( (result = bool_expr()) != SYNTAX_OK)
 					return result;
-					if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
-						if ( (result = statement_list()) != SYNTAX_OK)
-							return result;
-						if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ELSE)
-							if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
-								if ( (result = statement_list()) != SYNTAX_OK)
-									return result;
-								if ( (result = statement_list()) != SYNTAX_OK)
-									return result;
-								else return SYNTAX_OK;
-							}
-					}
+
+				add_instr(IN_IFNGOTO,NULL,NULL,NULL); //IF FALSE GOTO ELSE branch
+				temp_instr = (tInstr *)listGetPointerLast(&instr_list);
+
+				if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
+					if ( (result = statement_list()) != SYNTAX_OK)
+						return result;
+
+					add_instr(IN_GOTO,NULL,NULL,NULL);	// GOTO end of if-else statement
+					temp_instr_else = (tInstr *)listGetPointerLast(&instr_list);
+
+					if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ELSE)
+						if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
+
+							add_instr(IN_LABEL,NULL,NULL,NULL);	//generate label for start of ELSE branch
+							label1 = (tInstr *)listGetPointerLast(&instr_list);
+							temp_instr->addr3 = (void *)label1;
+
+							if ( (result = statement_list()) != SYNTAX_OK)
+								return result;
+
+							add_instr(IN_LABEL,NULL,NULL,NULL);	//generate label for end of if-else statement
+							label2 = (tInstr *)listGetPointerLast(&instr_list);
+							temp_instr_else->addr3 = (void *)label2;
+
+							if ( (result = statement_list()) != SYNTAX_OK)
+								return result;
+							else return SYNTAX_OK;
+						}
+				}
 			}
 			if(token == LEX_ERROR)
 				return LEX_ERROR;
@@ -352,13 +391,13 @@ int func_var(){
 // 1) LEFT_BRACKET <func-args> SEMICOLON //it's function call	
 		case LEFT_BRACKET:
 			
-			
-			if(st_find(tabulka, id) == NULL){
-				item = st_add(tabulka, id);
-				item->elem_type = ST_ELEMTYPE_FUN;
-				item->initialized = item->declared = 0;
+			current_function = item;
+			if( (current_function = st_find(tabulka, id)) == NULL){
+				current_function = st_add(tabulka, id);
+				current_function->elem_type = ST_ELEMTYPE_FUN;
+				current_function->initialized = current_function->declared = 0;
 			}
-			//FIXME instruction for calling a function
+//FIXME			add_instr(CALL, (void*)current_function,NULL,NULL); // instruction for FUNCTION CALL
 
 			if ( (result = func_args()) != SYNTAX_OK)
 				return result;
@@ -399,16 +438,16 @@ int return_args(){
 			break;
 		default:
 
-				if(current_function->data_type == ST_DATATYPE_VOID){
-					return 8; // return smth in void function
-				}
+			if(current_function->data_type == ST_DATATYPE_VOID){
+				return 8; // return smth in void function
+			}
 
 			return_token(token, token_data);
 			if( (result = math_expr(&type)) == SYNTAX_OK){
 
-				//FIXME insert to symbol table
+
 				if(current_function->data_type == ST_DATATYPE_DOUBLE && type == ST_DATATYPE_INT){
-					//FIXME generate instr conv
+					add_instr(IN_CONV, NULL, NULL, NULL);
 					type = ST_DATATYPE_DOUBLE;
 				}
 
@@ -416,7 +455,8 @@ int return_args(){
 					return SEMANTIC_ERROR; //FIXME bad return type
 				}
 				else{
-					//FIXME generate instr return_from_function
+					add_instr(IN_MOVSTACK, NULL, NULL, (void*)current_function);
+					add_instr(IN_RETURN, NULL, NULL, (void*)current_function);
 				}
 
 				if(token == SEMICOLON)
@@ -482,7 +522,7 @@ int assign(){
 							break;
 						case ST_DATATYPE_DOUBLE:
 								if(temp_elem->data_type != ST_DATATYPE_DOUBLE){
-									// FIXME
+									add_instr(IN_CONV_SYMBOL, temp_elem, NULL, NULL);
 								}
 								item->value.dval = strtod(temp_token_data,&end);
 								item->initialized = 1;
@@ -507,10 +547,12 @@ int assign(){
                     result = math_expr(&type);
 
                     if(result == SYNTAX_OK){
-                        if(item->declared){
-								item->value.strval = temp_token_data;
+                        if(item->declared ){
+
+                        		//FIXME type control [ID = <math-expr>]
+
 								item->initialized = 1;
-								//FIXME generate instruction MovFromStack
+								add_instr(IN_MOVSTACK, NULL, NULL, (void*)item);
 						}
 						else
 							return SEMANTIC_ERROR;
@@ -524,8 +566,10 @@ int assign(){
             result = math_expr(&type);
 
             if(result == SYNTAX_OK){
-                //FIXME insert to symbol table
-                ;
+
+            	//FIXME type control [ID = <math-expr>]
+
+                add_instr(IN_MOVSTACK, NULL, NULL, (void*)item);
             }
 
 			return result;
@@ -600,6 +644,7 @@ int class_dec(){
     printf("PARSER: function class_dec()\n");
 	int result;
 	int prev_token;
+	symtab_elem_t * find;
 	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 		return LEX_ERROR;
 	switch(token){
@@ -613,10 +658,17 @@ int class_dec(){
 					prev_token=token;
 					if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID){
 
-						if(st_find(tabulka,token_data) != NULL){
-							return SEMANTIC_ERROR; //redeclaration of existing symbol
+						if( (find = st_find(tabulka,token_data)) != NULL){
+							if(find->declared == 1 || find->initialized == 1)
+								return SEMANTIC_ERROR; //redeclaration of existing symbol
+							else{
+								find->declared = 1;
+							}
 						}
-						item = st_add(tabulka,token_data);
+						else{
+							item = st_add(tabulka,token_data);
+							item->declared = 1;
+						}
 						switch(prev_token){
 							case INT:
 								item->data_type = ST_DATATYPE_INT;
@@ -648,9 +700,7 @@ int class_dec(){
 // 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID  ASSIGN <assign> <class-dec>								
 							case ASSIGN:
 
-								item->declared = 1;
 								item->elem_type = ST_ELEMTYPE_VAR;
-								item->initialized = 1;
 
 								if ( (result = assign()) != SYNTAX_OK)
 									return result;
@@ -662,13 +712,14 @@ int class_dec(){
 							case LEFT_BRACKET:
 
 								current_function = item;
-								current_function->declared = 1;
 								current_function->elem_type = ST_ELEMTYPE_FUN;
-								current_function->initialized = 1;
 
 								if ( (result = func_params()) != SYNTAX_OK)
 									return result;
 								if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
+
+									current_function->initialized = 1;
+
 									if ( (result = statement_list()) != SYNTAX_OK)
 										return result;
 									if ( (result = class_dec()) != SYNTAX_OK)
@@ -688,21 +739,29 @@ int class_dec(){
 					break;
 // 3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>					
 				case VOID:
-					if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID)
+					if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID){
 
-						if(st_find(tabulka,token_data) != NULL){
-							return SEMANTIC_ERROR; //redeclaration of existing symbol
+						if( (find = st_find(tabulka,token_data)) != NULL){
+							if(find->declared == 1 || find->initialized == 1)
+								return SEMANTIC_ERROR; //redeclaration of existing symbol
+							else{
+								find->declared = 1;
+							}
 						}
-						current_function = st_add(tabulka,token_data);
-						current_function->elem_type = ST_ELEMTYPE_FUN;
-						current_function->data_type = ST_DATATYPE_VOID;
-						current_function->declared = current_function->initialized = 1;
-
+						else{
+							current_function = st_add(tabulka,token_data);
+							current_function->elem_type = ST_ELEMTYPE_FUN;
+							current_function->data_type = ST_DATATYPE_VOID;
+							current_function->declared =  1;
+						}
 						id = token_data;
 						if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
 							if ( (result = func_params()) != SYNTAX_OK)
 								return result;
 							if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
+
+								current_function->initialized = 1;
+
 								if ( (result = statement_list()) != SYNTAX_OK)
 									return result;
 								if ( (result = class_dec()) != SYNTAX_OK)
@@ -710,6 +769,7 @@ int class_dec(){
 								else return SYNTAX_OK;
 							}
 						}
+					}	
 					if(token == LEX_ERROR)
 						return LEX_ERROR;
 					return SYNTAX_ERROR;	
