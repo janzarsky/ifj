@@ -372,7 +372,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             bool_Top(&hodnota, &B);
             bool_Pop(&B);
 
-            if (hodnota == FALSE){
+            if (hodnota == false){
 
               listGoto(L, I->addr3);
             }
