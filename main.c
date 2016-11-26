@@ -89,7 +89,7 @@ void frames_test() {
     inter_stack stack;
     stack.top = NULL;
 
-    //add_instr(IN_PUSH_VAL
+    add_instr(IN_PUSH_VAL, (void *) 5, NULL, NULL);
 
     call(symtab, instr_list, &stack);
 }
@@ -97,6 +97,7 @@ void frames_test() {
 int main(int argc, char** argv) {
     //symtab_test();
     //frames_test();
+    //return 0;
 
     if (argc != 2) {
         return 99;
@@ -140,7 +141,7 @@ int main(int argc, char** argv) {
 
     printf("MAIN: parse code\n");
 
-    int parse_result = program(0);
+    int parse_result = program();
     printf("******************************\n\nresult: %d\n", parse_result);
 
     printf("MAIN: symtab\n");
@@ -150,7 +151,7 @@ int main(int argc, char** argv) {
     st_print(symtab_local);
 
     rewind(source);
-    parse_result = program(1);
+    parse_result = program();
     printf("******************************\n\nresult: %d\n", parse_result);
 
     printf("MAIN: symtab\n");
