@@ -457,7 +457,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(third.value), &S);
             stack_inter_Pop(&S);
 
-            set_value(((symtab_elem_t *)I->addr1), &(third.value));
+            set_value(((symtab_elem_t *)I->addr3), &(third.value));
 
         break;
 
