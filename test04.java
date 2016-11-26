@@ -3,7 +3,7 @@ class Main {
         int a;
         double b;
         a = b + 5;
-        my_func1();
+        aclass.my_func1();
     }
 }
 class aclass {
