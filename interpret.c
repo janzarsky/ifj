@@ -8,6 +8,8 @@
 #include "interpret.h"
 #include "frames.h"
 
+void stack_inter_print(inter_stack *stack);
+
 int interpret(symtab_t *T, tListOfInstr *L)
 {
   inter_stack S;
@@ -28,6 +30,18 @@ int interpret(symtab_t *T, tListOfInstr *L)
   {
       I = listGetData(L); // ziskej instrukci
       listNext(L);
+
+#ifdef DEBUG
+      printf("INTERPRET: ");
+      
+      stack_inter_print(&S);
+
+      printf("\nINTERPRET: instruction ");
+
+      print_instr(I);
+
+      printf("\n");
+#endif
 
       switch (I->instType)
     {
@@ -460,6 +474,14 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
     }
  }
+#ifdef DEBUG
+      printf("INTERPRET: ");
+      
+      stack_inter_print(&S);
+
+      printf("\n");
+#endif
+
   return 0;
 }
 
@@ -498,6 +520,19 @@ void stack_inter_Pop(inter_stack *S){
     (*S).top = (*S).top->next;
     free(temp);
 }
+
+void stack_inter_print(inter_stack *stack) {
+    printf("inter stack (starting from top): ");
+
+    inter_stack_item *temp = stack->top;
+
+    while (temp != NULL) {
+        printf("%p ", temp->value.vval);
+
+        temp = temp->next;
+    };
+}
+
 //FCE pro hodnoty bool
 void bool_Pop(bool_stack *B)
 {

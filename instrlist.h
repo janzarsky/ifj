@@ -195,6 +195,7 @@ void listGoto(tListOfInstr *L, tListItem *gotoInstr); // nastavime aktivni instr
 void *listGetPointerLast(tListOfInstr *L); // vrati ukazatel na posledni instrukci
 
 void add_instr(int type, void * ptr1, void * ptr2, void * ptr3);
+void print_instr(tInstr *instr);
 void print_instr_list();
 
 #endif
