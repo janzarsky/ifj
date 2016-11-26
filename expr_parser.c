@@ -444,22 +444,34 @@ int rules() {
         debug_printf("rule: E -> ID     ");
         type = check_type_id();
         result = execute_rule(1, NT_EXPR, type);
-        add_instr(IN_TAB_PUSH, (void *) 0x42, NULL, NULL);
+
+        printf("token_data_prev: %s ", token_data_prev);
+
+        symtab_elem_t *var = st_find(tabulka, token_data_prev);
+
+        if (var == NULL) {
+            var = st_find(local_tabulka, token_data_prev);
+
+            if (var == NULL)
+                result = SEMANTIC_ERROR;
+        }
+
+        add_instr(IN_TAB_PUSH, (void *) var, NULL, NULL);
     }
     else if (check_rule(1, INT_LITERAL)) {
         debug_printf("rule: E -> INT    ");
         result = execute_rule(1, NT_EXPR, ST_DATATYPE_INT);
-        add_instr(IN_VAL_PUSH, (void *) 0x01, NULL, NULL);
+        add_instr(IN_VAL_PUSH, (void *) 42, NULL, NULL);
     }
     else if (check_rule(1, DOUBLE_LITERAL)) {
         debug_printf("rule: E -> DOUBLE ");
         result = execute_rule(1, NT_EXPR, ST_DATATYPE_DOUBLE);
-        add_instr(IN_VAL_PUSH, (void *) 0x02, NULL, NULL);
+        add_instr(IN_VAL_PUSH, (void *) 123, NULL, NULL);
     }
     else if (check_rule(1, STRING_LITERAL)) {
         debug_printf("rule: E -> STRING ");
         result = execute_rule(1, NT_EXPR, ST_DATATYPE_STRING);
-        add_instr(IN_VAL_PUSH, (void *) 0x02, NULL, NULL);
+        add_instr(IN_VAL_PUSH, (void *) 0, NULL, NULL);
     }
     else if (check_rule(3, NT_EXPR, LESS, NT_EXPR)) {
         debug_printf("rule: E -> E < E  ");
