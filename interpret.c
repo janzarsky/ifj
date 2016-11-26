@@ -1,54 +1,244 @@
 /*#include <stdio.h>
-#include "str.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include "string.h"
 #include "symtab.h"
 #include "instrlist.h"
+#include "interpret.h"
+#include "instrlist.c"
 
-typedef struct stack_item {
-    st_value_t hodnota;
-    struct stack_item *next;
-   } stack_item_t;
 
-   typedef struct stack{
-    stack_item_t *top;
-   } stack_t;
 
-void push(st_value_t val);
 
 
 int interpret(symtab_t *T, tListOfInstr *L)
 {
-  stack_t stack = { NULL };
+  inter_stack S;
+  S.top = NULL;
   listFirst(L); // nastav aktivni prvni instrukci
   tInstr *I;
+
+    inter_stack_item first;
+    inter_stack_item second;
+    inter_stack_item third;
   while (1)
   {
       I = listGetData(L); // ziskej instrukci
 
+
       switch (I->instType)
     {
-        case: IN_ADD
-        (st_value_t*)I->addr1 = (st_value_t*)I->addr2 + (st_value_t*)I->addr3;
+        case TAB_PUSH:
+
+            push_tab((((symtab_elem_t *)(I->addr1))->value), &S);
+
         break;
 
-        case: IN_SUB
-        (st_value_t*)I->addr1 = (st_value_t*)I->addr2 - (st_value_t*)I->addr3;
+        case VAL_PUSH:
+
+            push_val(I->addr1, &S);
+
         break;
 
-        case: IN_MUL
-        (st_value_t*)I->addr1 = (st_value_t*)I->addr2 * (st_value_t*)I->addr3;
+        case IN_ADD:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            third.value.union_value.ival = first.value.union_value.ival + second.value.union_value.ival;
+            push_tab(third.value.union_value, &S);
         break;
 
-        case: IN_DIV
-        (st_value_t*)I->addr1 = (st_value_t*)I->addr2 / (st_value_t*)I->addr3;
+
+        case IN_SUB:
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            third.value.union_value.ival = first.value.union_value.ival - second.value.union_value.ival;
+            push_tab(third.value.union_value, &S);
         break;
 
-        case: IN_PUSH
-         push((st_value_t*)I->addr1);
+        case IN_MUL:
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            third.value.union_value.ival = first.value.union_value.ival * second.value.union_value.ival;
+            push_tab(third.value.union_value, &S);
         break;
 
-        case: IN_MAX
-        if ((st_value_t*)I->addr2 > (st_value_t*)I->addr3)
-            (st_value_t*)I->addr1 = (st_value_t*)I->addr2;
+        case IN_DIV:
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            third.value.union_value.ival = first.value.union_value.ival / second.value.union_value.ival;
+            push_tab(third.value.union_value, &S);
+        break;
+
+        case IN_F_ADD:
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            third.value.union_value.dval = first.value.union_value.dval + second.value.union_value.dval;
+            push_tab(third.value.union_value, &S);
+        break;
+
+        case IN_F_SUB:
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            third.value.union_value.dval = first.value.union_value.dval - second.value.union_value.dval;
+            push_tab(third.value.union_value, &S);
+        break;
+
+        case IN_F_MUL:
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            third.value.union_value.dval = first.value.union_value.dval * second.value.union_value.dval;
+            push_tab(third.value.union_value, &S);
+        break;
+
+        case IN_F_DIV:
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            third.value.union_value.dval = first.value.union_value.dval / second.value.union_value.dval;
+            push_tab(third.value.union_value, &S);
+        break;
+
+        case IN_CONV:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            first.value.union_value.dval = (double)first.value.union_value.ival;
+
+           // push_val(first.value.union_value.dval, &S); // nejde prekonvertovat na void! bude treba vyuzit vice funkci??
+
+        break;
+
+        case IN_SWAP:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+//            push_val(first.value, %S);
+ //           push_val(second.value, %S);  // proc pushujem na stack void??
+
+        break;
+
+        case IN_CONCAT:
+
+           stack_inter_Top(&(first.value), &S);
+           stack_inter_Pop(&S);
+
+           stack_inter_Top(&(second.value), &S);
+           stack_inter_Pop(&S);
+
+
+           strcpy(third.value.union_value.strval, first.value.union_value.strval);
+           strcat(third.value.union_value.strval, second.value.union_value.strval);
+
+           push_tab(third.value.union_value, &S);
+
+        break;
+
+        case IN_LESS:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            if (first.value.union_value.ival < second.value.union_value.ival) { push_val(first.value, %S); }
+
+            //else { push_val(second.value, %S); }
+
+        break;
+
+        case IN_GREAT:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            if (first.value.union_value.ival > second.value.union_value.ival) { push_val(first.value, %S); }
+
+            //else { push_val(second.value, %S); }
+
+        break;
+
+        case IN_LESS_EQ:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            if (first.value.union_value.ival <= second.value.union_value.ival) { push_val(first.value, %S); }
+
+        break;
+
+        case IN_GREAT_EQ:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            if (first.value.union_value.ival >= second.value.union_value.ival) { push_val(first.value, %S); }
+
+        break;
+
+        case IN_EQ:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            if (first.value.union_value.ival == second.value.union_value.ival) { push_val(first.value, %S); }
+
+        break;
+
+        case IN_N_EQ:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            if (first.value.union_value.ival != second.value.union_value.ival) { push_val(first.value, %S); }
+
+        break;
+
 
 
 
@@ -56,13 +246,39 @@ int interpret(symtab_t *T, tListOfInstr *L)
  }
 }
 
-void push(st_value_t val) {
+void push_tab(st_value_t val, inter_stack *S) {
 
-    stack_item_t *temp = malloc(sizeof(stack_item_t));
+    inter_stack_item *temp = (inter_stack_item *)malloc(sizeof(inter_stack_item));
     if (temp == NULL) return;
 
-    temp->next = stack.top;
-    temp->hodnota = val;
+    temp->next = S->top;
+    temp->value.union_value = val;
 
-    stack.top = temp;
-}*/
+    S->top = temp;
+}
+
+void push_val(void *val, inter_stack *S) {
+
+    inter_stack_item *temp = (inter_stack_item *)malloc(sizeof(inter_stack_item));
+    if (temp == NULL) return;
+
+    temp->next = S->top;
+    temp->value.vval = val;
+
+    S->top = temp;
+}
+
+void stack_inter_Top(inter_value *val, inter_stack *S){
+
+    *val = S->top->value;
+}
+
+void stack_inter_Pop(inter_stack *S){
+
+    inter_stack_item *temp = (*S).top;
+    (*S).top = (*S).top->next;
+    free(temp);
+
+}
+
+/*
