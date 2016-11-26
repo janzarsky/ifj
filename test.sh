@@ -6,7 +6,7 @@ for file in test*.java ; do
     echo "********************************************************************************"
     echo ""
 
-    ./ifj $file | tee output
+    ./ifj $file
 
     echo ""
     echo ""
