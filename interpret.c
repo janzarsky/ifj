@@ -6,6 +6,7 @@
 #include "symtab.h"
 #include "instrlist.h"
 #include "interpret.h"
+#include "frames.h"
 
 int interpret(symtab_t *T, tListOfInstr *L)
 {
@@ -14,7 +15,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
   bool_stack B;
   B.top = NULL;
   listFirst(L); // nastav aktivni prvni instrukci
-  tInstr *I;
+  tInstr *I = NULL;
   bool hodnota;
 
     inter_stack_item first;
@@ -23,10 +24,10 @@ int interpret(symtab_t *T, tListOfInstr *L)
     st_value_t value;
 
 
-  while (I!=NULL)
+  while (I != listGetPointerLast(L))
   {
       I = listGetData(L); // ziskej instrukci
-
+      listNext(L);
 
       switch (I->instType)
     {

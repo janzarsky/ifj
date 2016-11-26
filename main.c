@@ -185,8 +185,14 @@ int main(int argc, char** argv) {
 
     printf("MAIN: symtab_local\n");
     st_print(symtab_local);
+
+    printf("\nMAIN: generated instructions\n");
+    print_instr_list();
     
-    printf("MAIN: interpret code\n");
+    if (parse_result != 100)
+        return 1;
+
+    printf("\nMAIN: interpret code\n");
 
     int interpret_result = interpret(symtab, instr_list);
     printf("******************************\n\nresult: %d\n", interpret_result);
