@@ -33,7 +33,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
       switch (I->instType)
     {
         case IN_JMP_TRUE:
-        
+
             bool_Top(&hodnota, &B);
 
             if (hodnota){
@@ -42,9 +42,22 @@ int interpret(symtab_t *T, tListOfInstr *L)
             }
 
         break;
+        
+        case IN_JMP_WHILE:
+
+            bool_Top(&hodnota, &B);
+
+            if (hodnota){
+
+              listGoto(L, I->addr3);
+            }
+            else 
+                bool_Pop(&B);
+
+        break;
 
         case IN_JMP_FALSE:
-        
+
             bool_Top(&hodnota, &B);
             bool_Pop(&B);
 
@@ -197,9 +210,9 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival < second.value.union_value.ival) 
+            if (first.value.union_value.ival < second.value.union_value.ival)
                 bool_Push(true, &B);
-            else 
+            else
                 bool_Push(false, &B);
 
         break;
@@ -212,10 +225,10 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival > second.value.union_value.ival) 
-            
+            if (first.value.union_value.ival > second.value.union_value.ival)
+
                 bool_Push(true, &B);
-            else 
+            else
                 bool_Push(false, &B);
 
         break;
@@ -228,9 +241,9 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival <= second.value.union_value.ival) 
+            if (first.value.union_value.ival <= second.value.union_value.ival)
                 bool_Push(true, &B);
-            else 
+            else
                 bool_Push(false, &B);
 
         break;
@@ -243,9 +256,9 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival >= second.value.union_value.ival) 
+            if (first.value.union_value.ival >= second.value.union_value.ival)
                 bool_Push(true, &B);
-            else 
+            else
                 bool_Push(false, &B);
         break;
 
@@ -257,9 +270,9 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival == second.value.union_value.ival) 
+            if (first.value.union_value.ival == second.value.union_value.ival)
                 bool_Push(true, &B);
-            else 
+            else
                 bool_Push(false, &B);
 
         break;
@@ -272,9 +285,9 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival != second.value.union_value.ival) 
+            if (first.value.union_value.ival != second.value.union_value.ival)
                 bool_Push(true, &B);
-            else 
+            else
                 bool_Push(false, &B);
 
         break;
@@ -287,9 +300,9 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval < second.value.union_value.dval) 
+            if (first.value.union_value.dval < second.value.union_value.dval)
                 bool_Push(true, &B);
-            else 
+            else
                 bool_Push(false, &B);
 
         break;
@@ -302,9 +315,9 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval > second.value.union_value.dval) 
+            if (first.value.union_value.dval > second.value.union_value.dval)
                 bool_Push(true, &B);
-            else 
+            else
                 bool_Push(false, &B);
 
         break;
@@ -317,9 +330,9 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval <= second.value.union_value.dval) 
+            if (first.value.union_value.dval <= second.value.union_value.dval)
                 bool_Push(true, &B);
-            else 
+            else
                 bool_Push(false, &B);
 
         break;
@@ -332,9 +345,9 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval >= second.value.union_value.dval) 
+            if (first.value.union_value.dval >= second.value.union_value.dval)
                 bool_Push(true, &B);
-            else 
+            else
                 bool_Push(false, &B);
 
         break;
@@ -347,9 +360,9 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval == second.value.union_value.dval) 
+            if (first.value.union_value.dval == second.value.union_value.dval)
                 bool_Push(true, &B);
-            else 
+            else
                 bool_Push(false, &B);
 
         break;
@@ -362,13 +375,13 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval != second.value.union_value.dval) 
+            if (first.value.union_value.dval != second.value.union_value.dval)
                 bool_Push(true, &B);
-            else 
+            else
                 bool_Push(false, &B);
 
         break;
-        
+
          // rozsireni
 
         case IN_DEC:
@@ -376,46 +389,54 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(first.value), &S);
             stack_inter_Pop(&S);
 
-            first.value.union_value.ival = first.value.union_value.ival--;
+            //first.value.union_value.ival = first.value.union_value.ival--;
+            first.value.union_value.ival--;
 
-            push_tab(first.value.union_value);
+            push_tab(first.value.union_value, &S);
 
         break;
-        
+
         case IN_INC:
 
             stack_inter_Top(&(first.value), &S);
             stack_inter_Pop(&S);
 
-            first.value.union_value.ival = first.value.union_value.ival++;
+            //first.value.union_value.ival = first.value.union_value.ival++;
+            first.value.union_value.ival++;
 
-            push_tab(first.value.union_value);
+            push_tab(first.value.union_value, &S);
 
         break;
-        
+
         case IN_F_DEC:
 
             stack_inter_Top(&(first.value), &S);
             stack_inter_Pop(&S);
 
-            first.value.union_value.dval = first.value.union_value.dval--;
+           // first.value.union_value.dval = first.value.union_value.dval--;
+           first.value.union_value.dval--;
 
-            push_tab(first.value.union_value);
+            push_tab(first.value.union_value, &S);
 
         break;
-        
+
         case IN_F_INC:
 
             stack_inter_Top(&(first.value), &S);
             stack_inter_Pop(&S);
 
-            first.value.union_value.dval = first.value.union_value.dval++;
+            //first.value.union_value.dval = first.value.union_value.dval++;
+            first.value.union_value.dval++;
 
-            push_tab(first.value.union_value);
+            push_tab(first.value.union_value, &S);
 
         break;
 
+        case IN_STOP:
 
+            return 0;
+
+        break;
 
 
     }
@@ -467,7 +488,7 @@ void bool_Pop(bool_stack *B)
 
 void bool_Push(bool val, bool_stack *B)
 {
-    bool_stack_item  *temp = (bool_stack_item *)malloc(sizeof(bool_stack_itme));
+    bool_stack_item  *temp = (bool_stack_item *)malloc(sizeof(bool_stack_item));
     if(temp == NULL)
         return;
     temp->value = val;
@@ -479,5 +500,8 @@ void bool_Top(bool *val, bool_stack *B)
 {
     *val = B->top->value;
 }
+
+
+
 */
 
