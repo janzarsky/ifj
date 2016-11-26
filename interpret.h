@@ -1,6 +1,8 @@
 #ifndef INTERPRET_H_INCLUDED
 #define INTERPRET_H_INCLUDED
 
+#include "symtab.h"
+
 typedef union {
     st_value_t union_value;
     void *vval;
