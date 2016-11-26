@@ -55,13 +55,13 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
         break;
 
-        case TAB_PUSH:
+        case IN_TAB_PUSH:
 
             push_tab((((symtab_elem_t *)(I->addr1))->value), &S);
 
         break;
 
-        case VAL_PUSH:
+        case IN_VAL_PUSH:
 
             push_val(I->addr1, &S);
 
