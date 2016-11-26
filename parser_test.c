@@ -369,11 +369,11 @@ int statement_list(){
 						}
 						else if(token == ASSIGN){
 							if( (result = assign()) != SYNTAX_OK ){
-
-
+								printf("\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 								return result;
 							}
 							else{
+								printf("\nBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n");
 								add_instr(IN_MOVSTACK,NULL,NULL,(void*) local_item);
 								if( (result = statement_list()) != SYNTAX_OK){
 									return result;
@@ -500,7 +500,10 @@ int func_var(){
 		case ASSIGN:
 			if ( (result = assign()) != SYNTAX_OK)
 				return result;
-			else return SYNTAX_OK;
+			else{ 
+				add_instr(IN_MOVSTACK,NULL,NULL,(void*) item);
+				return SYNTAX_OK;
+			}
 			break;
 	}
 	return SYNTAX_ERROR;
@@ -583,8 +586,8 @@ int assign(){
             printf("\ntoken_data: %s\n",temp_token_data);
             printf("------------------------------------------------------------------------\n""\x1B[0m");
             #endif
-            if( (temp_elem = st_find(local_tabulka,temp_token_data)) == NULL)
-	            if( (temp_elem = st_find(tabulka,temp_token_data)) == NULL)
+            if( (temp_elem = item = st_find(local_tabulka,temp_token_data)) == NULL)
+	            if( (temp_elem = item = st_find(tabulka,temp_token_data)) == NULL)
 	            	return SEMANTIC_ERROR; //error number 3 
 
 			if ( (token = get_next_token(&token_data)) == LEX_ERROR )
