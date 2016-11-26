@@ -96,7 +96,10 @@
 #define IN_F_EQ         22
 #define IN_F_N_EQ       23
 
-#define IN_MAX          24
+#define IN_JMP_TRUE     25
+#define IN_JMP_FALSE    26
+
+#define IN_MAX          30
 
 // pomocne defines pro zjednoduseni kodu
 // instrukce pro double se daji ziskat jako (instrukce pro int) + F_***_OFFSET
