@@ -100,7 +100,12 @@
 #define IN_JMP_TRUE     25
 #define IN_JMP_FALSE    26
 
-#define IN_MAX          30
+#define IN_DEC          27
+#define IN_INC          28
+#define IN_F_DEC        29
+#define IN_F_INC        30
+
+#define IN_MAX          50
 
 // pomocne defines pro zjednoduseni kodu
 // instrukce pro double se daji ziskat jako (instrukce pro int) + F_***_OFFSET
