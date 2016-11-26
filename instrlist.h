@@ -97,8 +97,8 @@
 #define IN_F_EQ         23
 #define IN_F_N_EQ       24
 
-#define IN_JMP_TRUE     25
-#define IN_JMP_FALSE    26
+#define IN_GOTO         25
+#define IN_IFNGOTO      26
 #define IN_JMP_WHILE    27
 
 #define IN_DEC          28
@@ -106,18 +106,15 @@
 #define IN_F_DEC        30
 #define IN_F_INC        31
 
-#define IN_STOP         32
+#define IN_LABEL        32
+#define IN_GOTO         33
+#define IN_MOVSTACK     34
+#define IN_RETURN       35
+#define IN_CALL         36
+#define IN_CONV_SYMBOL  37
+#define IN_MOV          38
 
-#define IN_LABEL        33
-#define IN_GOTO         34
-#define IN_IFNGOTO      35
-#define IN_MOVSTACK     36
-#define IN_RETURN       37
-#define IN_CALL         38
-#define IN_CONV_SYMBOL  39
-#define IN_MOV          40
-
-#define IN_MAX          41
+#define IN_MAX          39
 
 // pomocne defines pro zjednoduseni kodu
 // instrukce pro double se daji ziskat jako (instrukce pro int) + F_***_OFFSET
