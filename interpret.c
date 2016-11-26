@@ -14,6 +14,8 @@ int interpret(symtab_t *T, tListOfInstr *L)
 {
   inter_stack S;
   S.top = NULL;
+  bool_stack = B;
+  B.top = NULL;
   listFirst(L); // nastav aktivni prvni instrukci
   tInstr *I;
   bool hodnota;
@@ -31,6 +33,8 @@ int interpret(symtab_t *T, tListOfInstr *L)
       switch (I->instType)
     {
         case IN_JMP_TRUE:
+        
+            bool_Top(&hodnota, &B);
 
             if (hodnota){
 
@@ -40,6 +44,9 @@ int interpret(symtab_t *T, tListOfInstr *L)
         break;
 
         case IN_JMP_FALSE:
+        
+            bool_Top(&hodnota, &B);
+            bool_Pop(&B);
 
             if (hodnota == FALSE){
 
@@ -190,9 +197,10 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival < second.value.union_value.ival) hodnota = TRUE;
-
-            else hodnota = FALSE;
+            if (first.value.union_value.ival < second.value.union_value.ival) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
 
@@ -204,9 +212,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival > second.value.union_value.ival) hodnota = TRUE;
-
-            else hodnota = FALSE;
+            if (first.value.union_value.ival > second.value.union_value.ival) 
+            
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
 
@@ -218,9 +228,10 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival <= second.value.union_value.ival) hodnota = TRUE;
-
-            else hodnota = FALSE;
+            if (first.value.union_value.ival <= second.value.union_value.ival) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
 
@@ -232,10 +243,10 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival >= second.value.union_value.ival) hodnota = TRUE;
-
-            else hodnota = FALSE;
-
+            if (first.value.union_value.ival >= second.value.union_value.ival) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
         break;
 
         case IN_EQ:
@@ -246,9 +257,10 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival == second.value.union_value.ival) hodnota = TRUE;
-
-            else hodnota = FALSE;
+            if (first.value.union_value.ival == second.value.union_value.ival) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
 
@@ -260,9 +272,10 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival != second.value.union_value.ival) hodnota = TRUE;
-
-            else hodnota = FALSE;
+            if (first.value.union_value.ival != second.value.union_value.ival) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
 
@@ -274,9 +287,10 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval < second.value.union_value.dval) hodnota = TRUE;
-
-            else hodnota = FALSE;
+            if (first.value.union_value.dval < second.value.union_value.dval) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
 
@@ -288,9 +302,10 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval > second.value.union_value.dval) hodnota = TRUE;
-
-            else hodnota = FALSE;
+            if (first.value.union_value.dval > second.value.union_value.dval) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
 
@@ -302,9 +317,10 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval <= second.value.union_value.dval) hodnota = TRUE;
-
-            else hodnota = FALSE;
+            if (first.value.union_value.dval <= second.value.union_value.dval) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
 
@@ -316,9 +332,10 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval >= second.value.union_value.dval) hodnota = TRUE;
-
-            else hodnota = FALSE;
+            if (first.value.union_value.dval >= second.value.union_value.dval) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
 
@@ -330,9 +347,10 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval == second.value.union_value.dval) hodnota = TRUE;
-
-            else hodnota = FALSE;
+            if (first.value.union_value.dval == second.value.union_value.dval) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
 
@@ -344,9 +362,10 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval != second.value.union_value.dval) hodnota = TRUE;
-
-            else hodnota = FALSE;
+            if (first.value.union_value.dval != second.value.union_value.dval) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
         
