@@ -349,6 +349,52 @@ int interpret(symtab_t *T, tListOfInstr *L)
             else hodnota = FALSE;
 
         break;
+        
+         // rozsireni
+
+        case IN_DEC:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            first.value.union_value.ival = first.value.union_value.ival--;
+
+            push_tab(first.value.union_value);
+
+        break;
+        
+        case IN_INC:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            first.value.union_value.ival = first.value.union_value.ival++;
+
+            push_tab(first.value.union_value);
+
+        break;
+        
+        case IN_F_DEC:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            first.value.union_value.dval = first.value.union_value.dval--;
+
+            push_tab(first.value.union_value);
+
+        break;
+        
+        case IN_F_INC:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            first.value.union_value.dval = first.value.union_value.dval++;
+
+            push_tab(first.value.union_value);
+
+        break;
 
 
 
