@@ -415,11 +415,11 @@ int func_var(){
 		case LEFT_BRACKET:
 			
 			current_function = item;
-			if( (current_function = st_find(tabulka, id)) == NULL){ //if function not in symtab we add it there.
+			/*if( (current_function = st_find(tabulka, id)) == NULL){ //if function not in symtab we add it there.
 				current_function = st_add(tabulka, id);
 				current_function->elem_type = ST_ELEMTYPE_FUN;
 				current_function->initialized = current_function->declared = 0;
-			}
+			}*/
 //FIXME			add_instr(IN_CALL,NULL,NULL, (void*)current_function); // instruction for FUNCTION CALL
 
 			if ( (result = func_args()) != SYNTAX_OK)
