@@ -16,10 +16,13 @@ int interpret(symtab_t *T, tListOfInstr *L)
   S.top = NULL;
   listFirst(L); // nastav aktivni prvni instrukci
   tInstr *I;
+  bool hodnota;
 
     inter_stack_item first;
     inter_stack_item second;
     inter_stack_item third;
+
+
   while (1)
   {
       I = listGetData(L); // ziskej instrukci
@@ -27,6 +30,24 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
       switch (I->instType)
     {
+        case IN_JMP_TRUE:
+
+            if (hodnota){
+
+              listGoto(L, I->addr3);
+            }
+
+        break;
+
+        case IN_JMP_FALSE:
+
+            if (hodnota == FALSE){
+
+              listGoto(L, I->addr3);
+            }
+
+        break;
+
         case TAB_PUSH:
 
             push_tab((((symtab_elem_t *)(I->addr1))->value), &S);
@@ -167,14 +188,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
+            if (first.value.union_value.ival < second.value.union_value.ival) hodnota = TRUE;
 
-            if (first.value.union_value.ival < second.value.union_value.ival) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            else hodnota = FALSE;
 
         break;
 
@@ -184,14 +202,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
+            if (first.value.union_value.ival > second.value.union_value.ival) hodnota = TRUE;
 
-            if (first.value.union_value.ival > second.value.union_value.ival) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            else hodnota = FALSE;
 
         break;
 
@@ -201,14 +216,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
+            if (first.value.union_value.ival <= second.value.union_value.ival) hodnota = TRUE;
 
-            if (first.value.union_value.ival <= second.value.union_value.ival) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            else hodnota = FALSE;
 
         break;
 
@@ -218,14 +230,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
+            if (first.value.union_value.ival >= second.value.union_value.ival) hodnota = TRUE;
 
-            if (first.value.union_value.ival >= second.value.union_value.ival) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            else hodnota = FALSE;
 
         break;
 
@@ -235,14 +244,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
+            if (first.value.union_value.ival == second.value.union_value.ival) hodnota = TRUE;
 
-            if (first.value.union_value.ival == second.value.union_value.ival) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            else hodnota = FALSE;
 
         break;
 
@@ -252,14 +258,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
+            if (first.value.union_value.ival != second.value.union_value.ival) hodnota = TRUE;
 
-            if (first.value.union_value.ival != second.value.union_value.ival) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            else hodnota = FALSE;
 
         break;
 
@@ -269,14 +272,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
+            if (first.value.union_value.dval < second.value.union_value.dval) hodnota = TRUE;
 
-            if (first.value.union_value.dval < second.value.union_value.dval) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            else hodnota = FALSE;
 
         break;
 
@@ -286,14 +286,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
+            if (first.value.union_value.dval > second.value.union_value.dval) hodnota = TRUE;
 
-            if (first.value.union_value.dval > second.value.union_value.dval) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            else hodnota = FALSE;
 
         break;
 
@@ -303,14 +300,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
+            if (first.value.union_value.dval <= second.value.union_value.dval) hodnota = TRUE;
 
-            if (first.value.union_value.dval <= second.value.union_value.dval) third.value.union_value.dval = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            else hodnota = FALSE;
 
         break;
 
@@ -320,14 +314,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
+            if (first.value.union_value.dval >= second.value.union_value.dval) hodnota = TRUE;
 
-            if (first.value.union_value.dval >= second.value.union_value.dval) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            else hodnota = FALSE;
 
         break;
 
@@ -337,14 +328,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
+            if (first.value.union_value.dval == second.value.union_value.dval) hodnota = TRUE;
 
-            if (first.value.union_value.dval == second.value.union_value.dval) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            else hodnota = FALSE;
 
         break;
 
@@ -354,14 +342,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
+            if (first.value.union_value.dval != second.value.union_value.dval) hodnota = TRUE;
 
-            if (first.value.union_value.dval != second.value.union_value.dval) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            else hodnota = FALSE;
 
         break;
 
@@ -371,6 +356,8 @@ int interpret(symtab_t *T, tListOfInstr *L)
     }
  }
 }
+
+// FCE PRO PRACI SE ZASOBNIKEM
 
 void push_tab(st_value_t val, inter_stack *S) {
 
