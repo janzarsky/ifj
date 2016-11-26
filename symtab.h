@@ -2,6 +2,7 @@
 #define _SYMTAB_H
 
 #include <stdbool.h>
+#include "instrlist.h"
 
 #define TABLE_SIZE 1000
 
@@ -35,6 +36,7 @@ typedef struct symtab_elem_t {
     st_value_t value;
     bool declared;
     bool initialized;
+    tListItem *inst_list;
     symtab_t *local_table;
     struct symtab_elem_t *nextElem;
 } symtab_elem_t;
