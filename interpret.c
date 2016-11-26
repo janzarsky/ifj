@@ -29,54 +29,6 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
       switch (I->instType)
     {
-        case IN_JMP_TRUE:
-
-            bool_Top(&hodnota, &B);
-
-            if (hodnota){
-
-              listGoto(L, I->addr3);
-            }
-
-        break;
-        
-        case IN_JMP_WHILE:
-
-            bool_Top(&hodnota, &B);
-
-            if (hodnota){
-
-              listGoto(L, I->addr3);
-            }
-            else 
-                bool_Pop(&B);
-
-        break;
-
-        case IN_JMP_FALSE:
-
-            bool_Top(&hodnota, &B);
-            bool_Pop(&B);
-
-            if (hodnota == FALSE){
-
-              listGoto(L, I->addr3);
-            }
-
-        break;
-
-        case IN_TAB_PUSH:
-
-            push_tab((((symtab_elem_t *)(I->addr1))->value), &S);
-
-        break;
-
-        case IN_VAL_PUSH:
-
-            push_val(I->addr1, &S);
-
-        break;
-
         case IN_ADD:
 
             stack_inter_Top(&(first.value), &S);
@@ -157,6 +109,18 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
             third.value.union_value.dval = first.value.union_value.dval / second.value.union_value.dval;
             push_tab(third.value.union_value, &S);
+        break;
+        
+         case IN_TAB_PUSH:
+
+            push_tab((((symtab_elem_t *)(I->addr1))->value), &S);
+
+        break;
+
+        case IN_VAL_PUSH:
+
+            push_val(I->addr1, &S);
+
         break;
 
         case IN_CONV:
@@ -378,6 +342,42 @@ int interpret(symtab_t *T, tListOfInstr *L)
                 bool_Push(false, &B);
 
         break;
+        
+        case IN_GOTO:
+
+            bool_Top(&hodnota, &B);
+
+            if (hodnota){
+
+              listGoto(L, I->addr3);
+            }
+
+        break;
+
+        case IN_JMP_WHILE:
+
+            bool_Top(&hodnota, &B);
+
+            if (hodnota){
+
+              listGoto(L, I->addr3);
+            }
+            else
+                bool_Pop(&B);
+
+        break;
+
+        case IN_IFNGOTO:
+
+            bool_Top(&hodnota, &B);
+            bool_Pop(&B);
+
+            if (hodnota == FALSE){
+
+              listGoto(L, I->addr3);
+            }
+
+        break;
 
          // rozsireni
 
@@ -429,9 +429,28 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
         break;
 
-        case IN_STOP:
+        case IN_LABEL:
+            
+            
+            
+        break;
 
-            return 0;
+        case IN_MOVSTACK:
+
+            stack_inter_Top(&(third.value), &S);
+            stack_inter_Pop(&S);
+
+            ((symtab_elem_t *)I->addr1)->value = third.value.union_value;
+
+        break;
+
+        case IN_CONV_SYMBOL:
+
+
+            first.value.union_value.ival = ((symtab_elem_t *)I->addr1)->value.ival;
+            second.value.union_value.dval = (double)first.value.union_value.ival;
+            ((symtab_elem_t *)I->addr1)->value.dval = second.value.union_value.dval;
+            ((symtab_elem_t *)I->addr1)->data_type = ST_DATATYPE_DOUBLE;
 
         break;
 
