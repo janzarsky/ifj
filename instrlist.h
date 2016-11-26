@@ -79,22 +79,23 @@
 #define IN_F_SUB        5
 #define IN_F_MUL        6
 #define IN_F_DIV        7
-#define IN_PUSH         8   // vloz na zasobnik
-#define IN_CONV         9   // preved vrchol zasobniku z int na double
-#define IN_SWAP         10  // vymen horni dva prvky zasobniku
-#define IN_CONCAT       11  // spoj horni dva retezce na zasobniku
-#define IN_LESS         12  // porovna horni dva inty
-#define IN_GREAT        13
-#define IN_LESS_EQ      14
-#define IN_GREAT_EQ     15
-#define IN_EQ           16
-#define IN_N_EQ         17
-#define IN_F_LESS       18  // porovna horni dva doubly
-#define IN_F_GREAT      19
-#define IN_F_LESS_EQ    20
-#define IN_F_GREAT_EQ   21
-#define IN_F_EQ         22
-#define IN_F_N_EQ       23
+#define TAB_PUSH        8   // vloz na zasobnik
+#define VAL_PUSH        9
+#define IN_CONV         10   // preved vrchol zasobniku z int na double
+#define IN_SWAP         11  // vymen horni dva prvky zasobniku
+#define IN_CONCAT       12  // spoj horni dva retezce na zasobniku
+#define IN_LESS         13  // porovna horni dva inty
+#define IN_GREAT        14
+#define IN_LESS_EQ      15
+#define IN_GREAT_EQ     16
+#define IN_EQ           17
+#define IN_N_EQ         18
+#define IN_F_LESS       19  // porovna horni dva doubly
+#define IN_F_GREAT      20
+#define IN_F_LESS_EQ    21
+#define IN_F_GREAT_EQ   22
+#define IN_F_EQ         23
+#define IN_F_N_EQ       24
 
 #define IN_JMP_TRUE     25
 #define IN_JMP_FALSE    26
