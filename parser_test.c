@@ -370,11 +370,11 @@ int statement_list(){
 						else if(token == ASSIGN){
 							if( (result = assign()) != SYNTAX_OK ){
 
-								add_instr(IN_MOVSTACK,NULL,NULL,(void*) local_item);
 
 								return result;
 							}
 							else{
+								add_instr(IN_MOVSTACK,NULL,NULL,(void*) local_item);
 								if( (result = statement_list()) != SYNTAX_OK){
 									return result;
 								}
@@ -578,6 +578,11 @@ int assign(){
 		case ID:
             temp_token = token;
             temp_token_data = token_data;
+            #ifdef DEBUG
+            printf("\x1B[36m""------------------------------------------------------------------------\n");
+            printf("\ntoken_data: %s\n",temp_token_data);
+            printf("------------------------------------------------------------------------\n""\x1B[0m");
+            #endif
             if( (temp_elem = st_find(local_tabulka,temp_token_data)) == NULL)
 	            if( (temp_elem = st_find(tabulka,temp_token_data)) == NULL)
 	            	return SEMANTIC_ERROR; //error number 3 
