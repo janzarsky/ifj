@@ -14,6 +14,8 @@
 #define IN_MOVSTACK 28
 #define IN_RETURN 29
 #define IN_CALL 30
+#define IN_CONV_SYMBOL 31
+#define IN_MOV 32
 
 
 void set_symtable(symtab_t *table);

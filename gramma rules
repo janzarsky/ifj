@@ -12,8 +12,8 @@ rules:
 		3) <prog>      -> EOF
 	
 	<class-dec>
-		1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID \
-              [SEMICOLON/ ASSIGN <assign>/LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>] <class-dec>
+		1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID \n
+               [SEMICOLON/ ASSIGN <math-expr>/LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>] <class-dec>
 		2) <class-dec> -> RIGHT_VINCULUM
 		3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>
 
