@@ -16,7 +16,7 @@
 #include "parser_test.h"
 #include "scanner.h"
 #include "symtab.h"
-#include "frames.h"
+//#include "frames.h"
 #include "interpret.h"
 
 extern tListOfInstr *instr_list;
