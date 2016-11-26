@@ -141,4 +141,49 @@ char* readString()
     //return string?
     return ;
 }
+
+//pomocna funkce sortu
+void SiftDown(char *A, int Left, int Right)
+{
+  int i = Left;           //i = otec
+  int j = (2 * i) +1;     //index leveho syna
+  char Temp = A[i];       //ulozeni otce
+
+  if (j < Right && A[j] < A[j + 1])
+    j = j + 1;
+
+  while (j <= Right && Temp < A[j]) {
+    A[i] = A[j];          //nastav nejvetsiho jako otce
+    i = j;                //syn se stane otcem pro pristi cyklus
+    j = (2 * i) +1;       //pristi levy
+
+    if (j < Right && A[j] < A[j + 1])
+      j = j + 1;
+
+  }
+  A[i] = Temp;  //konecne umisteni proseteho uzlu
+}
+
+String sort(String s)
+{
+  int i, Left, Right;
+  int N = s.length;
+  char *A = s.str;
+
+  //ustaveni hromady
+  Left = (N -1) / 2;           //index nejpravejsiho nejspodnejsiho uzlu
+  Right = N -1;
+  for (int i = Left; i >= 0; i--)
+    SiftDown(A, i, Right);
+
+  //cyklus heap-sort
+  for (int i = Right; i > 0; i--) {
+    char Temp = A[0];         //vymena korene s aktualnim poslednim prvkem
+    A[0] = A[i];
+    A[i] = Temp;
+    SiftDown(A, 0, i -1);     //znovuustaveni hromady
+
+  }
+  return s;
+}
 */
