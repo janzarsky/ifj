@@ -457,6 +457,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
     }
  }
+  return 0;
 }
 
 // FCE PRO PRACI SE ZASOBNIKEM
