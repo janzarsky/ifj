@@ -16,6 +16,8 @@
 #include "parser_test.h"
 #include "scanner.h"
 #include "symtab.h"
+#include "frames.h"
+#include "interpret.h"
 
 extern tListOfInstr *instr_list;
 
@@ -76,9 +78,25 @@ void symtab_test()
     st_free(tabulka);
     printf("%p\n", (void *) tabulka);
 }
+/*
+void frames_test() {
+    symtab_t *symtab;
+    st_init(&symtab);
 
+    instr_list = malloc(sizeof(tListOfInstr));
+    listInit(instr_list);
+
+    inter_stack stack;
+    stack.top = NULL;
+
+    //add_instr(IN_PUSH_VAL
+
+    call(symtab, instr_list, &stack);
+}
+*/
 int main(int argc, char** argv) {
     //symtab_test();
+    //frames_test();
 
     if (argc != 2) {
         return 99;
@@ -122,7 +140,8 @@ int main(int argc, char** argv) {
 
     printf("MAIN: parse code\n");
 
-    int parse_result = program();
+    int parse_result = program(0);
+    printf("******************************\n\nresult: %d\n", parse_result);
 
     printf("MAIN: symtab\n");
     st_print(symtab);
@@ -130,8 +149,15 @@ int main(int argc, char** argv) {
     printf("MAIN: symtab_local\n");
     st_print(symtab_local);
 
-    // check error code
-    printf("result: %d\n", parse_result);
+    rewind(source);
+    parse_result = program(1);
+    printf("******************************\n\nresult: %d\n", parse_result);
+
+    printf("MAIN: symtab\n");
+    st_print(symtab);
+
+    printf("MAIN: symtab_local\n");
+    st_print(symtab_local);
 
     // interpret code
 
