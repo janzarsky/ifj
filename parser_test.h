@@ -7,16 +7,6 @@
 #define SYNTAX_OK 100
 #define SYNTAX_ERROR 99
 
-//defines for instructions
-#define IN_LABEL 25
-#define IN_GOTO 26
-#define IN_IFNGOTO 27
-#define IN_MOVSTACK 28
-#define IN_RETURN 29
-#define IN_CALL 30
-#define IN_CONV_SYMBOL 31
-#define IN_MOV 32
-
 
 void set_symtable(symtab_t *table);
 void set_symtable_local(symtab_t *table);

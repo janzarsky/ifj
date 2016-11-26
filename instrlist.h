@@ -108,7 +108,16 @@
 
 #define IN_STOP         32
 
-#define IN_MAX          50
+#define IN_LABEL        33
+#define IN_GOTO         34
+#define IN_IFNGOTO      35
+#define IN_MOVSTACK     36
+#define IN_RETURN       37
+#define IN_CALL         38
+#define IN_CONV_SYMBOL  39
+#define IN_MOV          40
+
+#define IN_MAX          41
 
 // pomocne defines pro zjednoduseni kodu
 // instrukce pro double se daji ziskat jako (instrukce pro int) + F_***_OFFSET
