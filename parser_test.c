@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "parser_test.h"
 #include "instrlist.h"
 #include "expr_parser.h"
 #include "symtab.h"
 #include "scanner.h"
 
-#define DEBUG
+#define DEBUG1
 
 int return_args();
 int statement_list();
@@ -49,6 +50,7 @@ symtab_elem_t * current_class;
 char *id;
 int type;
 extern tListOfInstr *instr_list;
+unsigned int run_counter=0;
 
 
 void set_symtable(symtab_t *table) {
@@ -60,12 +62,14 @@ void set_symtable_local(symtab_t *table) {
 }
 
 // 1) <prog>  -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM <prog>
+// 1.1) <prog>  -> CLASS MAIN LEFT_VINCULUM  <class-dec> <prog>
 // 2) <prog>  -> CLASS ID LEFT_VINCULUM <class-dec> <prog> // declaration of class
 //-- 3) <prog> -> STATIC [INT/DOUBLE/STRING/VOID] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>	//declaration and initialization of function
 // 3) <prog>  -> END_OF_FILE
 int program(){
     printf("PARSER: function program()\n");
 	int result;
+//pruchod 1
 	if(pruchod == 0){
 		if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 			return LEX_ERROR;
@@ -76,7 +80,34 @@ int program(){
 				switch(token){
 	// 1) <prog>  -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM <prog>
 					case MAIN:
-							if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM)
+
+						if( st_find(tabulka,token_data) != NULL )
+							return SEMANTIC_ERROR;
+						current_class = st_add(tabulka, token_data);
+						current_class->elem_type = ST_ELEMTYPE_CLASS;
+						current_class->declared = current_class->initialized = 1;
+						#ifdef DEBUG1
+						printf("\x1b[33m" "\n---------------------------------------------------------------------------------------\n");
+						printf(  "new  class = %s\n" ,current_class->id  );
+						printf( "---------------------------------------------------------------------------------------\n" "\x1b[0m");
+						#endif
+
+						if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM){
+					 		if( (result = class_dec()) != SYNTAX_OK)
+					 			return result;
+					 		if(run_counter != 1)
+					 			return SEMANTIC_ERROR; //error number 3 not defined RUN function in main	
+					 		if( (result = program()) != SYNTAX_OK)
+					 			return result;
+					 		else
+								return SYNTAX_OK;
+						}
+						if(token == LEX_ERROR)
+							return LEX_ERROR;
+						return SYNTAX_ERROR;
+						break;	
+
+							/*if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM)
 								 if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == STATIC)
 								 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == VOID)
 								 		if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == RUN){
@@ -84,7 +115,7 @@ int program(){
 								 				current_function = st_add(tabulka,token_data);
 								 				current_function->data_type = ST_DATATYPE_VOID;
 								 				current_function->elem_type = ST_ELEMTYPE_FUN;
-								 				#ifdef DEBUG
+								 				#ifdef DEBUG1
 								 				printf("\x1b[31m" "\n---------------------------------------------------------------------------------------\n");
 								 				printf(  "new function = %s\n" ,current_function->id  );
 								 				printf( "---------------------------------------------------------------------------------------\n" "\x1b[0m");
@@ -108,7 +139,7 @@ int program(){
 															 		return SYNTAX_OK;
 															}	 	
 													}
-										}			
+										}				*/
 							if(token == LEX_ERROR)
 								return LEX_ERROR;						
 							return SYNTAX_ERROR;
@@ -122,7 +153,7 @@ int program(){
 							current_class->elem_type = ST_ELEMTYPE_CLASS;
 							current_class->declared = current_class->initialized = 1;
 
-							#ifdef DEBUG
+							#ifdef DEBUG1
 							printf("\x1b[33m" "\n---------------------------------------------------------------------------------------\n");
 							printf(  "new  class = %s\n" ,current_class->id  );
 							printf( "---------------------------------------------------------------------------------------\n" "\x1b[0m");
@@ -150,6 +181,7 @@ int program(){
 		}
 		return SYNTAX_ERROR;
 	}
+//pruchod 2
 	else{
 		if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 			return LEX_ERROR;
@@ -160,7 +192,7 @@ int program(){
 				switch(token){
 	// 1) <prog>  -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM <prog>
 					case MAIN:
-						if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM)
+						/*if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM)
 							 if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == STATIC)
 							 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == VOID)
 							 		if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == RUN){
@@ -177,11 +209,19 @@ int program(){
 														 		return SYNTAX_OK;
 														}	 	
 												}
-									}			
+									}*/			
+						if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM){
+					 		if( (result = class_dec()) != SYNTAX_OK)
+					 			return result;
+					 		if( (result = program()) != SYNTAX_OK)
+					 			return result;
+					 		else
+								return SYNTAX_OK;
+						}
 						if(token == LEX_ERROR)
-							return LEX_ERROR;						
+							return LEX_ERROR;
 						return SYNTAX_ERROR;
-						break;	
+						break;
 	// 2) <prog>  -> CLASS ID LEFT_VINCULUM <class-dec> <prog> // declaration of class
 					case ID: 
 						if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM){
@@ -338,7 +378,7 @@ int statement_list(){
 							if(st_find(local_tabulka,token_data) != NULL)
 								return SEMANTIC_ERROR;
 							local_item = item = st_add(local_tabulka, token_data);
-							#ifdef DEBUG
+							#ifdef DEBUG1
 							printf("\x1b[32m" "\n---------------------------------------------------------------------------------------\n");
 							printf(  "new local token = %s\n" ,item->id  );
 							printf( "---------------------------------------------------------------------------------------\n" "\x1b[0m");
@@ -369,11 +409,9 @@ int statement_list(){
 						}
 						else if(token == ASSIGN){
 							if( (result = assign()) != SYNTAX_OK ){
-								printf("\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 								return result;
 							}
 							else{
-								printf("\nBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n");
 								add_instr(IN_MOVSTACK,NULL,NULL,(void*) local_item);
 								if( (result = statement_list()) != SYNTAX_OK){
 									return result;
@@ -472,17 +510,16 @@ int func_var(){
     printf("PARSER: function func_var()\n");
 	int result;
 	id = token_data;
+	symtab_elem_t * local_item;
 	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 		return LEX_ERROR;
 	switch(token){
 // 1) LEFT_BRACKET <func-args> SEMICOLON //it's function call	
 		case LEFT_BRACKET:
 			current_function = item;
-			/*if( (current_function = st_find(tabulka, id)) == NULL){ //if function not in symtab we add it there.
-				current_function = st_add(tabulka, id);
-				current_function->elem_type = ST_ELEMTYPE_FUN;
-				current_function->initialized = current_function->declared = 0;
-			}*/
+			if( (current_function = st_find(tabulka, id)) == NULL){ //if function not in symtab we add it there.
+				return SEMANTIC_ERROR; //error type 3 not declarated function
+			}
 			if ( (result = func_args()) != SYNTAX_OK)
 				return result;
 
@@ -498,10 +535,15 @@ int func_var(){
 			break;
 // 2) ASSIGN <assign> //its inicialization of var			
 		case ASSIGN:
+			if( (local_item = item = st_find(local_tabulka, id)) == NULL){
+				if( (local_item = item = st_find(tabulka, id)) == NULL){ 
+					return SEMANTIC_ERROR; //error type 3 not declarated var
+				}	
+			}
 			if ( (result = assign()) != SYNTAX_OK)
 				return result;
 			else{ 
-				add_instr(IN_MOVSTACK,NULL,NULL,(void*) item);
+				add_instr(IN_MOVSTACK,NULL,NULL,(void*) local_item);
 				return SYNTAX_OK;
 			}
 			break;
@@ -542,7 +584,7 @@ int return_args(){
 					type = ST_DATATYPE_DOUBLE;
 				}
 
-				if(current_function->data_type != type){
+				if(current_function->data_type != (unsigned int)type){
 					return SEMANTIC_ERROR; //FIXME check return type
 				}
 				else{
@@ -572,7 +614,6 @@ int assign(){
     int temp_token;
     char *temp_token_data;
     symtab_elem_t * temp_elem;
-    char *end;
 
 
 	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
@@ -581,25 +622,31 @@ int assign(){
 		case ID:
             temp_token = token;
             temp_token_data = token_data;
-            #ifdef DEBUG
+            #ifdef DEBUG1
             printf("\x1B[36m""------------------------------------------------------------------------\n");
             printf("\ntoken_data: %s\n",temp_token_data);
             printf("------------------------------------------------------------------------\n""\x1B[0m");
             #endif
-            if( (temp_elem = item = st_find(local_tabulka,temp_token_data)) == NULL)
-	            if( (temp_elem = item = st_find(tabulka,temp_token_data)) == NULL)
+
+
+            if( (temp_elem  = st_find(local_tabulka,temp_token_data)) == NULL)
+	            if( (temp_elem = st_find(tabulka,temp_token_data)) == NULL)
 	            	return SEMANTIC_ERROR; //error number 3 
+
 
 			if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 				return LEX_ERROR;
 			switch(token){
 // 2) <assign>	   -> ID LEFT_BRACKET <func-args> SEMICOLON //function call			
 				case LEFT_BRACKET: 
+					if(temp_elem->elem_type != ST_ELEMTYPE_FUN){
+						return SEMANTIC_ERROR; //FIXME check error type for trying to call not a function
+					}
 					if ( (result = func_args()) != SYNTAX_OK)
 						return result;
 
-						current_function = temp_elem;
-				        add_instr(IN_CALL,NULL,NULL,(void *)current_function);
+					current_function = temp_elem;
+			        add_instr(IN_CALL,NULL,NULL,(void *)current_function);
 
 
 					if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == SEMICOLON)
@@ -647,7 +694,11 @@ int assign(){
 
                     if(result == SYNTAX_OK){
                         if(item->declared ){
-
+                        	#ifdef DEBUG1
+                        	printf("\x1B[36m""------------------------------------------------------------------------\n");
+                        	printf("\ntoken_data: %s ; data_type=%d\n",item->id,item->data_type);
+                        	printf("------------------------------------------------------------------------\n""\x1B[0m");
+                        	#endif
                         	switch(item->data_type){
                         		case ST_DATATYPE_INT:
                         				if(type != ST_DATATYPE_INT)
@@ -805,7 +856,7 @@ int class_dec(){
 							else{
 								item = st_add(tabulka,token_data);
 								item->declared = 1;
-								#ifdef DEBUG
+								#ifdef DEBUG1
 								printf("\x1b[31m" "\n---------------------------------------------------------------------------------------\n");
 								printf(  "new global id = %s\n" ,item->id  );
 								printf( "---------------------------------------------------------------------------------------\n" "\x1b[0m");
@@ -894,7 +945,7 @@ int class_dec(){
 								current_function->elem_type = ST_ELEMTYPE_FUN;
 								current_function->data_type = ST_DATATYPE_VOID;
 								current_function->declared =  1;
-								#ifdef DEBUG
+								#ifdef DEBUG1
 								printf("\x1b[31m" "\n---------------------------------------------------------------------------------------\n");
 								printf(  "new global function = %s\n" ,current_function->id  );
 								printf( "---------------------------------------------------------------------------------------\n" "\x1b[0m");
@@ -904,6 +955,44 @@ int class_dec(){
 							if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
 								if ( (result = func_params()) != SYNTAX_OK)
 									return result;
+								if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
+
+									current_function->initialized = 1;
+
+									if ( (result = statement_list()) != SYNTAX_OK)
+										return result;
+									if ( (result = class_dec()) != SYNTAX_OK)
+										return result;
+									else return SYNTAX_OK;
+								}
+							}
+						}
+						else if(token == RUN){
+							if(strcmp(current_class->id, "Main") == 0)
+								run_counter++;
+
+							if( (find = st_find(tabulka,token_data)) != NULL){
+								if(find->declared == 1 || find->initialized == 1)
+									return SEMANTIC_ERROR; //redeclaration of existing symbol
+								else{
+									find->declared = 1;
+								}
+							}
+							else{
+								current_function = st_add(tabulka,token_data);
+								current_function->elem_type = ST_ELEMTYPE_FUN;
+								current_function->data_type = ST_DATATYPE_VOID;
+								current_function->declared =  1;
+								#ifdef DEBUG1
+								printf("\x1b[31m" "\n---------------------------------------------------------------------------------------\n");
+								printf(  "new global function = %s\n" ,current_function->id  );
+								printf( "---------------------------------------------------------------------------------------\n" "\x1b[0m");
+								#endif
+							}
+							id = token_data;
+							if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
+								if ( (token = get_next_token(&token_data)) != LEX_ERROR && token != RIGHT_BRACKET)
+									return SYNTAX_ERROR;
 								if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
 
 									current_function->initialized = 1;
@@ -996,6 +1085,19 @@ int class_dec(){
 							if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
 								if ( (result = func_params()) != SYNTAX_OK)
 									return result;
+								if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
+									if ( (result = statement_list()) != SYNTAX_OK)
+										return result;
+									if ( (result = class_dec()) != SYNTAX_OK)
+										return result;
+									else return SYNTAX_OK;
+								}
+							}
+						}
+						else if(token == RUN){
+							if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
+								if ( (token = get_next_token(&token_data)) != LEX_ERROR && token != RIGHT_BRACKET)
+									return SYNTAX_ERROR;
 								if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
 									if ( (result = statement_list()) != SYNTAX_OK)
 										return result;
