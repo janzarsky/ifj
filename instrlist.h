@@ -79,8 +79,8 @@
 #define IN_F_SUB        5
 #define IN_F_MUL        6
 #define IN_F_DIV        7
-#define TAB_PUSH        8   // vloz na zasobnik
-#define VAL_PUSH        9
+#define IN_TAB_PUSH     8   // vloz na zasobnik
+#define IN_VAL_PUSH     9
 #define IN_CONV         10   // preved vrchol zasobniku z int na double
 #define IN_SWAP         11  // vymen horni dva prvky zasobniku
 #define IN_CONCAT       12  // spoj horni dva retezce na zasobniku
