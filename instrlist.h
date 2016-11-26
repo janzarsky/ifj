@@ -99,11 +99,14 @@
 
 #define IN_JMP_TRUE     25
 #define IN_JMP_FALSE    26
+#define IN_JMP_WHILE    27
 
-#define IN_DEC          27
-#define IN_INC          28
-#define IN_F_DEC        29
-#define IN_F_INC        30
+#define IN_DEC          28
+#define IN_INC          29
+#define IN_F_DEC        30
+#define IN_F_INC        31
+
+#define IN_STOP         32
 
 #define IN_MAX          50
 
@@ -133,7 +136,7 @@
 #define INT 17
 #define RETURN 18
 #define STRING 19
-#define STATIC 20 
+#define STATIC 20
 #define VOID 21
 #define WHILE 22
 #define ID 23
@@ -167,7 +170,7 @@ typedef struct listItem
   tInstr instruction;
   struct listItem *nextItem;
 } tListItem;
-    
+
 
 typedef struct
 {
