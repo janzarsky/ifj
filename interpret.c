@@ -14,7 +14,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
 {
   inter_stack S;
   S.top = NULL;
-  bool_stack = B;
+  bool_stack B;
   B.top = NULL;
   listFirst(L); // nastav aktivni prvni instrukci
   tInstr *I;
