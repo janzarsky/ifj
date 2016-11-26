@@ -22,7 +22,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
     inter_stack_item third;
 
 
-  while (1)
+  while (I!=NULL)
   {
       I = listGetData(L); // ziskej instrukci
 
