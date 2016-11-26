@@ -1,4 +1,4 @@
-/*#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -6,9 +6,6 @@
 #include "symtab.h"
 #include "instrlist.h"
 #include "interpret.h"
-#include "instrlist.c"
-
-
 
 int interpret(symtab_t *T, tListOfInstr *L)
 {
@@ -500,8 +497,4 @@ void bool_Top(bool *val, bool_stack *B)
 {
     *val = B->top->value;
 }
-
-
-
-*/
 

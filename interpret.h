@@ -26,18 +26,14 @@ typedef struct bool_stack{
     bool_stack_item *top;
    } bool_stack;
 
+int interpret(symtab_t *T, tListOfInstr *L);
+
 void stack_inter_Pop(inter_stack *S);
-
 void push_tab(st_value_t val, inter_stack *S);
-
 void push_val(void *val, inter_stack *S);
-
 void stack_inter_Top(inter_value *val, inter_stack *S);
-
 void bool_Pop(bool_stack *B);
-
 void bool_Push(bool val, bool_stack *B);
-
 void bool_Top(bool *val, bool_stack *B);
 
 #endif // INTERPRET_H_INCLUDED

@@ -16,7 +16,7 @@
 #include "parser_test.h"
 #include "scanner.h"
 #include "symtab.h"
-//#include "frames.h"
+#include "frames.h"
 #include "interpret.h"
 
 extern tListOfInstr *instr_list;
@@ -83,15 +83,41 @@ void frames_test() {
     symtab_t *symtab;
     st_init(&symtab);
 
+    symtab_elem_t *func = st_add(symtab, "my_func");
+    func->data_type = ST_DATATYPE_INT;
+    func->elem_type = ST_ELEMTYPE_FUN;
+
+    st_init(&(func->local_table));
+
+    symtab_elem_t *func_param = st_add(func->local_table, "a");
+    func_param->data_type = ST_DATATYPE_INT;
+    func_param->elem_type = ST_ELEMTYPE_VAR;
+
     instr_list = malloc(sizeof(tListOfInstr));
     listInit(instr_list);
 
     inter_stack stack;
     stack.top = NULL;
 
-    add_instr(IN_PUSH_VAL, (void *) 5, NULL, NULL);
+    // fill stack
+    inter_stack_item *temp;
+    temp = malloc(sizeof(inter_stack_item));
+    if (temp == NULL) return;
+    temp->next = stack.top;
+    temp->value.vval = (void *) 5;
+    stack.top = temp;
+    temp = malloc(sizeof(inter_stack_item));
+    if (temp == NULL) return;
+    temp->next = stack.top;
+    temp->value.vval = (void *) 42;
+    stack.top = temp;
+    temp = malloc(sizeof(inter_stack_item));
+    if (temp == NULL) return;
+    temp->next = stack.top;
+    temp->value.vval = (void *) 100;
+    stack.top = temp;
 
-    call(symtab, instr_list, &stack);
+    call(instr_list, &stack, func);
 }
 */
 int main(int argc, char** argv) {
@@ -159,8 +185,11 @@ int main(int argc, char** argv) {
 
     printf("MAIN: symtab_local\n");
     st_print(symtab_local);
+    
+    printf("MAIN: interpret code\n");
 
-    // interpret code
+    int interpret_result = interpret(symtab, instr_list);
+    printf("******************************\n\nresult: %d\n", interpret_result);
 
     // free table of symbols
     // free instruction list
