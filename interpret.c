@@ -14,12 +14,17 @@ int interpret(symtab_t *T, tListOfInstr *L)
 {
   inter_stack S;
   S.top = NULL;
+  bool_stack = B;
+  B.top = NULL;
   listFirst(L); // nastav aktivni prvni instrukci
   tInstr *I;
+  bool hodnota;
 
     inter_stack_item first;
     inter_stack_item second;
     inter_stack_item third;
+
+
   while (1)
   {
       I = listGetData(L); // ziskej instrukci
@@ -27,6 +32,29 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
       switch (I->instType)
     {
+        case IN_JMP_TRUE:
+        
+            bool_Top(&hodnota, &B);
+
+            if (hodnota){
+
+              listGoto(L, I->addr3);
+            }
+
+        break;
+
+        case IN_JMP_FALSE:
+        
+            bool_Top(&hodnota, &B);
+            bool_Pop(&B);
+
+            if (hodnota == FALSE){
+
+              listGoto(L, I->addr3);
+            }
+
+        break;
+
         case TAB_PUSH:
 
             push_tab((((symtab_elem_t *)(I->addr1))->value), &S);
@@ -167,14 +195,12 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
-
-            if (first.value.union_value.ival < second.value.union_value.ival) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            if (first.value.union_value.ival < second.value.union_value.ival) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
 
@@ -184,14 +210,13 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
-
-            if (first.value.union_value.ival > second.value.union_value.ival) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            if (first.value.union_value.ival > second.value.union_value.ival) 
+            
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
 
@@ -201,14 +226,12 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
-
-            if (first.value.union_value.ival <= second.value.union_value.ival) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            if (first.value.union_value.ival <= second.value.union_value.ival) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
 
@@ -218,15 +241,12 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
-
-            if (first.value.union_value.ival >= second.value.union_value.ival) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
-
+            if (first.value.union_value.ival >= second.value.union_value.ival) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
         break;
 
         case IN_EQ:
@@ -235,14 +255,12 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
-
-            if (first.value.union_value.ival == second.value.union_value.ival) third.value.union_value.ival = 1;
-
-            else third.value.union_value.ival = 0;
-
-            push_tab(third.value.union_value, &S);
+            if (first.value.union_value.ival == second.value.union_value.ival) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
         break;
 
@@ -252,14 +270,148 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Pop(&S);
 
             stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
 
-            push_tab(second.value.union_value, &S);
+            if (first.value.union_value.ival != second.value.union_value.ival) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
 
-            if (first.value.union_value.ival != second.value.union_value.ival) third.value.union_value.ival = 1;
+        break;
 
-            else third.value.union_value.ival = 0;
+        case IN_F_LESS:
 
-            push_tab(third.value.union_value, &S);
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            if (first.value.union_value.dval < second.value.union_value.dval) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
+
+        break;
+
+        case IN_F_GREAT:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            if (first.value.union_value.dval > second.value.union_value.dval) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
+
+        break;
+
+        case IN_F_LESS_EQ:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            if (first.value.union_value.dval <= second.value.union_value.dval) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
+
+        break;
+
+        case IN_F_GREAT_EQ:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            if (first.value.union_value.dval >= second.value.union_value.dval) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
+
+        break;
+
+        case IN_F_EQ:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            if (first.value.union_value.dval == second.value.union_value.dval) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
+
+        break;
+
+        case IN_F_N_EQ:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+            stack_inter_Pop(&S);
+
+            if (first.value.union_value.dval != second.value.union_value.dval) 
+                bool_Push(true, &B);
+            else 
+                bool_Push(false, &B);
+
+        break;
+        
+         // rozsireni
+
+        case IN_DEC:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            first.value.union_value.ival = first.value.union_value.ival--;
+
+            push_tab(first.value.union_value);
+
+        break;
+        
+        case IN_INC:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            first.value.union_value.ival = first.value.union_value.ival++;
+
+            push_tab(first.value.union_value);
+
+        break;
+        
+        case IN_F_DEC:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            first.value.union_value.dval = first.value.union_value.dval--;
+
+            push_tab(first.value.union_value);
+
+        break;
+        
+        case IN_F_INC:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            first.value.union_value.dval = first.value.union_value.dval++;
+
+            push_tab(first.value.union_value);
 
         break;
 
@@ -269,6 +421,8 @@ int interpret(symtab_t *T, tListOfInstr *L)
     }
  }
 }
+
+// FCE PRO PRACI SE ZASOBNIKEM
 
 void push_tab(st_value_t val, inter_stack *S) {
 
@@ -302,5 +456,28 @@ void stack_inter_Pop(inter_stack *S){
     inter_stack_item *temp = (*S).top;
     (*S).top = (*S).top->next;
     free(temp);
+}
+//FCE pro hodnoty bool
+void bool_Pop(bool_stack *B)
+{
+    bool_stack_item  *temp = B->top;
+    B->top = temp->next;
+    free(temp);
+}
 
-}*/
+void bool_Push(bool val, bool_stack *B)
+{
+    bool_stack_item  *temp = (bool_stack_item *)malloc(sizeof(bool_stack_itme));
+    if(temp == NULL)
+        return;
+    temp->value = val;
+    temp->next = B->top;
+    B->top = temp;
+}
+
+void bool_Top(bool *val, bool_stack *B)
+{
+    *val = B->top->value;
+}
+*/
+
