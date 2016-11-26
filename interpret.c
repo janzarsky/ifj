@@ -391,6 +391,28 @@ void stack_inter_Pop(inter_stack *S){
     inter_stack_item *temp = (*S).top;
     (*S).top = (*S).top->next;
     free(temp);
+}
+//FCE pro hodnoty bool
+void bool_Pop(bool_stack *B)
+{
+    bool_stack_item  *temp = B->top;
+    B->top = temp->next;
+    free(temp);
+}
 
-}*/
+void bool_Push(bool val, bool_stack *B)
+{
+    bool_stack_item  *temp = (bool_stack_item *)malloc(sizeof(bool_stack_itme));
+    if(temp == NULL)
+        return;
+    temp->value = val;
+    temp->next = B->top;
+    B->top = temp;
+}
+
+void bool_Top(bool *val, bool_stack *B)
+{
+    *val = B->top->value;
+}
+*/
 
