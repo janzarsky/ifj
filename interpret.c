@@ -130,7 +130,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
             first.value.union_value.dval = (double)first.value.union_value.ival;
 
-           // push_val(first.value.union_value.dval, &S); // nejde prekonvertovat na void! bude treba vyuzit vice funkci??
+            push_tab(first.value.union_value, &S);
 
         break;
 
@@ -142,8 +142,8 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-//            push_val(first.value, %S);
- //           push_val(second.value, %S);  // proc pushujem na stack void??
+            push_tab(first.value.union_value, &S);
+            push_tab(second.value.union_value, &S);
 
         break;
 
@@ -171,7 +171,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival < second.value.union_value.ival) { push_val(first.value, %S); }
+            if (first.value.union_value.ival < second.value.union_value.ival) { push_tab(first.value.union_value, &S); }
 
             //else { push_val(second.value, %S); }
 
@@ -185,7 +185,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival > second.value.union_value.ival) { push_val(first.value, %S); }
+            if (first.value.union_value.ival > second.value.union_value.ival) { push_tab(first.value.union_value, &S); }
 
             //else { push_val(second.value, %S); }
 
@@ -199,7 +199,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival <= second.value.union_value.ival) { push_val(first.value, %S); }
+            if (first.value.union_value.ival <= second.value.union_value.ival) { push_tab(first.value.union_value, &S); }
 
         break;
 
@@ -211,7 +211,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival >= second.value.union_value.ival) { push_val(first.value, %S); }
+            if (first.value.union_value.ival >= second.value.union_value.ival) { push_tab(first.value.union_value, &S); }
 
         break;
 
@@ -223,7 +223,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival == second.value.union_value.ival) { push_val(first.value, %S); }
+            if (first.value.union_value.ival == second.value.union_value.ival) { push_tab(first.value.union_value, &S); }
 
         break;
 
@@ -235,7 +235,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.ival != second.value.union_value.ival) { push_val(first.value, %S); }
+            if (first.value.union_value.ival != second.value.union_value.ival) { push_tab(first.value.union_value, &S); }
 
         break;
 
@@ -279,6 +279,4 @@ void stack_inter_Pop(inter_stack *S){
     (*S).top = (*S).top->next;
     free(temp);
 
-}
-
-/*
+}/*
