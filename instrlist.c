@@ -98,6 +98,16 @@ void print_instr(tInstr *instr) {
             printf("F_EQ"); break;
         case IN_F_N_EQ:
             printf("F_N_EQ"); break;
+        case IN_GOTO:
+            printf("GOTO"); break;
+        case IN_LABEL:
+            printf("LABEL"); break;
+        case IN_MOVSTACK:
+            printf("MOVSTACK"); break;
+        case IN_RETURN:
+            printf("RETURN"); break;
+        case IN_CALL:
+            printf("CALL"); break;
         default:
             printf("%d", instr->instType);
     }

@@ -197,6 +197,12 @@ int main(int argc, char** argv) {
     int interpret_result = interpret(symtab, instr_list);
     printf("******************************\n\nresult: %d\n", interpret_result);
 
+    printf("MAIN: symtab\n");
+    st_print(symtab);
+
+    printf("MAIN: symtab_local\n");
+    st_print(symtab_local);
+
     // free table of symbols
     // free instruction list
     fclose(source);

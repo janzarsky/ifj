@@ -81,7 +81,39 @@ void st_free(symtab_t *table) {
 }
 
 void st_print_elem(symtab_elem_t *elem) {
-    printf("%s\n", elem->id);
+    printf("id: %s, elem_type: ", elem->id);
+
+    switch (elem->elem_type) {
+        case ST_ELEMTYPE_VAR:
+            printf("var"); break;
+        case ST_ELEMTYPE_FUN:
+            printf("fun"); break;
+        case ST_ELEMTYPE_CLASS:
+            printf("var"); break;
+        default:
+            printf("other"); break;
+    }
+
+    printf(", data_type: ");
+
+    switch (elem->data_type) {
+        case ST_DATATYPE_ERROR:
+            printf("error"); break;
+        case ST_DATATYPE_VOID:
+            printf("void"); break;
+        case ST_DATATYPE_INT:
+            printf("int, value: %d", elem->value.ival); break;
+        case ST_DATATYPE_DOUBLE:
+            printf("double, value: %g", elem->value.dval); break;
+        case ST_DATATYPE_STRING:
+            printf("string, value: %s", elem->value.strval); break;
+        case ST_DATATYPE_BOOL:
+            printf("bool"); break;
+        default:
+            printf("other"); break;
+    }
+
+    printf("\n");
 }
 
 void st_print(symtab_t *table) {
