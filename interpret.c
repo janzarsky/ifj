@@ -20,6 +20,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
     inter_stack_item first;
     inter_stack_item second;
     inter_stack_item third;
+    st_value_t value;
 
 
   while (I!=NULL)
@@ -113,7 +114,8 @@ int interpret(symtab_t *T, tListOfInstr *L)
         
          case IN_TAB_PUSH:
 
-            push_tab((((symtab_elem_t *)(I->addr1))->value), &S);
+            value = (st_value_t)get_value((symtab_elem_t *)(I->addr1));
+            push_tab(value, &S);
 
         break;
 
@@ -440,7 +442,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(third.value), &S);
             stack_inter_Pop(&S);
 
-            ((symtab_elem_t *)I->addr1)->value = third.value.union_value;
+            set_value(((symtab_elem_t *)I->addr1), &(third.value));
 
         break;
 
