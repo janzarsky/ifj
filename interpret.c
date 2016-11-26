@@ -263,6 +263,108 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
         break;
 
+        case IN_F_LESS:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+
+            push_tab(second.value.union_value, &S);
+
+            if (first.value.union_value.dval < second.value.union_value.dval) third.value.union_value.ival = 1;
+
+            else third.value.union_value.ival = 0;
+
+            push_tab(third.value.union_value, &S);
+
+        break;
+
+        case IN_F_GREAT:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+
+            push_tab(second.value.union_value, &S);
+
+            if (first.value.union_value.dval > second.value.union_value.dval) third.value.union_value.ival = 1;
+
+            else third.value.union_value.ival = 0;
+
+            push_tab(third.value.union_value, &S);
+
+        break;
+
+        case IN_F_LESS_EQ:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+
+            push_tab(second.value.union_value, &S);
+
+            if (first.value.union_value.dval <= second.value.union_value.dval) third.value.union_value.dval = 1;
+
+            else third.value.union_value.ival = 0;
+
+            push_tab(third.value.union_value, &S);
+
+        break;
+
+        case IN_F_GREAT_EQ:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+
+            push_tab(second.value.union_value, &S);
+
+            if (first.value.union_value.dval >= second.value.union_value.dval) third.value.union_value.ival = 1;
+
+            else third.value.union_value.ival = 0;
+
+            push_tab(third.value.union_value, &S);
+
+        break;
+
+        case IN_F_EQ:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+
+            push_tab(second.value.union_value, &S);
+
+            if (first.value.union_value.dval == second.value.union_value.dval) third.value.union_value.ival = 1;
+
+            else third.value.union_value.ival = 0;
+
+            push_tab(third.value.union_value, &S);
+
+        break;
+
+        case IN_F_N_EQ:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            stack_inter_Top(&(second.value), &S);
+
+            push_tab(second.value.union_value, &S);
+
+            if (first.value.union_value.dval != second.value.union_value.dval) third.value.union_value.ival = 1;
+
+            else third.value.union_value.ival = 0;
+
+            push_tab(third.value.union_value, &S);
+
+        break;
+
 
 
 
@@ -304,3 +406,4 @@ void stack_inter_Pop(inter_stack *S){
     free(temp);
 
 }*/
+
