@@ -36,6 +36,6 @@ void bool_Pop(bool_stack *B);
 
 void bool_Push(bool val, bool_stack *B);
 
-void stack_inter_Top(bool *val, bool_stack *B);
+void bool_Top(bool *val, bool_stack *B);
 
 #endif // INTERPRET_H_INCLUDED
