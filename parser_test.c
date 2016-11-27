@@ -403,7 +403,6 @@ int statement_list(){
 
 						if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == SEMICOLON){
 							item->elem_type = ST_ELEMTYPE_VAR;
-							item->local_table = local_tabulka; 
 							if( (result = statement_list()) != SYNTAX_OK){
 								return result;
 							}
@@ -452,6 +451,8 @@ int func_params(){
 	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 		return LEX_ERROR;
 	int result;
+	int temp_token;
+
 	switch(token){
 // 1) <func-params> -> RIGHT_BRACKET		
 		case RIGHT_BRACKET:
@@ -461,10 +462,29 @@ int func_params(){
 		case INT:
 		case DOUBLE:
 		case STRING:
-
-						//FIXME add insert  to symTab function parameters
-
+			temp_token = token;
 			if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID){
+
+				//pridavame parametry je pri prvnim pruchodu
+				if(pruchod == 0){
+					item = st_add(current_function->local_table,token_data);	
+					current_function->first_param = item;
+					item->elem_type = ST_ELEMTYPE_PARAM;
+					item->next_param = NULL;
+					item->declared = 1;
+					switch(temp_token){
+						case INT:
+							item->data_type =  ST_DATATYPE_INT;
+							break;
+						case DOUBLE:
+							item->data_type =  ST_DATATYPE_DOUBLE;
+							break;
+						case STRING:
+							item->data_type =  ST_DATATYPE_STRING;
+							break;
+					}
+				}
+
 				if ( (result = func_params_list()) != SYNTAX_OK)
 					return result;
 				else return SYNTAX_OK;
@@ -483,6 +503,9 @@ int func_params(){
 int func_params_list(){
     printf("PARSER: function func_params_list()\n");
 	int result;
+	int temp_token;
+	symtab_elem_t * prev_item;
+
 	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 		return LEX_ERROR;
 	switch(token){
@@ -490,15 +513,39 @@ int func_params_list(){
 			return SYNTAX_OK;
 			break;
 		case COMMA:
-			if ( (token = get_next_token(&token_data)) != LEX_ERROR && (token == INT || token == DOUBLE || token == STRING))
+			if ( (token = get_next_token(&token_data)) != LEX_ERROR && (token == INT || token == DOUBLE || token == STRING)){
+				temp_token = token;
 				if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID){
 
-					//FIXME add insert to symTable  function parameters
+					if(pruchod == 0){
+						if(st_find(current_function->local_table,token_data) != NULL){
+							return SEMANTIC_ERROR;// error number 3 redefenition of defined variable
+						}
+						prev_item = item;
+						item = st_add(current_function->local_table,token_data);	
+						item->elem_type = ST_ELEMTYPE_PARAM;
+						prev_item->next_param = item;
+						item->next_param = NULL;
+						item->declared = 1;
+						switch(temp_token){
+							case INT:
+								item->data_type =  ST_DATATYPE_INT;
+								break;
+							case DOUBLE:
+								item->data_type =  ST_DATATYPE_DOUBLE;
+								break;
+							case STRING:
+								item->data_type =  ST_DATATYPE_STRING;
+								break;
+						}
+					}
+
 
 					if ( (result = func_params_list()) != SYNTAX_OK)
 						return result;
 					else return SYNTAX_OK;
 				}
+			}	
 			if(token == LEX_ERROR)
 				return LEX_ERROR;
 			return SYNTAX_ERROR;	
@@ -974,7 +1021,7 @@ int class_dec(){
 							return LEX_ERROR;
 						return SYNTAX_ERROR;	
 						break;
-	// 3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>					
+	// 3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params> LEFT_VINCULUM <st-list> <class-dec>					
 					case VOID:
 						if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID){
 
