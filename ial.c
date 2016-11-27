@@ -197,7 +197,7 @@ char *sort(char *s)
   return sor;
 }
 
-int find(String s, String search)
+int find(char *s, char *search)
 {
   //... Knuth-Morris-Pratt
 
