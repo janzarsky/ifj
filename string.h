@@ -22,4 +22,10 @@ int strCmpConstStr(string *s1, char *s2);
 char *strGetStr(string *s);
 int strGetLength(string *s);
 
+// ====== funkce ifj2016 =======
+//funkce 'find' a 'sort' jsou v souboru ial.c
+int length(char *s);
+char *substr(char *s, int i, int n);
+int compare(char *s1, char *s2);
+
 #endif
