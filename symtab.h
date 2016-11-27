@@ -23,7 +23,7 @@ typedef enum {
 
 typedef union {
     int ival;
-    double dval;
+    double *dval;
     char *strval;
 } st_value_t;
 

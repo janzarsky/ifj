@@ -1,7 +1,8 @@
 class Main {
     static void run() {
-        int a;
-        a = 4;
-        a = a + 5;
+        int b;
     }
+}
+class A {
+    static int a = 4 + 8;
 }

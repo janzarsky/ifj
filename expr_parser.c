@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <limits.h>
 #include "parser_test.h"
 #include "instrlist.h"
 #include "expr_parser.h"
@@ -412,6 +413,24 @@ int check_type_rel(int instr) {
     return type;
 }
 
+
+long int int_from_token(char *token_data) {
+    return strtol(token_data, NULL, 10);
+}
+
+double *double_from_token(char *token_data) {
+    double d = strtod(token_data, NULL);
+
+    double *val = malloc(sizeof(double));
+
+    if (val == NULL)
+        return NULL;
+
+    *val = d;
+
+    return val;
+}
+
 int rules() {
     int result, type;
 
@@ -461,12 +480,19 @@ int rules() {
     else if (check_rule(1, INT_LITERAL)) {
         debug_printf("rule: E -> INT    ");
         result = execute_rule(1, NT_EXPR, ST_DATATYPE_INT);
-        add_instr(IN_VAL_PUSH, (void *) 42, NULL, NULL);
+        long int value = int_from_token(token_data_prev);
+        add_instr(IN_VAL_PUSH, (void *) value, NULL, NULL);
     }
     else if (check_rule(1, DOUBLE_LITERAL)) {
         debug_printf("rule: E -> DOUBLE ");
         result = execute_rule(1, NT_EXPR, ST_DATATYPE_DOUBLE);
-        add_instr(IN_VAL_PUSH, (void *) 123, NULL, NULL);
+
+        double *value = double_from_token(token_data_prev);
+
+        if (value == NULL)
+            return SEMANTIC_ERROR;
+
+        add_instr(IN_VAL_PUSH, (void *) value, NULL, NULL);
     }
     else if (check_rule(1, STRING_LITERAL)) {
         debug_printf("rule: E -> STRING ");

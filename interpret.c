@@ -9,6 +9,7 @@
 #include "frames.h"
 
 void stack_inter_print(inter_stack *stack);
+void alloc_double(double **dval_ptr);
 
 int interpret(symtab_t *T, tListOfInstr *L)
 {
@@ -93,7 +94,12 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            third.value.union_value.dval = first.value.union_value.dval + second.value.union_value.dval;
+            third.value.union_value.dval = malloc(sizeof(double)); 
+            if (third.value.union_value.dval == NULL)
+                return INTERNAL_ERROR;
+            
+            *(third.value.union_value.dval) = *(first.value.union_value.dval) + *(second.value.union_value.dval);
+
             push_tab(third.value.union_value, &S);
         break;
 
@@ -103,7 +109,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            third.value.union_value.dval = first.value.union_value.dval - second.value.union_value.dval;
+            third.value.union_value.dval = malloc(sizeof(double)); 
+            if (third.value.union_value.dval == NULL)
+                return INTERNAL_ERROR;
+            
+            *(third.value.union_value.dval) = *(first.value.union_value.dval) - *(second.value.union_value.dval);
             push_tab(third.value.union_value, &S);
         break;
 
@@ -113,7 +123,11 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            third.value.union_value.dval = first.value.union_value.dval * second.value.union_value.dval;
+            third.value.union_value.dval = malloc(sizeof(double)); 
+            if (third.value.union_value.dval == NULL)
+                return INTERNAL_ERROR;
+            
+            *(third.value.union_value.dval) = *(first.value.union_value.dval) * *(second.value.union_value.dval);
             push_tab(third.value.union_value, &S);
         break;
 
@@ -123,32 +137,30 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            third.value.union_value.dval = first.value.union_value.dval / second.value.union_value.dval;
+            third.value.union_value.dval = malloc(sizeof(double)); 
+            if (third.value.union_value.dval == NULL)
+                return INTERNAL_ERROR;
+            
+            *(third.value.union_value.dval) = *(first.value.union_value.dval) / *(second.value.union_value.dval);
             push_tab(third.value.union_value, &S);
         break;
         
          case IN_TAB_PUSH:
-
             value = (st_value_t)get_value((symtab_elem_t *)(I->addr1));
             push_tab(value, &S);
-
         break;
 
         case IN_VAL_PUSH:
-
             push_val(I->addr1, &S);
-
         break;
 
         case IN_CONV:
-
             stack_inter_Top(&(first.value), &S);
             stack_inter_Pop(&S);
 
-            first.value.union_value.dval = (double)first.value.union_value.ival;
+            *(first.value.union_value.dval) = (double) first.value.union_value.ival;
 
             push_tab(first.value.union_value, &S);
-
         break;
 
         case IN_SWAP:
@@ -278,7 +290,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval < second.value.union_value.dval)
+            if (*(first.value.union_value.dval) < *(second.value.union_value.dval))
                 bool_Push(true, &B);
             else
                 bool_Push(false, &B);
@@ -293,7 +305,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval > second.value.union_value.dval)
+            if (*(first.value.union_value.dval) > *(second.value.union_value.dval))
                 bool_Push(true, &B);
             else
                 bool_Push(false, &B);
@@ -308,7 +320,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval <= second.value.union_value.dval)
+            if (*(first.value.union_value.dval) <= *(second.value.union_value.dval))
                 bool_Push(true, &B);
             else
                 bool_Push(false, &B);
@@ -323,7 +335,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval >= second.value.union_value.dval)
+            if (*(first.value.union_value.dval) >= *(second.value.union_value.dval))
                 bool_Push(true, &B);
             else
                 bool_Push(false, &B);
@@ -338,7 +350,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval == second.value.union_value.dval)
+            if (*(first.value.union_value.dval) == *(second.value.union_value.dval))
                 bool_Push(true, &B);
             else
                 bool_Push(false, &B);
@@ -353,7 +365,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            if (first.value.union_value.dval != second.value.union_value.dval)
+            if (*(first.value.union_value.dval) != *(second.value.union_value.dval))
                 bool_Push(true, &B);
             else
                 bool_Push(false, &B);
@@ -460,18 +472,6 @@ int interpret(symtab_t *T, tListOfInstr *L)
             set_value(((symtab_elem_t *)I->addr3), &(third.value));
 
         break;
-
-        case IN_CONV_SYMBOL:
-
-
-            first.value.union_value.ival = ((symtab_elem_t *)I->addr1)->value.ival;
-            second.value.union_value.dval = (double)first.value.union_value.ival;
-            ((symtab_elem_t *)I->addr1)->value.dval = second.value.union_value.dval;
-            ((symtab_elem_t *)I->addr1)->data_type = ST_DATATYPE_DOUBLE;
-
-        break;
-
-
     }
  }
 #ifdef DEBUG

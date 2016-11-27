@@ -104,7 +104,11 @@ void st_print_elem(symtab_elem_t *elem) {
         case ST_DATATYPE_INT:
             printf("int, value: %d", elem->value.ival); break;
         case ST_DATATYPE_DOUBLE:
-            printf("double, value: %g", elem->value.dval); break;
+            if (elem->value.dval != NULL)
+                printf("double, value: %g", *(elem->value.dval));
+            else
+                printf("double, value: NULL");
+            break;
         case ST_DATATYPE_STRING:
             printf("string, value: %s", elem->value.strval); break;
         case ST_DATATYPE_BOOL:

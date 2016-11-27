@@ -3,6 +3,8 @@
 
 #include "symtab.h"
 
+#define INTERNAL_ERROR 99
+
 typedef union {
     st_value_t union_value;
     void *vval;
