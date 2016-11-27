@@ -94,3 +94,48 @@ int strGetLength(string *s)
    return s->length;
 }
 
+//Vrati delku retezce. (napr:  ifj16.length("x\nz") == 3 )
+int length(char *s)
+{
+  return (int) strlen(s);
+}
+
+//vrati podretezec zadaneho retezce 's'
+//parametr 'i' udava zacatek pozadovaného podretezce (pocitano od nuly)
+//parametr 'n' urcuje delku podretezce
+//V okrajovych pripadech simulujte metodu substring tridy String z jazyka Java a vracejte chybu 10.
+char *substr(char *s, int i, int n)
+{
+  char *sub;
+
+  //pokud zacatek podretezce 'i' nepresahuje velikost pole,
+  //a zaroven pocet pozadovanych znaku 'n' nepresahuje konec puvodniho retezce,
+  //anebo nejsou zaporne
+  if ((i < (int) strlen(s)) && (n <= (int) (strlen(s) - i)) && i >= 0 && n >= 0) {
+
+    //vytvareni podretezce
+    int need_size = (n / STR_LEN_INC) + 1;  //pomocna promenna, aby byl alokovany prostor nasobek osmi
+    if ((sub = (char*) malloc(STR_LEN_INC * need_size)) == NULL)
+      printf("CHYBA pri realokaci\n"); //error
+
+    sub = strncpy(sub, s + i, n);
+    sub[n] = '\0';
+
+  } //konec if ((i < s.length) && (n <= ... ) ... )
+  else {
+    //error, num. 10
+    printf("CHYBA, mimo rozsah.\n");
+
+  }
+  return sub;
+  //zkontrolovat s Java 8?
+}
+
+//Lexikograficky porovna dva retezce.
+//0 pokud jsou stejne, 1 pokud s1 > s2, -1 pro ostatni
+//Z hlediska funkcnosti simulujte metodu 'compareTo' tridy String jazyka Java
+int compare(char *s1, char *s2)
+{
+  return strcmp(s1, s2);
+  //zkontrolovat s Java 8?
+}
