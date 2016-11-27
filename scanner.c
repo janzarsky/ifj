@@ -285,6 +285,11 @@ int lexer(string *buffer) {
          state = 4; // a zustan tady
 
         }
+        
+        else if (c == 'n' && quote_count == 1) { //nemuze byt znak konce radku!
+		
+		return ER_LEX; break;
+	}
 
         else if (c == '"' && quote_count == 1){ // jedna se o uvozovky uvnitr stringu NE signalizujici jeho konec
 
