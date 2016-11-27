@@ -7,7 +7,7 @@
 #include "symtab.h"
 #include "scanner.h"
 
-#define DEBUG1
+// #define DEBUG1
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -71,7 +71,9 @@ void set_symtable(symtab_t *table) {
 //-- 3) <prog> -> STATIC [INT/DOUBLE/STRING/VOID] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>	//declaration and initialization of function
 // 3) <prog>  -> END_OF_FILE
 int program(){
+	#ifdef DEBUG1
     printf("PARSER: function program()\n");
+    #endif
 	int result;
 //pruchod 1
 	if(pruchod == 0){
@@ -260,7 +262,9 @@ int program(){
 		6) <st-list>   -> [INT/DOUBLE/SRING] ID [ SEMICOLON / ASSIGN <assign>] <st-list>
 		7) <st-list>   -> ID <func_var>(we must give pointer to ID) <st-list> //it can be function call OR inicialization of var*/
 int statement_list(){
+	#ifdef DEBUG1
     printf("PARSER: function statement_list()\n");
+    #endif
 	int result;
 	int prev_token;
 	tListItem * label1;
@@ -447,7 +451,9 @@ int statement_list(){
 // 		1) <func-params> -> RIGHT_BRACKET
 // 		2) <func-params> -> [INT/DOUBLE/SRING] ID <func-params-list>
 int func_params(){
+	#ifdef DEBUG1
     printf("PARSER: function func_params()\n");
+    #endif
 	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 		return LEX_ERROR;
 	int result;
@@ -501,7 +507,9 @@ int func_params(){
 // 		1) <func-params-list> -> RIGHT_BRACKET
 // 		2) <func-params-list> -> COMMA [INT/DOUBLE/SRING] ID <func-params-list>
 int func_params_list(){
+	#ifdef DEBUG1
     printf("PARSER: function func_params_list()\n");
+    #endif
 	int result;
 	int temp_token;
 	symtab_elem_t * prev_item;
@@ -558,7 +566,9 @@ int func_params_list(){
 // 		1) LEFT_BRACKET <func-args> SEMICOLON //its function call
 // 		2) ASSIGN <assign> //its inicialization of var
 int func_var(){
+	#ifdef DEBUG1
     printf("PARSER: function func_var()\n");
+    #endif
 	int result;
 	id = token_data;
 	symtab_elem_t * local_item;
@@ -606,7 +616,9 @@ int func_var(){
 // 		1) <return-args> -> SEMICOLON (ONLY if we in VOID function)
 // 		4) <return-args> -> <math-expr> SEMICOLON
 int return_args(){
+	#ifdef DEBUG1
     printf("PARSER: function return_args()\n");
+    #endif
 	int result;
 	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 		return LEX_ERROR;
@@ -660,7 +672,9 @@ int return_args(){
 // 		3) <assign>	   -> ID [SEMICOLON/ <math-expr>]
 // 		4) <assign>	   -> <math-expr> SEMICOLON
 int assign(){
+	#ifdef DEBUG1
     printf("PARSER: function assign()\n");
+    #endif
 	int result;
     int temp_token;
     char *temp_token_data;
@@ -818,7 +832,9 @@ int assign(){
 		// 2) <func-args> -> [ID/INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] <func-args-list>
 int func_args(){
 	symtab_elem_t * temp_item;
+	#ifdef DEBUG1
     printf("PARSER: function func_args()\n");
+    #endif
 	int result;
 
 	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
@@ -861,7 +877,9 @@ int func_args(){
 // 		1) <func-args-list> -> RIGHT_BRACKET
 // 		2) <func-args-list> -> COMMA [ID/INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] <func-args-list>
 int func_args_list(){
+	#ifdef DEBUG1
     printf("PARSER: function func_args_list()\n");
+    #endif
 	symtab_elem_t * temp_item;
 	int result;
 
@@ -916,7 +934,9 @@ int func_args_list(){
 // 		2) <class-dec> -> RIGHT_VINCULUM
 // 		3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>
 int class_dec(){
+	#ifdef DEBUG1
     printf("PARSER: function class_dec()\n");
+    #endif
 	int result;
 	int prev_token;
 	symtab_elem_t * find;
