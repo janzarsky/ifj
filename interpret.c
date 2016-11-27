@@ -46,6 +46,16 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
       switch (I->instType)
     {
+        case IN_CALL:
+
+            call_instr(L, &S, (symtab_elem_t *)I->addr1);
+        break;
+
+        case IN_RETURN:
+
+            return_instr(T, L);
+        break;
+
         case IN_ADD:
 
             stack_inter_Top(&(first.value), &S);

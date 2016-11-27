@@ -78,7 +78,7 @@ void symtab_test()
     st_free(tabulka);
     printf("%p\n", (void *) tabulka);
 }
-/*
+
 void frames_test() {
     symtab_t *symtab;
     st_init(&symtab);
@@ -91,7 +91,23 @@ void frames_test() {
 
     symtab_elem_t *func_param = st_add(func->local_table, "a");
     func_param->data_type = ST_DATATYPE_INT;
-    func_param->elem_type = ST_ELEMTYPE_VAR;
+    func_param->elem_type = ST_ELEMTYPE_PARAM;
+
+    symtab_elem_t *func_param2 = st_add(func->local_table, "b");
+    func_param2->data_type = ST_DATATYPE_INT;
+    func_param2->elem_type = ST_ELEMTYPE_PARAM;
+
+    symtab_elem_t *func_param3 = st_add(func->local_table, "c");
+    func_param3->data_type = ST_DATATYPE_INT;
+    func_param3->elem_type = ST_ELEMTYPE_PARAM;
+
+    func->first_param = func_param3;
+    func_param3->next_param = func_param2;
+    func_param2->next_param = func_param;
+    func_param->next_param = NULL;
+
+    printf("DEBUG: symtab\n");
+    st_print(symtab);
 
     instr_list = malloc(sizeof(tListOfInstr));
     listInit(instr_list);
@@ -117,9 +133,12 @@ void frames_test() {
     temp->value.vval = (void *) 100;
     stack.top = temp;
 
-    call(instr_list, &stack, func);
+    call_instr(instr_list, &stack, func);
+
+    printf("DEBUG: instrlist\n");
+    print_instr_list();
 }
-*/
+
 int main(int argc, char** argv) {
     //symtab_test();
     //frames_test();
@@ -169,12 +188,19 @@ int main(int argc, char** argv) {
     printf("MAIN: symtab\n");
     st_print(symtab);
 
+    //FIXME remove later
+    symtab_elem_t *temp = st_find(symtab, "run");
+    add_instr(IN_CALL, temp, NULL, NULL);
+
     rewind(source);
     parse_result = program();
     printf("******************************\n\nresult: %d\n", parse_result);
 
     printf("MAIN: symtab\n");
     st_print(symtab);
+
+    //FIXME remove later
+    add_instr(IN_RETURN, NULL, NULL, NULL);
 
     printf("\nMAIN: generated instructions\n");
     print_instr_list();

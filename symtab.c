@@ -81,7 +81,7 @@ void st_free(symtab_t *table) {
 }
 
 void st_print_elem(symtab_elem_t *elem, char *prefix) {
-    printf("%sid: %s, elem_type: ", prefix, elem->id);
+    printf("%saddr: %p, id: %s, elem_type: ", prefix, (void *)elem, elem->id);
 
     switch (elem->elem_type) {
         case ST_ELEMTYPE_VAR:
