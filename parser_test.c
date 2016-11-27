@@ -57,10 +57,6 @@ void set_symtable(symtab_t *table) {
     tabulka = table;
 }
 
-void set_symtable_local(symtab_t *table) {
-    local_tabulka = table;
-}
-
 // 1) <prog>  -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM <prog>
 // 1.1) <prog>  -> CLASS MAIN LEFT_VINCULUM  <class-dec> <prog>
 // 2) <prog>  -> CLASS ID LEFT_VINCULUM <class-dec> <prog> // declaration of class
@@ -905,6 +901,8 @@ int class_dec(){
 
 									current_function = item;
 									current_function->elem_type = ST_ELEMTYPE_FUN;
+                                    st_init(&(current_function->local_table));
+                                    local_tabulka = current_function->local_table;
 
 									if ( (result = func_params()) != SYNTAX_OK)
 										return result;
@@ -945,6 +943,8 @@ int class_dec(){
 								current_function->elem_type = ST_ELEMTYPE_FUN;
 								current_function->data_type = ST_DATATYPE_VOID;
 								current_function->declared =  1;
+                                st_init(&(current_function->local_table));
+                                local_tabulka = current_function->local_table;
 								#ifdef DEBUG1
 								printf("\x1b[31m" "\n---------------------------------------------------------------------------------------\n");
 								printf(  "new global function = %s\n" ,current_function->id  );
@@ -983,6 +983,8 @@ int class_dec(){
 								current_function->elem_type = ST_ELEMTYPE_FUN;
 								current_function->data_type = ST_DATATYPE_VOID;
 								current_function->declared =  1;
+                                st_init(&(current_function->local_table));
+                                local_tabulka = current_function->local_table;
 								#ifdef DEBUG1
 								printf("\x1b[31m" "\n---------------------------------------------------------------------------------------\n");
 								printf(  "new global function = %s\n" ,current_function->id  );

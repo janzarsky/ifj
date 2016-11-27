@@ -154,16 +154,12 @@ int main(int argc, char** argv) {
     symtab_t *symtab;
     st_init(&symtab);
 
-    symtab_t *symtab_local;
-    st_init(&symtab_local);
-
     instr_list = malloc(sizeof(tListOfInstr));
     listInit(instr_list);
 
     // table of symbols == NULL (no table implemented yet)
     setSourceFile(source);
     set_symtable(symtab);
-    set_symtable_local(symtab_local);
 
     printf("MAIN: parse code\n");
 
@@ -173,18 +169,12 @@ int main(int argc, char** argv) {
     printf("MAIN: symtab\n");
     st_print(symtab);
 
-    printf("MAIN: symtab_local\n");
-    st_print(symtab_local);
-
     rewind(source);
     parse_result = program();
     printf("******************************\n\nresult: %d\n", parse_result);
 
     printf("MAIN: symtab\n");
     st_print(symtab);
-
-    printf("MAIN: symtab_local\n");
-    st_print(symtab_local);
 
     printf("\nMAIN: generated instructions\n");
     print_instr_list();
@@ -199,9 +189,6 @@ int main(int argc, char** argv) {
 
     printf("MAIN: symtab\n");
     st_print(symtab);
-
-    printf("MAIN: symtab_local\n");
-    st_print(symtab_local);
 
     // free table of symbols
     // free instruction list

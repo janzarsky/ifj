@@ -16,7 +16,7 @@ unsigned int hash_function(const char *str, unsigned htab_size) {
 int st_init(symtab_t **table){
     *table = (symtab_t *) malloc(sizeof(symtab_elem_t)*TABLE_SIZE);
 
-    if (table == NULL)
+    if (*table == NULL)
         return - 1;
 
     for (int i = 0; i < TABLE_SIZE; i++) {
@@ -34,7 +34,7 @@ symtab_elem_t *st_add(symtab_t *tabulka, char *token) {
     if (synon == NULL)
         return NULL;
 
-    synon->id = token;
+    synon->id = strdup(token);
 
     if (tabulka->elements[klic] != NULL) {
         synon->nextElem = tabulka->elements[klic]->nextElem;
@@ -80,8 +80,8 @@ void st_free(symtab_t *table) {
     free(table);
 }
 
-void st_print_elem(symtab_elem_t *elem) {
-    printf("id: %s, elem_type: ", elem->id);
+void st_print_elem(symtab_elem_t *elem, char *prefix) {
+    printf("%sid: %s, elem_type: ", prefix, elem->id);
 
     switch (elem->elem_type) {
         case ST_ELEMTYPE_VAR:
@@ -117,18 +117,32 @@ void st_print_elem(symtab_elem_t *elem) {
             printf("other"); break;
     }
 
-    printf("\n");
+    printf(", local_table: %p\n", (void *)elem->local_table);
 }
 
 void st_print(symtab_t *table) {
     symtab_elem_t *ptr;
+    symtab_elem_t *ptr2;
 
     for (int i = 0; i < TABLE_SIZE; i++) {
         if (table->elements[i] != NULL) {
             ptr = table->elements[i];
 
             while (ptr != NULL) {
-                st_print_elem(ptr);
+                st_print_elem(ptr, "");
+
+                if (ptr->local_table != NULL) {
+                    for (int j = 0; j < TABLE_SIZE; j++) {
+                        if (ptr->local_table->elements[j] != NULL) {
+                            ptr2 = ptr->local_table->elements[j]; 
+
+                            while (ptr2 != NULL) {
+                                st_print_elem(ptr2, "-> ");
+                                ptr2 = ptr2->nextElem;
+                            }
+                        }
+                    }
+                }
 
                 ptr = ptr->nextElem;
             }
