@@ -165,19 +165,20 @@ void SiftDown(char *A, int Left, int Right)
   A[i] = Temp;  //konecne umisteni proseteho uzlu
 }
 
-String sort(String s)
+//Seradi znaky v danem retezci 's' tak, aby znak s nizsi ordinalni hodnotou vzdy predchazel znaku s vyssi
+// ordinalni hodnotou. Algoritmus: HEAP-SORT
+char *sort(char *s)
 {
   //vytvoreni noveho stringu, ktery bude obsahovat serazene znaky
-  String sor;
-  if ((sor.str = (char*) malloc(s.allocSize)) == NULL)
+  char *sor;
+  if ((sor = (char*) malloc ( (strlen(s))+2 ) )== NULL)
     printf("CHYBA pri alokaci\n"); //error
-  sor.allocSize = s.allocSize;
-  strcpy(sor.str, s.str);
-  sor.length = s.length;
+
+  strcpy(sor, s);
 
   int Left, Right;
-  int N = sor.length;
-  char *A = sor.str;
+  int N = strlen(sor);
+  char *A = sor;
 
   //ustaveni hromady
   Left = (N -1) / 2;           //index nejpravejsiho nejspodnejsiho uzlu
