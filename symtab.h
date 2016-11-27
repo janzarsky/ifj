@@ -8,6 +8,7 @@
 
 typedef enum {
     ST_ELEMTYPE_VAR,
+    ST_ELEMTYPE_PARAM,
     ST_ELEMTYPE_FUN,
     ST_ELEMTYPE_CLASS
 } st_elemtype_t;
@@ -36,6 +37,8 @@ typedef struct symtab_elem_t {
     st_value_t value;
     bool declared;
     bool initialized;
+    struct symtab_elem_t *first_param; // if elem is function, then this points to list of parameters
+    struct symtab_elem_t *next_param; // if elem is parameter, this points to next parameter
     tListItem *inst_list;
     symtab_t *local_table;
     struct symtab_elem_t *nextElem;

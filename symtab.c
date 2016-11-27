@@ -88,8 +88,10 @@ void st_print_elem(symtab_elem_t *elem, char *prefix) {
             printf("var"); break;
         case ST_ELEMTYPE_FUN:
             printf("fun"); break;
+        case ST_ELEMTYPE_PARAM:
+            printf("param"); break;
         case ST_ELEMTYPE_CLASS:
-            printf("var"); break;
+            printf("class"); break;
         default:
             printf("other"); break;
     }
