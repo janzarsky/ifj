@@ -9,6 +9,14 @@
 
 #define DEBUG1
 
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 int return_args();
 int statement_list();
 int func_var();
@@ -83,9 +91,9 @@ int program(){
 						current_class->elem_type = ST_ELEMTYPE_CLASS;
 						current_class->declared = current_class->initialized = 1;
 						#ifdef DEBUG1
-						printf("\x1b[33m" "\n---------------------------------------------------------------------------------------\n");
+						printf(ANSI_COLOR_YELLOW "\n---------------------------------------------------------------------------------------\n");
 						printf(  "new  class = %s\n" ,current_class->id  );
-						printf( "---------------------------------------------------------------------------------------\n" "\x1b[0m");
+						printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
 						#endif
 
 						if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM){
@@ -150,9 +158,9 @@ int program(){
 							current_class->declared = current_class->initialized = 1;
 
 							#ifdef DEBUG1
-							printf("\x1b[33m" "\n---------------------------------------------------------------------------------------\n");
+							printf(ANSI_COLOR_YELLOW "\n---------------------------------------------------------------------------------------\n");
 							printf(  "new  class = %s\n" ,current_class->id  );
-							printf( "---------------------------------------------------------------------------------------\n" "\x1b[0m");
+							printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
 							#endif
 
 							if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM){
@@ -375,9 +383,9 @@ int statement_list(){
 								return SEMANTIC_ERROR;
 							local_item = item = st_add(local_tabulka, token_data);
 							#ifdef DEBUG1
-							printf("\x1b[32m" "\n---------------------------------------------------------------------------------------\n");
+							printf(ANSI_COLOR_GREEN "\n---------------------------------------------------------------------------------------\n");
 							printf(  "new local token = %s\n" ,item->id  );
-							printf( "---------------------------------------------------------------------------------------\n" "\x1b[0m");
+							printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
 							#endif
 							switch(prev_token){
 								case INT:
@@ -454,7 +462,7 @@ int func_params(){
 		case DOUBLE:
 		case STRING:
 
-						//FIXME add insert to symTab
+						//FIXME add insert  to symTab function parameters
 
 			if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID){
 				if ( (result = func_params_list()) != SYNTAX_OK)
@@ -485,7 +493,7 @@ int func_params_list(){
 			if ( (token = get_next_token(&token_data)) != LEX_ERROR && (token == INT || token == DOUBLE || token == STRING))
 				if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID){
 
-					//FIXME add insert to symTable to function parameters
+					//FIXME add insert to symTable  function parameters
 
 					if ( (result = func_params_list()) != SYNTAX_OK)
 						return result;
@@ -619,9 +627,9 @@ int assign(){
             temp_token = token;
             temp_token_data = token_data;
             #ifdef DEBUG1
-            printf("\x1B[36m""------------------------------------------------------------------------\n");
+            printf(ANSI_COLOR_CYAN"------------------------------------------------------------------------\n");
             printf("\ntoken_data: %s\n",temp_token_data);
-            printf("------------------------------------------------------------------------\n""\x1B[0m");
+            printf("------------------------------------------------------------------------\n"ANSI_COLOR_RESET);
             #endif
 
 
@@ -691,9 +699,9 @@ int assign(){
                     if(result == SYNTAX_OK){
                         if(item->declared ){
                         	#ifdef DEBUG1
-                        	printf("\x1B[36m""------------------------------------------------------------------------\n");
+                        	printf(ANSI_COLOR_CYAN"------------------------------------------------------------------------\n");
                         	printf("\ntoken_data: %s ; data_type=%d\n",item->id,item->data_type);
-                        	printf("------------------------------------------------------------------------\n""\x1B[0m");
+                        	printf("------------------------------------------------------------------------\n"ANSI_COLOR_RESET);
                         	#endif
                         	switch(item->data_type){
                         		case ST_DATATYPE_INT:
@@ -762,8 +770,10 @@ int assign(){
 		// 1) <func-args> -> RIGHT_BRACKET
 		// 2) <func-args> -> [ID/INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] <func-args-list>
 int func_args(){
+	symtab_elem_t * temp_item;
     printf("PARSER: function func_args()\n");
 	int result;
+
 	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 		return LEX_ERROR;
 	switch(token){
@@ -771,11 +781,26 @@ int func_args(){
 			return SYNTAX_OK;
 			break;
 		case ID:
+
+			//FIXME ADD control of function arguments types
+
+			if( (temp_item = st_find(local_tabulka,token_data)) == NULL)
+				if( (temp_item = st_find(tabulka,token_data)) == NULL)
+					return SEMANTIC_ERROR;// error number 3 not defined arguments
+
+			add_instr(IN_TAB_PUSH,(void *)temp_item,NULL,NULL);	 //push function argument(ID) to stack
+
+			if ( (result = func_args_list()) != SYNTAX_OK)
+				return result;
+			else return SYNTAX_OK;
+			break;
 		case INT_LITERAL:
 		case DOUBLE_LITERAL:
 		case STRING_LITERAL:
 
-		//FIXME function arguments
+			//FIXME ADD control of function arguments types
+
+			add_instr(IN_VAL_PUSH,token_data,NULL,NULL); //push function argument(const) to stack
 
 			if ( (result = func_args_list()) != SYNTAX_OK)
 				return result;
@@ -790,10 +815,9 @@ int func_args(){
 // 		2) <func-args-list> -> COMMA [ID/INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] <func-args-list>
 int func_args_list(){
     printf("PARSER: function func_args_list()\n");
-
-	//FIXME function arguments
-
+	symtab_elem_t * temp_item;
 	int result;
+
 	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 		return LEX_ERROR;
 	switch(token){
@@ -801,17 +825,40 @@ int func_args_list(){
 			return SYNTAX_OK;
 			break;
 		case COMMA:
-			if ( (token = get_next_token(&token_data)) != LEX_ERROR && 
-				(token == INT_LITERAL || token == DOUBLE_LITERAL || token == STRING_LITERAL || token == ID)){
-
-				if ( (result = func_args_list()) != SYNTAX_OK)
-					return result;
-				else return SYNTAX_OK;
-			}
-			if(token == LEX_ERROR)
+			if ( (token = get_next_token(&token_data)) == LEX_ERROR )
 				return LEX_ERROR;
-			return SYNTAX_ERROR;	
-			break;
+			switch(token){
+					case RIGHT_BRACKET:
+						return SYNTAX_OK;
+						break;
+					case ID:
+
+						//FIXME ADD control of function arguments types
+		
+						if( (temp_item = st_find(local_tabulka,token_data)) == NULL)
+							if( (temp_item = st_find(tabulka,token_data)) == NULL)
+								return SEMANTIC_ERROR;// error number 3 not defined arguments
+
+						add_instr(IN_TAB_PUSH,(void *)temp_item,NULL,NULL);	 //push function argument(ID) to stack
+
+						if ( (result = func_args_list()) != SYNTAX_OK)
+							return result;
+						else return SYNTAX_OK;
+						break;
+					case INT_LITERAL:
+					case DOUBLE_LITERAL:
+					case STRING_LITERAL:
+
+						//FIXME ADD control of function arguments types
+
+						add_instr(IN_VAL_PUSH,token_data,NULL,NULL); //push function argument(const) to stack
+
+						if ( (result = func_args_list()) != SYNTAX_OK)
+							return result;
+						else return SYNTAX_OK;
+						break;
+			}
+			return SYNTAX_ERROR;
 	}
 	return SYNTAX_ERROR;
 }
@@ -853,9 +900,9 @@ int class_dec(){
 								item = st_add(tabulka,token_data);
 								item->declared = 1;
 								#ifdef DEBUG1
-								printf("\x1b[31m" "\n---------------------------------------------------------------------------------------\n");
+								printf(ANSI_COLOR_RED"\n---------------------------------------------------------------------------------------\n");
 								printf(  "new global id = %s\n" ,item->id  );
-								printf( "---------------------------------------------------------------------------------------\n" "\x1b[0m");
+								printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
 								#endif
 							}
 							switch(prev_token){
@@ -946,9 +993,9 @@ int class_dec(){
                                 st_init(&(current_function->local_table));
                                 local_tabulka = current_function->local_table;
 								#ifdef DEBUG1
-								printf("\x1b[31m" "\n---------------------------------------------------------------------------------------\n");
+								printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
 								printf(  "new global function = %s\n" ,current_function->id  );
-								printf( "---------------------------------------------------------------------------------------\n" "\x1b[0m");
+								printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
 								#endif
 							}
 							id = token_data;
@@ -986,9 +1033,9 @@ int class_dec(){
                                 st_init(&(current_function->local_table));
                                 local_tabulka = current_function->local_table;
 								#ifdef DEBUG1
-								printf("\x1b[31m" "\n---------------------------------------------------------------------------------------\n");
+								printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
 								printf(  "new global function = %s\n" ,current_function->id  );
-								printf( "---------------------------------------------------------------------------------------\n" "\x1b[0m");
+								printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
 								#endif
 							}
 							id = token_data;
