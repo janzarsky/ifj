@@ -166,9 +166,17 @@ void SiftDown(char *A, int Left, int Right)
 
 String sort(String s)
 {
-  int i, Left, Right;
-  int N = s.length;
-  char *A = s.str;
+  //vytvoreni noveho stringu, ktery bude obsahovat serazene znaky
+  String sor;
+  if ((sor.str = (char*) malloc(s.allocSize)) == NULL)
+    printf("CHYBA pri alokaci\n"); //error
+  sor.allocSize = s.allocSize;
+  strcpy(sor.str, s.str);
+  sor.length = s.length;
+
+  int Left, Right;
+  int N = sor.length;
+  char *A = sor.str;
 
   //ustaveni hromady
   Left = (N -1) / 2;           //index nejpravejsiho nejspodnejsiho uzlu
@@ -184,6 +192,14 @@ String sort(String s)
     SiftDown(A, 0, i -1);     //znovuustaveni hromady
 
   }
-  return s;
+  return sor;
 }
+
+int find(String s, String search)
+{
+  //... Knuth-Morris-Pratt
+
+  return 5; //fixme tato funkce neni dokoncena!
+}
+
 */
