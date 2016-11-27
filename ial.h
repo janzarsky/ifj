@@ -16,11 +16,16 @@ double readDouble ();
 
 char* readString();
 
-//Seradi znaky v danem retezci 's' tak, aby znak s nizsi ordinalni hodnotou
-//vzdy predchazel znaku s vyssi ordinalni hodnotou. Vracen je retezec obsahujici
-//serazene znaky.
-//Pouzita metoda: Heap sort
+  //Seradi znaky v danem retezci 's' tak, aby znak s nizsi ordinalni hodnotou
+  //vzdy predchazel znaku s vyssi ordinalni hodnotou. Vracen je retezec obsahujici
+  //serazene znaky.
+  //Pouzita metoda: Heap sort
 String sort(String s);
+
+  //Vyhleda prvni vyskyt zadaneho podretezce 'search' v retezci 's' a vrati jeho
+  //pozici (pocitano od nuly). Pokud podretezec neni nalezen, je vracena hodnota -1.
+  //Algoritmus: Knuth-Morris-Prattuv
+int find(String s, String search);
 
 #endif // IAL_H_INCLUDED
 */
