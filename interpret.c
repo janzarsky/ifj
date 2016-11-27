@@ -184,9 +184,16 @@ int interpret(symtab_t *T, tListOfInstr *L)
            stack_inter_Top(&(second.value), &S);
            stack_inter_Pop(&S);
 
+            int len = strlen(first.value.union_value.strval)
+                + strlen(second.value.union_value.strval);
+            
+            third.value.union_value.strval = malloc((len+1)*sizeof(char));
 
-           strcpy(third.value.union_value.strval, first.value.union_value.strval);
-           strcat(third.value.union_value.strval, second.value.union_value.strval);
+            if (third.value.union_value.strval == NULL)
+                return INTERNAL_ERROR;
+
+            strcpy(third.value.union_value.strval, second.value.union_value.strval);
+            strcat(third.value.union_value.strval, first.value.union_value.strval);
 
            push_tab(third.value.union_value, &S);
 

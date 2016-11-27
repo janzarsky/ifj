@@ -167,7 +167,6 @@ int lexer(string *buffer) {
 
 	 else if (c == '"'){ // jedna se o zacatek retezce
 
-        strAddChar(buffer, c); // nahraj znak do struktury
         state = 4; // preskoc do stavu pro zpracovani retezce
 	 }
 
@@ -289,8 +288,6 @@ int lexer(string *buffer) {
         }
 
         else if (c == '"' && quote_count == 0){ // sme na konci retezce
-
-         strAddChar(buffer, c); // nahraj koncove uvozovky do struktury
 
          return STRING_LITERAL; // vrat retezcovy literal
         } break;

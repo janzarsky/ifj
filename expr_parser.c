@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <string.h>
 #include <limits.h>
+#include <string.h>
 #include "parser_test.h"
 #include "instrlist.h"
 #include "expr_parser.h"
@@ -431,6 +433,10 @@ double *double_from_token(char *token_data) {
     return val;
 }
 
+char *string_from_token(char *token_data) {
+    return strdup(token_data);
+}
+
 int rules() {
     int result, type;
 
@@ -497,7 +503,13 @@ int rules() {
     else if (check_rule(1, STRING_LITERAL)) {
         debug_printf("rule: E -> STRING ");
         result = execute_rule(1, NT_EXPR, ST_DATATYPE_STRING);
-        add_instr(IN_VAL_PUSH, (void *) 0, NULL, NULL);
+
+        char *value = string_from_token(token_data_prev);
+
+        if (value == NULL)
+            return SEMANTIC_ERROR;
+
+        add_instr(IN_VAL_PUSH, (void *) value, NULL, NULL);
     }
     else if (check_rule(3, NT_EXPR, LESS, NT_EXPR)) {
         debug_printf("rule: E -> E < E  ");
