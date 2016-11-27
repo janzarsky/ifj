@@ -7,6 +7,7 @@ for file in test*.java ; do
     echo ""
 
     ./ifj $file
+    echo $?
 
     echo ""
     echo ""

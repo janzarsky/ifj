@@ -12,7 +12,7 @@ ifj: $(OBJECTS)
 	gcc $(CFLAGS) $^ -o $@
 
 %.o: %.c
-	gcc $(CFLAGS) -DDEBUG -c $^ -o $@
+	gcc $(CFLAGS) -DNDEBUG -c $^ -o $@
 
 clean:
 	rm *.o $(PROGRAMS)

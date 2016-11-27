@@ -6,6 +6,7 @@
 #include "expr_parser.h"
 #include "symtab.h"
 #include "scanner.h"
+#include "error_codes.h"
 
 // #define DEBUG1
 
@@ -77,18 +78,18 @@ int program(){
 	int result;
 //pruchod 1
 	if(pruchod == 0){
-		if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-			return LEX_ERROR;
+		if ( (token = get_next_token(&token_data)) == ER_LEX )
+			return ER_LEX;
 		switch(token){
 			case CLASS:
-				if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-					return LEX_ERROR;
+				if ( (token = get_next_token(&token_data)) == ER_LEX )
+					return ER_LEX;
 				switch(token){
 	// 1) <prog>  -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM <prog>
 					case MAIN:
 
 						if( st_find(tabulka,token_data) != NULL )
-							return SEMANTIC_ERROR;
+							return ER_SEM;
 						current_class = st_add(tabulka, token_data);
 						current_class->elem_type = ST_ELEMTYPE_CLASS;
 						current_class->declared = current_class->initialized = 1;
@@ -98,25 +99,25 @@ int program(){
 						printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
 						#endif
 
-						if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM){
-					 		if( (result = class_dec()) != SYNTAX_OK)
+						if ( (token = get_next_token(&token_data)) != ER_LEX  && token == LEFT_VINCULUM){
+					 		if( (result = class_dec()) != ER_OK)
 					 			return result;
 					 		if(run_counter != 1)
-					 			return SEMANTIC_ERROR; //error number 3 not defined RUN function in main	
-					 		if( (result = program()) != SYNTAX_OK)
+					 			return ER_SEM; //error number 3 not defined RUN function in main	
+					 		if( (result = program()) != ER_OK)
 					 			return result;
 					 		else
-								return SYNTAX_OK;
+								return ER_OK;
 						}
-						if(token == LEX_ERROR)
-							return LEX_ERROR;
-						return SYNTAX_ERROR;
+						if(token == ER_LEX)
+							return ER_LEX;
+						return ER_SYNTAX;
 						break;	
 
-							/*if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM)
-								 if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == STATIC)
-								 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == VOID)
-								 		if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == RUN){
+							/*if ( (token = get_next_token(&token_data)) != ER_LEX  && token == LEFT_VINCULUM)
+								 if ( (token = get_next_token(&token_data)) != ER_LEX && token == STATIC)
+								 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == VOID)
+								 		if ( (token = get_next_token(&token_data)) != ER_LEX && token == RUN){
 								 			if(st_find(tabulka,token_data) == NULL){
 								 				current_function = st_add(tabulka,token_data);
 								 				current_function->data_type = ST_DATATYPE_VOID;
@@ -132,29 +133,29 @@ int program(){
 								 				//FIXME make new ramec for recursive RUN call
 								 				;
 								 			}
-										 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET)
-											 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == RIGHT_BRACKET)
-												 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
-												 		if( (result = statement_list()) != SYNTAX_OK)
+										 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET)
+											 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == RIGHT_BRACKET)
+												 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
+												 		if( (result = statement_list()) != ER_OK)
 												 			return result;
 												 		else
-														 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == RIGHT_VINCULUM){
-														 		if( (result = program()) != SYNTAX_OK)
+														 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == RIGHT_VINCULUM){
+														 		if( (result = program()) != ER_OK)
 														 			return result;
 														 		else
-															 		return SYNTAX_OK;
+															 		return ER_OK;
 															}	 	
 													}
 										}				*/
-							if(token == LEX_ERROR)
-								return LEX_ERROR;						
-							return SYNTAX_ERROR;
+							if(token == ER_LEX)
+								return ER_LEX;						
+							return ER_SYNTAX;
 							break;	
 	// 2) <prog>  -> CLASS ID LEFT_VINCULUM <class-dec> <prog> // declaration of class
 					case ID: 
 
 							if( st_find(tabulka,token_data) != NULL )
-								return SEMANTIC_ERROR;
+								return ER_SEM;
 							current_class = st_add(tabulka, token_data);
 							current_class->elem_type = ST_ELEMTYPE_CLASS;
 							current_class->declared = current_class->initialized = 1;
@@ -165,92 +166,92 @@ int program(){
 							printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
 							#endif
 
-							if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM){
-						 		if( (result = class_dec()) != SYNTAX_OK)
+							if ( (token = get_next_token(&token_data)) != ER_LEX  && token == LEFT_VINCULUM){
+						 		if( (result = class_dec()) != ER_OK)
 						 			return result;
-						 		if( (result = program()) != SYNTAX_OK)
+						 		if( (result = program()) != ER_OK)
 						 			return result;
 						 		else
-									return SYNTAX_OK;
+									return ER_OK;
 							}
-							if(token == LEX_ERROR)
-								return LEX_ERROR;
-							return SYNTAX_ERROR;
+							if(token == ER_LEX)
+								return ER_LEX;
+							return ER_SYNTAX;
 							break;
 				}
-				return SYNTAX_ERROR;
+				return ER_SYNTAX;
 	//	3) <prog>      -> END_OF_FILE	
 			case END_OF_FILE:
 				pruchod++;	
-				return SYNTAX_OK;
+				return ER_OK;
 				break;
 		}
-		return SYNTAX_ERROR;
+		return ER_SYNTAX;
 	}
 //pruchod 2
 	else{
-		if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-			return LEX_ERROR;
+		if ( (token = get_next_token(&token_data)) == ER_LEX )
+			return ER_LEX;
 		switch(token){
 			case CLASS:
-				if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-					return LEX_ERROR;
+				if ( (token = get_next_token(&token_data)) == ER_LEX )
+					return ER_LEX;
 				switch(token){
 	// 1) <prog>  -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM <prog>
 					case MAIN:
-						/*if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM)
-							 if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == STATIC)
-							 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == VOID)
-							 		if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == RUN){
-									 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET)
-										 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == RIGHT_BRACKET)
-											 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
-											 		if( (result = statement_list()) != SYNTAX_OK)
+						/*if ( (token = get_next_token(&token_data)) != ER_LEX  && token == LEFT_VINCULUM)
+							 if ( (token = get_next_token(&token_data)) != ER_LEX && token == STATIC)
+							 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == VOID)
+							 		if ( (token = get_next_token(&token_data)) != ER_LEX && token == RUN){
+									 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET)
+										 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == RIGHT_BRACKET)
+											 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
+											 		if( (result = statement_list()) != ER_OK)
 											 			return result;
 											 		else
-													 	if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == RIGHT_VINCULUM){
-													 		if( (result = program()) != SYNTAX_OK)
+													 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == RIGHT_VINCULUM){
+													 		if( (result = program()) != ER_OK)
 													 			return result;
 													 		else
-														 		return SYNTAX_OK;
+														 		return ER_OK;
 														}	 	
 												}
 									}*/			
-						if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM){
-					 		if( (result = class_dec()) != SYNTAX_OK)
+						if ( (token = get_next_token(&token_data)) != ER_LEX  && token == LEFT_VINCULUM){
+					 		if( (result = class_dec()) != ER_OK)
 					 			return result;
-					 		if( (result = program()) != SYNTAX_OK)
+					 		if( (result = program()) != ER_OK)
 					 			return result;
 					 		else
-								return SYNTAX_OK;
+								return ER_OK;
 						}
-						if(token == LEX_ERROR)
-							return LEX_ERROR;
-						return SYNTAX_ERROR;
+						if(token == ER_LEX)
+							return ER_LEX;
+						return ER_SYNTAX;
 						break;
 	// 2) <prog>  -> CLASS ID LEFT_VINCULUM <class-dec> <prog> // declaration of class
 					case ID: 
-						if ( (token = get_next_token(&token_data)) != LEX_ERROR  && token == LEFT_VINCULUM){
-					 		if( (result = class_dec()) != SYNTAX_OK)
+						if ( (token = get_next_token(&token_data)) != ER_LEX  && token == LEFT_VINCULUM){
+					 		if( (result = class_dec()) != ER_OK)
 					 			return result;
-					 		if( (result = program()) != SYNTAX_OK)
+					 		if( (result = program()) != ER_OK)
 					 			return result;
 					 		else
-								return SYNTAX_OK;
+								return ER_OK;
 						}
-						if(token == LEX_ERROR)
-							return LEX_ERROR;
-						return SYNTAX_ERROR;
+						if(token == ER_LEX)
+							return ER_LEX;
+						return ER_SYNTAX;
 						break;
 				}
-				return SYNTAX_ERROR;
+				return ER_SYNTAX;
 	//	3) <prog>      -> END_OF_FILE	
 			case END_OF_FILE:
 				pruchod++;	
-				return SYNTAX_OK;
+				return ER_OK;
 				break;
 		}
-		return SYNTAX_ERROR;
+		return ER_SYNTAX;
 	}
 }
 
@@ -278,29 +279,29 @@ int statement_list(){
 		int bracket_counter=0;
 
 		while(bracket_counter != -1){
-			if( (token = get_next_token(&token_data)) == LEX_ERROR)
-				return LEX_ERROR;
+			if( (token = get_next_token(&token_data)) == ER_LEX)
+				return ER_LEX;
 			if(token == RIGHT_VINCULUM)
 				bracket_counter--;
 			if(token == LEFT_VINCULUM)
 				bracket_counter++;
 		}
-		return SYNTAX_OK;
+		return ER_OK;
 	}
 
 //pruchod 2	
 	else{
 
-			if ( (prev_token = token = get_next_token(&token_data)) == LEX_ERROR )
-				return LEX_ERROR;
+			if ( (prev_token = token = get_next_token(&token_data)) == ER_LEX )
+				return ER_LEX;
 			switch(token){
 		// 1) <st-list>   -> RETURN <return-args> <st-list> 		
 				case RETURN:
-					if((result = return_args()) != SYNTAX_OK)
+					if((result = return_args()) != ER_OK)
 						return result;
-					if((result = statement_list()) != SYNTAX_OK)
+					if((result = statement_list()) != ER_OK)
 						return result;
-					else return SYNTAX_OK;
+					else return ER_OK;
 					break;
 		// 2) <st-list>   -> WHILE LEFT_BRACKET <bool-expr> LEFT_VINCULUM <st-list> <st-list>			
 				case WHILE:
@@ -308,15 +309,15 @@ int statement_list(){
 					add_instr(IN_LABEL,NULL,NULL,NULL); //generate label for start of WHILE cyclus
 					label1 = (tListItem *)listGetPointerLast(instr_list);
 
-					if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
-						if ( (result = bool_expr()) != SYNTAX_OK)
+					if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET){
+						if ( (result = bool_expr()) != ER_OK)
 							return result;
 
 						add_instr(IN_IFNGOTO,NULL,NULL,NULL);	//IF FALSE GOTO end of WHILE cyclus
 						temp_item_list = (tListItem *)listGetPointerLast(instr_list);
 
-		                if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
-		                    if ( (result = statement_list()) != SYNTAX_OK)
+		                if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
+		                    if ( (result = statement_list()) != ER_OK)
 		                        return result;
 
 		                    add_instr(IN_GOTO,NULL,NULL,&(label1->instruction)); // GOTO start of WHILE cyclus
@@ -324,67 +325,67 @@ int statement_list(){
 		                    label2 = (tListItem *)listGetPointerLast(instr_list);
 		                    temp_item_list->instruction.addr3 = &(label2->instruction);
 
-		                    if ( (result = statement_list()) != SYNTAX_OK)
+		                    if ( (result = statement_list()) != ER_OK)
 		                        return result;
-		                    else return SYNTAX_OK;
+		                    else return ER_OK;
 		                }
 					}
-					if(token == LEX_ERROR)
-						return LEX_ERROR;
-					return SYNTAX_ERROR;
+					if(token == ER_LEX)
+						return ER_LEX;
+					return ER_SYNTAX;
 					break;
 		// 3) <st-list>   -> IF LEFT_BRACKET <bool-expr> LEFT_VINCULUM <st-list> ELSE LEFT_VINCULUM <st-list> <st-list>			
 				case IF:
-					if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
-						if ( (result = bool_expr()) != SYNTAX_OK)
+					if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET){
+						if ( (result = bool_expr()) != ER_OK)
 							return result;
 
 						add_instr(IN_IFNGOTO,NULL,NULL,NULL); //IF FALSE GOTO ELSE branch
 						temp_item_list = (tListItem *)listGetPointerLast(instr_list);
 
-						if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
-							if ( (result = statement_list()) != SYNTAX_OK)
+						if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
+							if ( (result = statement_list()) != ER_OK)
 								return result;
 
 							add_instr(IN_GOTO,NULL,NULL,NULL);	// GOTO end of if-else statement
 							temp_item_list_else = (tListItem *)listGetPointerLast(instr_list);
 
-							if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ELSE)
-								if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
+							if ( (token = get_next_token(&token_data)) != ER_LEX && token == ELSE)
+								if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
 
 									add_instr(IN_LABEL,NULL,NULL,NULL);	//generate label for start of ELSE branch
 									label1 = (tListItem *)listGetPointerLast(instr_list);
 									temp_item_list->instruction.addr3 = &(label1->instruction);
 
-									if ( (result = statement_list()) != SYNTAX_OK)
+									if ( (result = statement_list()) != ER_OK)
 										return result;
 
 									add_instr(IN_LABEL,NULL,NULL,NULL);	//generate label for end of if-else statement
 									label2 = (tListItem *)listGetPointerLast(instr_list);
 									temp_item_list_else->instruction.addr3 = &(label2->instruction);
 
-									if ( (result = statement_list()) != SYNTAX_OK)
+									if ( (result = statement_list()) != ER_OK)
 										return result;
-									else return SYNTAX_OK;
+									else return ER_OK;
 								}
 						}
 					}
-					if(token == LEX_ERROR)
-						return LEX_ERROR;
-					return SYNTAX_ERROR;
+					if(token == ER_LEX)
+						return ER_LEX;
+					return ER_SYNTAX;
 					break;
 		// 4) <st-list>   -> RIGHT_VINCULUM			
 				case RIGHT_VINCULUM:
-					return SYNTAX_OK;
+					return ER_OK;
 					break;
 		// 6) <st-list>   -> [INT/DOUBLE/SRING] ID [ SEMICOLON / ASSIGN <assign>] <st-list>
 				case INT:
 				case DOUBLE:
 				case STRING:
-					if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID)
+					if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID)
 
 							if(st_find(local_tabulka,token_data) != NULL)
-								return SEMANTIC_ERROR;
+								return ER_SEM;
 							local_item = item = st_add(local_tabulka, token_data);
 							#ifdef DEBUG1
 							printf(ANSI_COLOR_GREEN "\n---------------------------------------------------------------------------------------\n");
@@ -405,46 +406,46 @@ int statement_list(){
 							item->declared = 1;
 							item->initialized = 0;
 
-						if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == SEMICOLON){
+						if ( (token = get_next_token(&token_data)) != ER_LEX && token == SEMICOLON){
 							item->elem_type = ST_ELEMTYPE_VAR;
-							if( (result = statement_list()) != SYNTAX_OK){
+							if( (result = statement_list()) != ER_OK){
 								return result;
 							}
 							else{
-								return SYNTAX_OK;
+								return ER_OK;
 							}
 						}
 						else if(token == ASSIGN){
-							if( (result = assign()) != SYNTAX_OK ){
+							if( (result = assign()) != ER_OK ){
 								return result;
 							}
 							else{
 								add_instr(IN_MOVSTACK,NULL,NULL,(void*) local_item);
-								if( (result = statement_list()) != SYNTAX_OK){
+								if( (result = statement_list()) != ER_OK){
 									return result;
 								}
 								else{
-									return SYNTAX_OK;
+									return ER_OK;
 								}
 							}
 						}
-					if(token == LEX_ERROR)
-						return LEX_ERROR;
-					return SYNTAX_ERROR;
+					if(token == ER_LEX)
+						return ER_LEX;
+					return ER_SYNTAX;
 					break;	
 		 // 7) <st-list>   -> ID <func_var>(we must give pointer to ID) <st-list>
 				case ID:
-					if ( (result = func_var()) != SYNTAX_OK){
+					if ( (result = func_var()) != ER_OK){
 						return result;
 					}
-					if ( (result = statement_list()) != SYNTAX_OK)
+					if ( (result = statement_list()) != ER_OK)
 						return result;
-					else return SYNTAX_OK;
+					else return ER_OK;
 					break;
 			}
-			return SYNTAX_ERROR;
+			return ER_SYNTAX;
 	}
-	return SYNTAX_ERROR;	
+	return ER_SYNTAX;	
 }
 
 // <func-params>//function DECLARATION + INIT
@@ -454,22 +455,22 @@ int func_params(){
 	#ifdef DEBUG1
     printf("PARSER: function func_params()\n");
     #endif
-	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-		return LEX_ERROR;
+	if ( (token = get_next_token(&token_data)) == ER_LEX )
+		return ER_LEX;
 	int result;
 	int temp_token;
 
 	switch(token){
 // 1) <func-params> -> RIGHT_BRACKET		
 		case RIGHT_BRACKET:
-			return SYNTAX_OK;
+			return ER_OK;
 			break;
 // 2) <func-params> -> [INT/DOUBLE/SRING] ID <func-params-list>			
 		case INT:
 		case DOUBLE:
 		case STRING:
 			temp_token = token;
-			if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID){
+			if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID){
 
 				//pridavame parametry je pri prvnim pruchodu
 				if(pruchod == 0){
@@ -491,16 +492,16 @@ int func_params(){
 					}
 				}
 
-				if ( (result = func_params_list()) != SYNTAX_OK)
+				if ( (result = func_params_list()) != ER_OK)
 					return result;
-				else return SYNTAX_OK;
+				else return ER_OK;
 			}
-			if(token == LEX_ERROR)
-				return LEX_ERROR;
-			return SYNTAX_ERROR;
+			if(token == ER_LEX)
+				return ER_LEX;
+			return ER_SYNTAX;
 			break;
 	}
-	return SYNTAX_ERROR;
+	return ER_SYNTAX;
 }
 
 // <func-params-list>
@@ -514,20 +515,20 @@ int func_params_list(){
 	int temp_token;
 	symtab_elem_t * prev_item;
 
-	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-		return LEX_ERROR;
+	if ( (token = get_next_token(&token_data)) == ER_LEX )
+		return ER_LEX;
 	switch(token){
 		case RIGHT_BRACKET:
-			return SYNTAX_OK;
+			return ER_OK;
 			break;
 		case COMMA:
-			if ( (token = get_next_token(&token_data)) != LEX_ERROR && (token == INT || token == DOUBLE || token == STRING)){
+			if ( (token = get_next_token(&token_data)) != ER_LEX && (token == INT || token == DOUBLE || token == STRING)){
 				temp_token = token;
-				if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID){
+				if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID){
 
 					if(pruchod == 0){
 						if(st_find(current_function->local_table,token_data) != NULL){
-							return SEMANTIC_ERROR;// error number 3 redefenition of defined variable
+							return ER_SEM;// error number 3 redefenition of defined variable
 						}
 						prev_item = item;
 						item = st_add(current_function->local_table,token_data);	
@@ -549,17 +550,17 @@ int func_params_list(){
 					}
 
 
-					if ( (result = func_params_list()) != SYNTAX_OK)
+					if ( (result = func_params_list()) != ER_OK)
 						return result;
-					else return SYNTAX_OK;
+					else return ER_OK;
 				}
 			}	
-			if(token == LEX_ERROR)
-				return LEX_ERROR;
-			return SYNTAX_ERROR;	
+			if(token == ER_LEX)
+				return ER_LEX;
+			return ER_SYNTAX;	
 			break;
 	}
-	return SYNTAX_ERROR;
+	return ER_SYNTAX;
 }
 
 // <func_var>
@@ -572,44 +573,44 @@ int func_var(){
 	int result;
 	id = token_data;
 	symtab_elem_t * local_item;
-	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-		return LEX_ERROR;
+	if ( (token = get_next_token(&token_data)) == ER_LEX )
+		return ER_LEX;
 	switch(token){
 // 1) LEFT_BRACKET <func-args> SEMICOLON //it's function call	
 		case LEFT_BRACKET:
 			current_function = item;
 			if( (current_function = st_find(tabulka, id)) == NULL){ //if function not in symtab we add it there.
-				return SEMANTIC_ERROR; //error type 3 not declarated function
+				return ER_SEM; //error type 3 not declarated function
 			}
-			if ( (result = func_args()) != SYNTAX_OK)
+			if ( (result = func_args()) != ER_OK)
 				return result;
 
 
 			add_instr(IN_CALL,NULL,NULL, (void*)current_function); // instruction for FUNCTION CALL
 
 
-			if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == SEMICOLON)
-				return SYNTAX_OK;
-			if(token == LEX_ERROR)
-				return LEX_ERROR;
-			return SYNTAX_ERROR;	
+			if ( (token = get_next_token(&token_data)) != ER_LEX && token == SEMICOLON)
+				return ER_OK;
+			if(token == ER_LEX)
+				return ER_LEX;
+			return ER_SYNTAX;	
 			break;
 // 2) ASSIGN <assign> //its inicialization of var			
 		case ASSIGN:
 			if( (local_item = item = st_find(local_tabulka, id)) == NULL){
 				if( (local_item = item = st_find(tabulka, id)) == NULL){ 
-					return SEMANTIC_ERROR; //error type 3 not declarated var
+					return ER_SEM; //error type 3 not declarated var
 				}	
 			}
-			if ( (result = assign()) != SYNTAX_OK)
+			if ( (result = assign()) != ER_OK)
 				return result;
 			else{ 
 				add_instr(IN_MOVSTACK,NULL,NULL,(void*) local_item);
-				return SYNTAX_OK;
+				return ER_OK;
 			}
 			break;
 	}
-	return SYNTAX_ERROR;
+	return ER_SYNTAX;
 }
 
 // <return-args>
@@ -620,17 +621,17 @@ int return_args(){
     printf("PARSER: function return_args()\n");
     #endif
 	int result;
-	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-		return LEX_ERROR;
+	if ( (token = get_next_token(&token_data)) == ER_LEX )
+		return ER_LEX;
 	switch(token){
 // 1) <return-args> -> SEMICOLON (ONLY if we in VOID function)		
 		case SEMICOLON:
 
 			if(current_function->data_type != ST_DATATYPE_VOID){
-				return SEMANTIC_ERROR; //FIXME check return error type
+				return ER_SEM; //FIXME check return error type
 			} 
 			add_instr(IN_RETURN, NULL, NULL, NULL);
-			return SYNTAX_OK;
+			return ER_OK;
 			break;
 		default:
 
@@ -639,7 +640,7 @@ int return_args(){
 			}
 
 			return_token(token, token_data);
-			if( (result = math_expr(&type)) == SYNTAX_OK){
+			if( (result = math_expr(&type)) == ER_OK){
 
 
 				if(current_function->data_type == ST_DATATYPE_DOUBLE && type == ST_DATATYPE_INT){
@@ -648,22 +649,22 @@ int return_args(){
 				}
 
 				if(current_function->data_type != (unsigned int)type){
-					return SEMANTIC_ERROR; //FIXME check return type
+					return ER_SEM; //FIXME check return type
 				}
 				else{
 					add_instr(IN_RETURN, NULL, NULL, NULL); //FIXME current function must be changed to previous function
 				}
 
 				if(token == SEMICOLON)
-					return SYNTAX_OK;
+					return ER_OK;
 				else 
-					return SYNTAX_ERROR;
+					return ER_SYNTAX;
 			}
 			else{
 				return result;
 			}
 	}
-	return SYNTAX_ERROR;
+	return ER_SYNTAX;
 }
 
 
@@ -681,8 +682,8 @@ int assign(){
     symtab_elem_t * temp_elem;
 
 
-	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-		return LEX_ERROR;
+	if ( (token = get_next_token(&token_data)) == ER_LEX )
+		return ER_LEX;
 	switch(token){
 		case ID:
             temp_token = token;
@@ -696,34 +697,34 @@ int assign(){
 
             if( (temp_elem  = st_find(local_tabulka,temp_token_data)) == NULL)
 	            if( (temp_elem = st_find(tabulka,temp_token_data)) == NULL)
-	            	return SEMANTIC_ERROR; //error number 3 
+	            	return ER_SEM; //error number 3 
 
 
-			if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-				return LEX_ERROR;
+			if ( (token = get_next_token(&token_data)) == ER_LEX )
+				return ER_LEX;
 			switch(token){
 // 2) <assign>	   -> ID LEFT_BRACKET <func-args> SEMICOLON //function call			
 				case LEFT_BRACKET: 
 					if(temp_elem->elem_type != ST_ELEMTYPE_FUN){
-						return SEMANTIC_ERROR; //FIXME check error type for trying to call not a function
+						return ER_SEM; //FIXME check error type for trying to call not a function
 					}
-					if ( (result = func_args()) != SYNTAX_OK)
+					if ( (result = func_args()) != ER_OK)
 						return result;
 
 					current_function = temp_elem;
 			        add_instr(IN_CALL,NULL,NULL,(void *)current_function);
 
 
-					if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == SEMICOLON)
-						return SYNTAX_OK;
-					if(token == LEX_ERROR)
-						return LEX_ERROR;
-					return SYNTAX_ERROR;	
+					if ( (token = get_next_token(&token_data)) != ER_LEX && token == SEMICOLON)
+						return ER_OK;
+					if(token == ER_LEX)
+						return ER_LEX;
+					return ER_SYNTAX;	
 					break;
 // 3) <assign>	   -> ID SEMICOLON					
 				case SEMICOLON:
 					if(!(item->declared) ||  !(temp_elem->declared) || !(temp_elem->initialized) )
-						return SEMANTIC_ERROR; //error number 3
+						return ER_SEM; //error number 3
 
 					add_instr(IN_TAB_PUSH, (void *)temp_elem, NULL, NULL);
 
@@ -745,10 +746,10 @@ int assign(){
 								item->initialized = 1;
 								break;
 						default:
-							return SEMANTIC_ERROR;
+							return ER_SEM;
 					}
 						
-					return SYNTAX_OK;
+					return ER_OK;
 					break;
 // 3) <assign>	   -> ID ...-> <math-expr>					
                 default:
@@ -757,7 +758,7 @@ int assign(){
 
                     result = math_expr(&type);
 
-                    if(result == SYNTAX_OK){
+                    if(result == ER_OK){
                         if(item->declared ){
                         	#ifdef DEBUG1
                         	printf(ANSI_COLOR_CYAN"------------------------------------------------------------------------\n");
@@ -779,13 +780,13 @@ int assign(){
                         					return 4; 			//type compatibility error
                         				break;
                         		default:
-                        			return SEMANTIC_ERROR; 
+                        			return ER_SEM; 
                         	}
 							item->initialized = 1;
-							return SYNTAX_OK;
+							return ER_OK;
 						}
 						else
-							return SEMANTIC_ERROR; //error type 3
+							return ER_SEM; //error type 3
                     }
                     return result;
             }
@@ -813,18 +814,18 @@ int assign(){
             				item->initialized = 1;
             				break;
             		default:
-            			return SEMANTIC_ERROR; 
+            			return ER_SEM; 
             	}
 
 					item->initialized = 1;
 			}
 			else
-				return SEMANTIC_ERROR; //error type 3
+				return ER_SEM; //error type 3
             
 
 			return result;
 	}
-	return SYNTAX_ERROR;
+	return ER_SYNTAX;
 }
 
 // <func-args>//function CALL
@@ -837,11 +838,11 @@ int func_args(){
     #endif
 	int result;
 
-	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-		return LEX_ERROR;
+	if ( (token = get_next_token(&token_data)) == ER_LEX )
+		return ER_LEX;
 	switch(token){
 		case RIGHT_BRACKET:
-			return SYNTAX_OK;
+			return ER_OK;
 			break;
 		case ID:
 
@@ -849,13 +850,13 @@ int func_args(){
 
 			if( (temp_item = st_find(local_tabulka,token_data)) == NULL)
 				if( (temp_item = st_find(tabulka,token_data)) == NULL)
-					return SEMANTIC_ERROR;// error number 3 not defined arguments
+					return ER_SEM;// error number 3 not defined arguments
 
 			add_instr(IN_TAB_PUSH,(void *)temp_item,NULL,NULL);	 //push function argument(ID) to stack
 
-			if ( (result = func_args_list()) != SYNTAX_OK)
+			if ( (result = func_args_list()) != ER_OK)
 				return result;
-			else return SYNTAX_OK;
+			else return ER_OK;
 			break;
 		case INT_LITERAL:
 		case DOUBLE_LITERAL:
@@ -865,12 +866,12 @@ int func_args(){
 
 			add_instr(IN_VAL_PUSH,token_data,NULL,NULL); //push function argument(const) to stack
 
-			if ( (result = func_args_list()) != SYNTAX_OK)
+			if ( (result = func_args_list()) != ER_OK)
 				return result;
-			else return SYNTAX_OK;
+			else return ER_OK;
 			break;
 	}
-	return SYNTAX_ERROR;
+	return ER_SYNTAX;
 }
 
 // <func-args-list>
@@ -883,18 +884,18 @@ int func_args_list(){
 	symtab_elem_t * temp_item;
 	int result;
 
-	if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-		return LEX_ERROR;
+	if ( (token = get_next_token(&token_data)) == ER_LEX )
+		return ER_LEX;
 	switch(token){
 		case RIGHT_BRACKET:
-			return SYNTAX_OK;
+			return ER_OK;
 			break;
 		case COMMA:
-			if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-				return LEX_ERROR;
+			if ( (token = get_next_token(&token_data)) == ER_LEX )
+				return ER_LEX;
 			switch(token){
 					case RIGHT_BRACKET:
-						return SYNTAX_OK;
+						return ER_OK;
 						break;
 					case ID:
 
@@ -902,13 +903,13 @@ int func_args_list(){
 		
 						if( (temp_item = st_find(local_tabulka,token_data)) == NULL)
 							if( (temp_item = st_find(tabulka,token_data)) == NULL)
-								return SEMANTIC_ERROR;// error number 3 not defined arguments
+								return ER_SEM;// error number 3 not defined arguments
 
 						add_instr(IN_TAB_PUSH,(void *)temp_item,NULL,NULL);	 //push function argument(ID) to stack
 
-						if ( (result = func_args_list()) != SYNTAX_OK)
+						if ( (result = func_args_list()) != ER_OK)
 							return result;
-						else return SYNTAX_OK;
+						else return ER_OK;
 						break;
 					case INT_LITERAL:
 					case DOUBLE_LITERAL:
@@ -918,14 +919,14 @@ int func_args_list(){
 
 						add_instr(IN_VAL_PUSH,token_data,NULL,NULL); //push function argument(const) to stack
 
-						if ( (result = func_args_list()) != SYNTAX_OK)
+						if ( (result = func_args_list()) != ER_OK)
 							return result;
-						else return SYNTAX_OK;
+						else return ER_OK;
 						break;
 			}
-			return SYNTAX_ERROR;
+			return ER_SYNTAX;
 	}
-	return SYNTAX_ERROR;
+	return ER_SYNTAX;
 }
 
 // <class-dec>
@@ -943,22 +944,22 @@ int class_dec(){
 
 
 	if(pruchod == 0){
-		if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-			return LEX_ERROR;
+		if ( (token = get_next_token(&token_data)) == ER_LEX )
+			return ER_LEX;
 		switch(token){
 			case STATIC:
-				if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-					return LEX_ERROR;
+				if ( (token = get_next_token(&token_data)) == ER_LEX )
+					return ER_LEX;
 				switch(token){				
 					case INT:
 					case DOUBLE:
 					case STRING:
 						prev_token=token;
-						if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID){
+						if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID){
 
 							if( (find = st_find(tabulka,token_data)) != NULL){
 								if(find->declared == 1 || find->initialized == 1)
-									return SEMANTIC_ERROR; //redeclaration of existing symbol
+									return ER_SEM; //redeclaration of existing symbol
 								else{
 									find->declared = 1; //(must NOT happen) if ID exist in global table but not declared and not initialized 
 								}
@@ -984,8 +985,8 @@ int class_dec(){
 									break;
 							}
 
-							if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-								return LEX_ERROR;
+							if ( (token = get_next_token(&token_data)) == ER_LEX )
+								return ER_LEX;
 							switch(token){
 	// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID SEMICOLON <class-dec>							
 								case SEMICOLON:
@@ -995,20 +996,20 @@ int class_dec(){
 									item->elem_type = ST_ELEMTYPE_VAR;
 
 
-									if ( (result = class_dec()) != SYNTAX_OK)
+									if ( (result = class_dec()) != ER_OK)
 										return result;
-									else return SYNTAX_OK;
+									else return ER_OK;
 									break;
 	// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID  ASSIGN <math-expr> <class-dec>								
 								case ASSIGN:
 
 									item->elem_type = ST_ELEMTYPE_VAR;
 
-									if ( (result = math_expr(&type)) != SYNTAX_OK)
+									if ( (result = math_expr(&type)) != ER_OK)
 										return result;
-									if ( (result = class_dec()) != SYNTAX_OK)
+									if ( (result = class_dec()) != ER_OK)
 										return result;
-									else return SYNTAX_OK;
+									else return ER_OK;
 									break;
 	// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>							
 								case LEFT_BRACKET:
@@ -1018,36 +1019,36 @@ int class_dec(){
                                     st_init(&(current_function->local_table));
                                     local_tabulka = current_function->local_table;
 
-									if ( (result = func_params()) != SYNTAX_OK)
+									if ( (result = func_params()) != ER_OK)
 										return result;
-									if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
+									if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
 
 										current_function->initialized = 1;
 
-										if ( (result = statement_list()) != SYNTAX_OK)
+										if ( (result = statement_list()) != ER_OK)
 											return result;
-										if ( (result = class_dec()) != SYNTAX_OK)
+										if ( (result = class_dec()) != ER_OK)
 											return result;
-										else return SYNTAX_OK;
+										else return ER_OK;
 									}
-									if(token == LEX_ERROR)
-										return LEX_ERROR;
-									return SYNTAX_ERROR;	
+									if(token == ER_LEX)
+										return ER_LEX;
+									return ER_SYNTAX;	
 									break;
 							}
-							return SYNTAX_ERROR;
+							return ER_SYNTAX;
 						}
-						if(token == LEX_ERROR)
-							return LEX_ERROR;
-						return SYNTAX_ERROR;	
+						if(token == ER_LEX)
+							return ER_LEX;
+						return ER_SYNTAX;	
 						break;
 	// 3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params> LEFT_VINCULUM <st-list> <class-dec>					
 					case VOID:
-						if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID){
+						if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID){
 
 							if( (find = st_find(tabulka,token_data)) != NULL){
 								if(find->declared == 1 || find->initialized == 1)
-									return SEMANTIC_ERROR; //redeclaration of existing symbol
+									return ER_SEM; //redeclaration of existing symbol
 								else{
 									find->declared = 1;
 								}
@@ -1066,18 +1067,18 @@ int class_dec(){
 								#endif
 							}
 							id = token_data;
-							if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
-								if ( (result = func_params()) != SYNTAX_OK)
+							if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET){
+								if ( (result = func_params()) != ER_OK)
 									return result;
-								if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
+								if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
 
 									current_function->initialized = 1;
 
-									if ( (result = statement_list()) != SYNTAX_OK)
+									if ( (result = statement_list()) != ER_OK)
 										return result;
-									if ( (result = class_dec()) != SYNTAX_OK)
+									if ( (result = class_dec()) != ER_OK)
 										return result;
-									else return SYNTAX_OK;
+									else return ER_OK;
 								}
 							}
 						}
@@ -1087,7 +1088,7 @@ int class_dec(){
 
 							if( (find = st_find(tabulka,token_data)) != NULL){
 								if(find->declared == 1 || find->initialized == 1)
-									return SEMANTIC_ERROR; //redeclaration of existing symbol
+									return ER_SEM; //redeclaration of existing symbol
 								else{
 									find->declared = 1;
 								}
@@ -1106,135 +1107,135 @@ int class_dec(){
 								#endif
 							}
 							id = token_data;
-							if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
-								if ( (token = get_next_token(&token_data)) != LEX_ERROR && token != RIGHT_BRACKET)
-									return SYNTAX_ERROR;
-								if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
+							if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET){
+								if ( (token = get_next_token(&token_data)) != ER_LEX && token != RIGHT_BRACKET)
+									return ER_SYNTAX;
+								if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
 
 									current_function->initialized = 1;
 
-									if ( (result = statement_list()) != SYNTAX_OK)
+									if ( (result = statement_list()) != ER_OK)
 										return result;
-									if ( (result = class_dec()) != SYNTAX_OK)
+									if ( (result = class_dec()) != ER_OK)
 										return result;
-									else return SYNTAX_OK;
+									else return ER_OK;
 								}
 							}
 						}	
-						if(token == LEX_ERROR)
-							return LEX_ERROR;
-						return SYNTAX_ERROR;	
+						if(token == ER_LEX)
+							return ER_LEX;
+						return ER_SYNTAX;	
 						break;		
 				}
-				return SYNTAX_ERROR;	
+				return ER_SYNTAX;	
 				break;
 	// 2) <class-dec> -> RIGHT_VINCULUM			
 			case RIGHT_VINCULUM:
-				return SYNTAX_OK;
+				return ER_OK;
 				break;
 		}
-		return SYNTAX_ERROR;
+		return ER_SYNTAX;
 	}
 
 	//pruchod 2
 	else{
-		if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-			return LEX_ERROR;
+		if ( (token = get_next_token(&token_data)) == ER_LEX )
+			return ER_LEX;
 		switch(token){
 			case STATIC:
-				if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-					return LEX_ERROR;
+				if ( (token = get_next_token(&token_data)) == ER_LEX )
+					return ER_LEX;
 				switch(token){				
 					case INT:
 					case DOUBLE:
 					case STRING:
 						prev_token=token;
-						if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID){
+						if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID){
 
 							item = st_find(tabulka,token_data);
 
-							if ( (token = get_next_token(&token_data)) == LEX_ERROR )
-								return LEX_ERROR;
+							if ( (token = get_next_token(&token_data)) == ER_LEX )
+								return ER_LEX;
 							switch(token){
 	// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID SEMICOLON <class-dec>							
 								case SEMICOLON:
-									if ( (result = class_dec()) != SYNTAX_OK)
+									if ( (result = class_dec()) != ER_OK)
 										return result;
-									else return SYNTAX_OK;
+									else return ER_OK;
 									break;
 	// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID  ASSIGN <math-expr> <class-dec>								
 								case ASSIGN:
-									if ( (result = math_expr(&type)) != SYNTAX_OK)
+									if ( (result = math_expr(&type)) != ER_OK)
 										return result;
 
 									add_instr(IN_MOVSTACK,NULL,NULL,(void *)item);
 
-									if ( (result = class_dec()) != SYNTAX_OK)
+									if ( (result = class_dec()) != ER_OK)
 										return result;
-									else return SYNTAX_OK;
+									else return ER_OK;
 									break;
 	// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>							
 								case LEFT_BRACKET:
-									if ( (result = func_params()) != SYNTAX_OK)
+									if ( (result = func_params()) != ER_OK)
 										return result;
-									if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
-										if ( (result = statement_list()) != SYNTAX_OK)
+									if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
+										if ( (result = statement_list()) != ER_OK)
 											return result;
-										if ( (result = class_dec()) != SYNTAX_OK)
+										if ( (result = class_dec()) != ER_OK)
 											return result;
-										else return SYNTAX_OK;
+										else return ER_OK;
 									}
-									if(token == LEX_ERROR)
-										return LEX_ERROR;
-									return SYNTAX_ERROR;	
+									if(token == ER_LEX)
+										return ER_LEX;
+									return ER_SYNTAX;	
 									break;
 							}
-							return SYNTAX_ERROR;
+							return ER_SYNTAX;
 						}
-						if(token == LEX_ERROR)
-							return LEX_ERROR;
-						return SYNTAX_ERROR;	
+						if(token == ER_LEX)
+							return ER_LEX;
+						return ER_SYNTAX;	
 						break;
 	// 3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>					
 					case VOID:
-						if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == ID){
-							if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
-								if ( (result = func_params()) != SYNTAX_OK)
+						if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID){
+							if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET){
+								if ( (result = func_params()) != ER_OK)
 									return result;
-								if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
-									if ( (result = statement_list()) != SYNTAX_OK)
+								if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
+									if ( (result = statement_list()) != ER_OK)
 										return result;
-									if ( (result = class_dec()) != SYNTAX_OK)
+									if ( (result = class_dec()) != ER_OK)
 										return result;
-									else return SYNTAX_OK;
+									else return ER_OK;
 								}
 							}
 						}
 						else if(token == RUN){
-							if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_BRACKET){
-								if ( (token = get_next_token(&token_data)) != LEX_ERROR && token != RIGHT_BRACKET)
-									return SYNTAX_ERROR;
-								if ( (token = get_next_token(&token_data)) != LEX_ERROR && token == LEFT_VINCULUM){
-									if ( (result = statement_list()) != SYNTAX_OK)
+							if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET){
+								if ( (token = get_next_token(&token_data)) != ER_LEX && token != RIGHT_BRACKET)
+									return ER_SYNTAX;
+								if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
+									if ( (result = statement_list()) != ER_OK)
 										return result;
-									if ( (result = class_dec()) != SYNTAX_OK)
+									if ( (result = class_dec()) != ER_OK)
 										return result;
-									else return SYNTAX_OK;
+									else return ER_OK;
 								}
 							}
 						}	
-						if(token == LEX_ERROR)
-							return LEX_ERROR;
-						return SYNTAX_ERROR;	
+						if(token == ER_LEX)
+							return ER_LEX;
+						return ER_SYNTAX;	
 						break;		
 				}
-				return SYNTAX_ERROR;	
+				return ER_SYNTAX;	
 				break;
 	// 2) <class-dec> -> RIGHT_VINCULUM			
 			case RIGHT_VINCULUM:
-				return SYNTAX_OK;
+				return ER_OK;
 				break;
 		}
-		return SYNTAX_ERROR;
+		return ER_SYNTAX;
 	}	
 }

@@ -5,6 +5,7 @@
 #include "instrlist.h"
 #include "string.h"
 #include "scanner.h"
+#include "error_codes.h"
 
 FILE *source;
 int token; 
@@ -23,7 +24,7 @@ void setSourceFile(FILE *f)
   source = f;
 }
 
-// debug functions
+#ifdef DEBUG
 void print_token(int symbol) {
     switch (symbol) {
         case PLUS:
@@ -76,7 +77,7 @@ void print_token(int symbol) {
             printf("%d", symbol); break;
     }
 }
-
+#endif
 
 void return_token(int token, char *buffer) {
     token_t *temp = malloc(sizeof(token_t));
@@ -90,9 +91,11 @@ void return_token(int token, char *buffer) {
 
     token_buffer = temp;
 
+#ifdef DEBUG
     printf("SCANNER: returning token ");
     print_token(token);
     printf(", %s\n", buffer);
+#endif
 }
 
 int lexer(string *buffer);
@@ -106,9 +109,11 @@ int get_next_token(char **buffer) {
         result = lexer(&str);
         *buffer = str.str;
 
+#ifdef DEBUG
         printf("SCANNER: sending token ");
         print_token(result);
         printf(", %s\n", *buffer);
+#endif
 
         return result;
     }
@@ -120,9 +125,11 @@ int get_next_token(char **buffer) {
     token_buffer = token_buffer->next;
     free(temp);
 
+#ifdef DEBUG
     printf("SCANNER: sending token ");
     print_token(result);
     printf(", %s\n", *buffer);
+#endif
 
     return result;
 }
@@ -190,7 +197,7 @@ int lexer(string *buffer) {
 	 else if (c == '>') { great_count = 1; state = 8;}
 	 else if (c == '=') { eq_count = 1; state = 8;}
 	 else if (c == '!') { excl_count = 1; state = 8;}
-	 else return LEX_ERROR;
+	 else return ER_LEX;
      break;
 
     case 1: // RADKOVY KOMENTAR
@@ -209,7 +216,7 @@ int lexer(string *buffer) {
 
         else if (c == '/' && star_count == 1) { star_count = 0; state = 0;} // konec blokoveho komentare, vrat se na zacatek do nuly
 
-        else if (c == EOF) {return LEX_ERROR;} // Testuj neukonceny komentar???!!
+        else if (c == EOF) {return ER_LEX;} // Testuj neukonceny komentar???!!
 
         break;
 
@@ -219,7 +226,7 @@ int lexer(string *buffer) {
 
         if (c == '.' && dot_count == 0) dot_count++; // evidujeme nalezenou tecku
 
-        else if (c == '.' && dot_count > 0 ) {return LEX_ERROR; break;} // pokud se objevi dalsi tecka jedna se o neplatny identifikator,
+        else if (c == '.' && dot_count > 0 ) {return ER_LEX; break;} // pokud se objevi dalsi tecka jedna se o neplatny identifikator,
 
         strAddChar(buffer, c); // dokud se jedna o identifikator nebo klicove slovo, naplnuj strukturu
 
@@ -229,7 +236,7 @@ int lexer(string *buffer) {
 
 	    else {// struktura naplnena, nasleduje prazdne misto nebo nepovoleny znak nebo zacatek zavorky
 
-        if (!isspace(c) && !isalnum(c) && c != '_' && c != '$' && c != '.' && c != '(' && c!= ')' && c!= '{' && c!= '}' && c!= '=' && c!= '+' && c!= '-' && c!= '*' && c!= '/' && c!= '<' && c!= '>' && c!='!' && c!= ';' && c != ',') { return LEX_ERROR; break; } // pokud se neobjevi prazdne misto nebo zavorky nebo operatory ale nejaky nepovoleny znak je to error
+        if (!isspace(c) && !isalnum(c) && c != '_' && c != '$' && c != '.' && c != '(' && c!= ')' && c!= '{' && c!= '}' && c!= '=' && c!= '+' && c!= '-' && c!= '*' && c!= '/' && c!= '<' && c!= '>' && c!='!' && c!= ';' && c != ',') { return ER_LEX; break; } // pokud se neobjevi prazdne misto nebo zavorky nebo operatory ale nejaky nepovoleny znak je to error
 
         ungetc(c, source); // POZOR! Je potreba vratit posledni nacteny znak
 
@@ -303,7 +310,7 @@ int lexer(string *buffer) {
 
         else if (!isdigit(c) && c != ';' && c != '.' && c != 'e' && c != 'E' && !isspace(c) && c != ')' && c != '+' && c != '-' && c != '/' && c != '*' && c != '!'){ // pokud nasleduje znak jiny nez ; ktery signalizuje konec zadavani literalu nebo tecka signalizujici des. cislo nebo exponent, je to error
 
-          return LEX_ERROR; break;
+          return ER_LEX; break;
         }
 
         else if (c == ';'){
@@ -354,7 +361,7 @@ int lexer(string *buffer) {
 
         else if (!isdigit(c) && c != ';' && c != 'e' && c != 'E' && !isspace(c) && c != ')' && c != '+' && c != '-' && c != '/' && c != '*' && c != '!'){ // pokud nasleduje znak jiny nez ; ktery signalizuje konec zadavani literalu a nebo exponent, je to error
 
-          return LEX_ERROR; break;
+          return ER_LEX; break;
         }
 
         else if (c == ';'){
@@ -395,12 +402,12 @@ int lexer(string *buffer) {
 
         else if (!isdigit(c) && c != ';' && c != '+' && c != '-') {// nic jineho nez cisla za exponentem nebo semicolon tu byt nemuze
 
-         return LEX_ERROR; break;
+         return ER_LEX; break;
         }
 
         else if (c == '+' || (c == '-' && sign_count == 1)) { // pokus o pouziti dalsiho znamenka, nepovoleno
 
-         return LEX_ERROR; break;
+         return ER_LEX; break;
         }
 
         else if (c == ';'){
@@ -427,7 +434,7 @@ int lexer(string *buffer) {
      else if (quote_count == 1 && c != '/' && c != '*') {ungetc(c, source); return DIV; } // nejedna se o komentar ale o operator deleni
      else if (quote_count == 1 && c == '/') state = 1; // jedna se o jednoradkovy komentar
      else if (quote_count == 1 && c == '*') {state = 2;} // jedna se o blokovy komentar
-     else return LEX_ERROR;
+     else return ER_LEX;
      break;
 
   } // konec switche

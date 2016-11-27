@@ -60,9 +60,6 @@
 //specialni znaky
 #define END_OF_FILE    60
 
-//chybove hlasky
-#define LEX_ERROR    1
-
 // rozsireni projektu
 
 #define INC 70 // operator inkrementace ++

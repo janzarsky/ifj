@@ -7,6 +7,7 @@
 #include "instrlist.h"
 #include "interpret.h"
 #include "frames.h"
+#include "error_codes.h"
 
 void stack_inter_print(inter_stack *stack);
 void alloc_double(double **dval_ptr);
@@ -106,7 +107,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
             third.value.union_value.dval = malloc(sizeof(double)); 
             if (third.value.union_value.dval == NULL)
-                return INTERNAL_ERROR;
+                return ER_INTERN;
             
             *(third.value.union_value.dval) = *(first.value.union_value.dval) + *(second.value.union_value.dval);
 
@@ -121,7 +122,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
             third.value.union_value.dval = malloc(sizeof(double)); 
             if (third.value.union_value.dval == NULL)
-                return INTERNAL_ERROR;
+                return ER_INTERN;
             
             *(third.value.union_value.dval) = *(first.value.union_value.dval) - *(second.value.union_value.dval);
             push_tab(third.value.union_value, &S);
@@ -135,7 +136,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
             third.value.union_value.dval = malloc(sizeof(double)); 
             if (third.value.union_value.dval == NULL)
-                return INTERNAL_ERROR;
+                return ER_INTERN;
             
             *(third.value.union_value.dval) = *(first.value.union_value.dval) * *(second.value.union_value.dval);
             push_tab(third.value.union_value, &S);
@@ -149,14 +150,14 @@ int interpret(symtab_t *T, tListOfInstr *L)
 
             third.value.union_value.dval = malloc(sizeof(double)); 
             if (third.value.union_value.dval == NULL)
-                return INTERNAL_ERROR;
+                return ER_INTERN;
             
             *(third.value.union_value.dval) = *(first.value.union_value.dval) / *(second.value.union_value.dval);
             push_tab(third.value.union_value, &S);
         break;
         
          case IN_TAB_PUSH:
-            value = (st_value_t)get_value((symtab_elem_t *)(I->addr1));
+            value = get_value((symtab_elem_t *)(I->addr1));
             push_tab(value, &S);
         break;
 
@@ -200,7 +201,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             third.value.union_value.strval = malloc((len+1)*sizeof(char));
 
             if (third.value.union_value.strval == NULL)
-                return INTERNAL_ERROR;
+                return ER_INTERN;
 
             strcpy(third.value.union_value.strval, second.value.union_value.strval);
             strcat(third.value.union_value.strval, first.value.union_value.strval);

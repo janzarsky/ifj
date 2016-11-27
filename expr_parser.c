@@ -10,6 +10,8 @@
 #include "expr_parser.h"
 #include "scanner.h"
 #include "symtab.h"
+#include "debug.h"
+#include "error_codes.h"
 
 extern symtab_t *tabulka;
 extern symtab_t *local_tabulka;
@@ -24,12 +26,6 @@ char *token_data_prev;
 
 #define DEBUG_PRINT_STACK_WIDTH 40
 int debug_print_cnt = 0;
-
-#define debug_printf(...) printf(__VA_ARGS__)
-
-#else
-
-#define debug_printf(...) ;
 
 #endif
 
@@ -320,7 +316,7 @@ bool check_rule(int num, ...) {
 
 int execute_rule(int num, int symbol, int type) {
     if (type == ST_DATATYPE_ERROR)
-        return SEMANTIC_ERROR;
+        return ER_SEM;
 
     // pop additional '<' from stack
     pop_n_times(num + 1);
@@ -333,7 +329,7 @@ int execute_rule(int num, int symbol, int type) {
 
     push(symbol, type);
 
-    return SYNTAX_OK;
+    return ER_OK;
 }
 
 int check_and_convert_numeric_types() {
@@ -470,7 +466,7 @@ int rules() {
         type = check_type_id();
         result = execute_rule(1, NT_EXPR, type);
 
-        printf("token_data_prev: %s ", token_data_prev);
+        debug_printf("token_data_prev: %s ", token_data_prev);
 
         symtab_elem_t *var = st_find(tabulka, token_data_prev);
 
@@ -478,7 +474,7 @@ int rules() {
             var = st_find(local_tabulka, token_data_prev);
 
             if (var == NULL)
-                result = SEMANTIC_ERROR;
+                result = ER_SEM;
         }
 
         add_instr(IN_TAB_PUSH, (void *) var, NULL, NULL);
@@ -496,7 +492,7 @@ int rules() {
         double *value = double_from_token(token_data_prev);
 
         if (value == NULL)
-            return SEMANTIC_ERROR;
+            return ER_SEM;
 
         add_instr(IN_VAL_PUSH, (void *) value, NULL, NULL);
     }
@@ -507,7 +503,7 @@ int rules() {
         char *value = string_from_token(token_data_prev);
 
         if (value == NULL)
-            return SEMANTIC_ERROR;
+            return ER_SEM;
 
         add_instr(IN_VAL_PUSH, (void *) value, NULL, NULL);
     }
@@ -543,13 +539,13 @@ int rules() {
     }
     else {
         debug_printf("rule: no matching rule");
-        return SYNTAX_ERROR;
+        return ER_SYNTAX;
     }
 
-    if (result == SEMANTIC_ERROR)
-        return SEMANTIC_ERROR;
+    if (result == ER_SEM)
+        return ER_SEM;
 
-    return SYNTAX_OK;
+    return ER_OK;
 }
 
 
@@ -598,15 +594,15 @@ int expr(int expr_type, int *type) {
             case T_R:
                 debug_printf("op: >    ");
                 result = rules();
-                if (result == SYNTAX_ERROR) {
+                if (result == ER_SYNTAX) {
                     debug_printf("\n");
                     *type = ST_DATATYPE_ERROR;
-                    return SYNTAX_ERROR;
+                    return ER_SYNTAX;
                 }
-                else if (result == SEMANTIC_ERROR) {
+                else if (result == ER_SEM) {
                     debug_printf("\n");
                     *type = ST_DATATYPE_ERROR;
-                    return SEMANTIC_ERROR;
+                    return ER_SEM;
                 }
                 debug_printf("\n");
                 break;
@@ -614,7 +610,7 @@ int expr(int expr_type, int *type) {
             default:
                 debug_printf("op: none, \n");
                 *type = ST_DATATYPE_ERROR;
-                return SYNTAX_ERROR;
+                return ER_SYNTAX;
         }
 
     } while (top_term() != END_OF_FILE || b != END_OF_FILE);
@@ -638,25 +634,25 @@ int expr(int expr_type, int *type) {
         if ((*type == ST_DATATYPE_INT) || 
             (*type == ST_DATATYPE_DOUBLE) ||
             (*type == ST_DATATYPE_STRING)) {
-            return SYNTAX_OK;
+            return ER_OK;
         }
         else {
             *type = ST_DATATYPE_ERROR;
-            return SEMANTIC_ERROR;
+            return ER_SEM;
         }
     }
 
     if (expr_type == BOOL_EXPR) {
         if (*type == ST_DATATYPE_BOOL) {
-            return SYNTAX_OK;
+            return ER_OK;
         }
         else {
             *type = ST_DATATYPE_ERROR;
-            return SEMANTIC_ERROR;
+            return ER_SEM;
         }
     }
 
-    return SYNTAX_ERROR;
+    return ER_SYNTAX;
 }
 
 int bool_expr() {
@@ -666,17 +662,17 @@ int bool_expr() {
 
     int result = expr(BOOL_EXPR, &type);
 
-    printf("*****\n");
+    debug_printf("*****\n");
 
     return result;
 }
 
 int math_expr(int *type) {
-    printf("*****\nEXPR_PARSER: function math_expr()\n");
+    debug_printf("*****\nEXPR_PARSER: function math_expr()\n");
 
     int result = expr(MATH_EXPR, type);
 
-    printf("*****\n");
+    debug_printf("*****\n");
     
     return result;
 }

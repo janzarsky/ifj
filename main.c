@@ -18,10 +18,12 @@
 #include "symtab.h"
 #include "frames.h"
 #include "interpret.h"
+#include "error_codes.h"
+#include "debug.h"
 
 extern tListOfInstr *instr_list;
 
-//DEBUG
+#ifdef DEBUG
 void symtab_test()
 {
 
@@ -140,18 +142,14 @@ void frames_test() {
 }
 
 int main(int argc, char** argv) {
-    //symtab_test();
-    //frames_test();
-    //return 0;
-
     if (argc != 2) {
-        return 99;
+        return ER_INTERN;
     }
 
     FILE *source;
 
     if ((source = fopen(argv[1], "r")) == NULL) {
-        return 99;
+        return ER_INTERN;
     }
 
     printf("MAIN: source code:\n");
@@ -222,3 +220,39 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+#else
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        return ER_INTERN;
+    }
+
+    FILE *source;
+
+    if ((source = fopen(argv[1], "r")) == NULL) {
+        return ER_INTERN;
+    }
+    
+    symtab_t *symtab;
+    st_init(&symtab);
+
+    instr_list = malloc(sizeof(tListOfInstr));
+    listInit(instr_list);
+
+    setSourceFile(source);
+    set_symtable(symtab);
+
+    int parse_result = program();
+
+    if (parse_result != ER_OK)
+        goto out;
+
+    rewind(source);
+
+    parse_result = program();
+
+out:
+    fclose(source);
+
+    return parse_result;
+}
+#endif

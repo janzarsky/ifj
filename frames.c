@@ -4,7 +4,7 @@
 #include "instrlist.h"
 #include "frames.h"
 #include "interpret.h"
-#include "parser_test.h"
+#include "error_codes.h"
 
 frame_t *new_frame = NULL;
 frame_t *old_frame = NULL;
@@ -117,7 +117,7 @@ int call_instr(tListOfInstr *instrlist, inter_stack *stack, symtab_elem_t *func)
     active_frame = new_frame;
     new_frame = NULL;
 
-    return SYNTAX_OK;
+    return ER_OK;
 }
 
 int return_instr(symtab_t *symtab, tListOfInstr *instrlist) {
@@ -135,7 +135,7 @@ int return_instr(symtab_t *symtab, tListOfInstr *instrlist) {
 
     active_frame = active_frame->next;
 
-    return SYNTAX_OK;
+    return ER_OK;
 }
 
 st_value_t get_value(symtab_elem_t *var) {
