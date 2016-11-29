@@ -75,7 +75,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            third.value.union_value.ival = first.value.union_value.ival - second.value.union_value.ival;
+            third.value.union_value.ival = second.value.union_value.ival - first.value.union_value.ival;
             push_tab(third.value.union_value, &S);
         break;
 
@@ -95,7 +95,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
-            third.value.union_value.ival = first.value.union_value.ival / second.value.union_value.ival;
+            third.value.union_value.ival = second.value.union_value.ival / first.value.union_value.ival;
             push_tab(third.value.union_value, &S);
         break;
 
@@ -124,7 +124,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             if (third.value.union_value.dval == NULL)
                 return ER_INTERN;
             
-            *(third.value.union_value.dval) = *(first.value.union_value.dval) - *(second.value.union_value.dval);
+            *(third.value.union_value.dval) = *(second.value.union_value.dval) - *(first.value.union_value.dval);
             push_tab(third.value.union_value, &S);
         break;
 
@@ -152,7 +152,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             if (third.value.union_value.dval == NULL)
                 return ER_INTERN;
             
-            *(third.value.union_value.dval) = *(first.value.union_value.dval) / *(second.value.union_value.dval);
+            *(third.value.union_value.dval) = *(second.value.union_value.dval) / *(first.value.union_value.dval);
             push_tab(third.value.union_value, &S);
         break;
         
