@@ -28,4 +28,8 @@ int length(char *s);
 char *substr(char *s, int i, int n);
 int compare(char *s1, char *s2);
 
+int readInt();
+double readDouble();
+char *readString();
+
 #endif
