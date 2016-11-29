@@ -2,8 +2,12 @@
 
 // prevzata z ukazkoveho projektu "Zjednodušená implementace interpretu jednoduchého jazyka", zatim beze zmeny
 
-#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <malloc.h>
+#include <stdbool.h>
+#include <string.h>
+
 #include "string.h"
 
 #define STR_LEN_INC 8
@@ -15,7 +19,6 @@
 #define STR_SUCCESS 0
 
 // funkce vytvori novy retezec
-
 int strInit(string *s){
    if ((s->str = (char*) malloc(STR_LEN_INC)) == NULL)
       return STR_ERROR;
@@ -26,20 +29,17 @@ int strInit(string *s){
 }
 
 // funkce uvolni retezec z pameti
-
 void strFree(string *s){
    free(s->str);
 }
 
 // funkce vymaze obsah retezce
-
 void strClear(string *s){
    s->str[0] = '\0';
    s->length = 0;
 }
 
 // prida na konec retezce jeden znak
-
 int strAddChar(string *s1, char c){
    if (s1->length + 1 >= s1->allocSize)
    {
@@ -54,8 +54,8 @@ int strAddChar(string *s1, char c){
    return STR_SUCCESS;
 }
 
-int strCopyString(string *s1, string *s2)
 // prekopiruje retezec s2 do s1
+int strCopyString(string *s1, string *s2)
 {
    int newLength = s2->length;
    if (newLength >= s1->allocSize)
@@ -70,26 +70,26 @@ int strCopyString(string *s1, string *s2)
    return STR_SUCCESS;
 }
 
-int strCmpString(string *s1, string *s2)
 // porovna oba retezce a vrati vysledek
+int strCmpString(string *s1, string *s2)
 {
    return strcmp(s1->str, s2->str);
 }
 
-int strCmpConstStr(string *s1, char* s2)
 // porovna nas retezec s konstantnim retezcem
+int strCmpConstStr(string *s1, char* s2)
 {
    return strcmp(s1->str, s2);
 }
 
-char *strGetStr(string *s)
 // vrati textovou cast retezce
+char *strGetStr(string *s)
 {
    return s->str;
 }
 
-int strGetLength(string *s)
 // vrati delku daneho retezce
+int strGetLength(string *s)
 {
    return s->length;
 }
@@ -138,4 +138,130 @@ int compare(char *s1, char *s2)
 {
   return strcmp(s1, s2);
   //zkontrolovat s Java 8?
+}
+
+//precte vstup a vrati jej jako integer
+int readInt()
+{
+    //vytvoreni retezce do ktereho se budou ukladat znaky -ten se potom prevede na double
+    char *readed;
+    if ((readed = (char*) malloc(sizeof(char) * STR_LEN_INC)) == NULL)
+        return -1;  //error, num. 99
+    int allocated = STR_LEN_INC;
+    int length = 0;
+
+    //fixme ... problem detected "inF" a "naN" ?
+    //fixme ... prazdny vstup? znamenko minus?
+    //ukladani znaku...
+    char c = getchar();
+    for (int i = 0; c > '0' || c < '9'; i++)  {
+
+        if (length + 1 > allocated) {
+            //pamet nestaci, je potreba provest realokaci
+            if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
+                return -1;  //chyba, num. 99
+            allocated = length + STR_LEN_INC;
+        }
+
+        readed[i] = c;
+        length++;
+        c = getchar();
+    }
+
+    //pokud vstup obsahuje dale jine znaky nez cisla - chyba
+    if (c != '\n' || c != EOF)  {
+        free(readed);
+        return -1;  //error, nevim num. 7?
+    }
+
+    //prevod samotny...
+    int number = atoi(readed);
+    free(readed);
+    return number;
+}
+
+//precte vstup a vrati jej jako double
+double readDouble ()
+{
+    //vytvoreni retezce do ktereho se budou ukladat znaky -ten se potom prevede na double
+    char *readed;
+    if ((readed = (char*) malloc(sizeof(char) * STR_LEN_INC)) == NULL)
+        return -1;  //error, num. 99
+    int allocated = STR_LEN_INC;
+    int length = 0;
+
+    //fixme ... problem detected "inF" a "naN" ?
+    //viz http://en.cppreference.com/w/cpp/string/byte/atof
+    //fixme ... prazdny vstup? znamenko minus?
+    //ukladani znaku...
+    char c = getchar();
+    bool dot = false;
+    for (int i = 0; (c > '0' && c < '9') || c == '.'; i++) {
+
+        if (length + 1 > allocated) {
+            //pamet nestaci, je potreba provest realokaci
+            if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
+                return -1;  //error, num. 99
+            allocated = length + STR_LEN_INC;
+        }
+
+        if (c == '.') {
+            if (dot == false) //pokud jeste cislo nema des. tecku
+                dot = true;
+            else {            //pokud uz cislo ma des. tecku - chyba
+                free(readed);
+                return -1;    //error, nevim num. 7?
+            }
+        } //if (c == '.')
+
+        readed[i] = c;
+        length++;
+        c = getchar();
+    } //for
+
+    //pokud vstup obsahuje dale jine znaky nez cisla nebo tecku - chyba
+    if (c != '\n' || c != EOF) {
+        free(readed);
+        return -1;    //error, nevim num. 7?
+    }
+
+    //prevod samotny
+    double number = atof(readed);
+    free(readed);
+    return number;
+}
+
+
+char* readString()
+{
+    //vytvoreni retezce do ktereho se ulozi znaky
+    char *readed;
+    if ((readed = (char*) malloc(sizeof(char) * STR_LEN_INC)) == NULL)
+        return -1;  //error, num. 99 -alokace
+    int allocated = STR_LEN_INC;
+    int length = 0;
+
+    //ukladani znaku...
+    //fixme... prevod escape sekvenci??
+    char c;
+    c = getchar();
+    
+    if (c == '\n' || c == EOF)  //pro pripad nacitani prazdneho retezce, viz zadani
+        readed[0] = '\0';
+   
+    for (int i = 0; c != '\n' || c != EOF; i++) {
+
+        if (length + 1 > allocated) {
+            //pamet nestaci, je potreba provest realokaci
+            if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
+                return -1;  //error, num. 99 -realokace
+            allocated = length + STR_LEN_INC;
+        }
+
+        readed[i] = c;
+        length++;
+        c = getchar();
+
+    }  //for
+    return readed;
 }
