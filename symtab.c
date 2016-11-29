@@ -119,7 +119,7 @@ void st_print_elem(symtab_elem_t *elem, char *prefix) {
             printf("other"); break;
     }
 
-    printf(", local_table: %p\n", (void *)elem->local_table);
+    printf(", local_table: %p, first_instr: %p\n", (void *)elem->local_table, (void *)elem->first_instr);
 }
 
 void st_print(symtab_t *table) {

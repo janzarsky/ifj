@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "instrlist.h"
 #include "frames.h"
@@ -10,10 +11,21 @@ frame_t *new_frame = NULL;
 frame_t *active_frame = NULL;
 
 void fr_print(frame_t *frame) {
+    printf("frame: next_instr: %p ( ", (void *) frame->next_instr);
+    
+    if (frame->next_instr != NULL)
+        print_instr(&(frame->next_instr->instruction));
+
+    printf(" )\n");
+
     frame_item_t *temp = frame->first_item;
 
     while (temp != NULL) {
-        printf("frame_item: var: %p, value: %i\n", (void *)temp->var, temp->value.ival);
+        if (temp->var != NULL)
+            printf("frame_item: var: %p, id: %s, value: %i\n",
+                (void *)temp->var, temp->var->id, temp->value.ival);
+        else
+            printf("some error/n");
         temp = temp->next;
     }
 }
@@ -131,15 +143,32 @@ int call_instr(tListOfInstr *instrlist, inter_stack *stack, symtab_elem_t *func)
 
     while (param != NULL) {
         fr_add_item(new_frame, param);
+
+        inter_value param_value;
+        stack_inter_Top(&param_value, stack);
+        stack_inter_Pop(stack);
+        fr_set(new_frame, param, param_value.union_value);
+
         printf("INTERPRET: adding param to frame, id: %s\n", param->id);
         param = param->next_param;
     }
 
-    fr_print_frames();
-
     new_frame->next = active_frame;
     active_frame = new_frame;
     new_frame = NULL;
+
+    if (strcmp(func->id, "run") == 0) {
+        printf("!!!! setting next_instr to %p\n", (void *) NULL);
+        active_frame->next_instr = NULL;
+    }
+    else {
+        printf("!!!! setting next_instr to %p\n", (void *)instrlist->active->nextItem);
+        active_frame->next_instr = instrlist->active->nextItem;
+    }
+    printf("!!!! going to %p\n", (void *)func->first_instr);
+    listGoto(instrlist, func->first_instr);
+
+    fr_print_frames();
 
     return ER_OK;
 }
@@ -150,14 +179,15 @@ int return_instr(symtab_t *symtab, tListOfInstr *instrlist) {
     if (active_frame == NULL)
         return INTERNAL_ERROR;
 
-    fr_print_frames();
-
+    printf("!!!! going to %p\n", (void *)active_frame->next_instr);
     listGoto(instrlist, active_frame->next_instr);
 
     frame_t *temp = active_frame;
     active_frame = active_frame->next;
 
     fr_free(&temp);
+
+    fr_print_frames();
 
     return ER_OK;
 }

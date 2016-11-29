@@ -8,7 +8,7 @@
 #include "scanner.h"
 #include "error_codes.h"
 
-// #define DEBUG1
+#define DEBUG1
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -533,8 +533,8 @@ int func_params_list(){
 						prev_item = item;
 						item = st_add(current_function->local_table,token_data);	
 						item->elem_type = ST_ELEMTYPE_PARAM;
-						prev_item->next_param = item;
-						item->next_param = NULL;
+						current_function->first_param = item;
+						item->next_param = prev_item;
 						item->declared = 1;
 						switch(temp_token){
 							case INT:
@@ -1178,6 +1178,9 @@ int class_dec(){
 								case LEFT_BRACKET:
 									if ( (result = func_params()) != ER_OK)
 										return result;
+
+                                    set_function_beginning(&(current_function->first_instr));
+
 									if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
 										if ( (result = statement_list()) != ER_OK)
 											return result;
@@ -1202,6 +1205,9 @@ int class_dec(){
 							if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET){
 								if ( (result = func_params()) != ER_OK)
 									return result;
+
+                                set_function_beginning(&(current_function->first_instr));
+
 								if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
 									if ( (result = statement_list()) != ER_OK)
 										return result;

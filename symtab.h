@@ -39,7 +39,7 @@ typedef struct symtab_elem_t {
     bool initialized;
     struct symtab_elem_t *first_param; // if elem is function, then this points to list of parameters
     struct symtab_elem_t *next_param; // if elem is parameter, this points to next parameter
-    tListItem *inst_list;
+    tListItem *first_instr;
     symtab_t *local_table;
     struct symtab_elem_t *nextElem;
 } symtab_elem_t;

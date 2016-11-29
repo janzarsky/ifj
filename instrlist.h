@@ -109,7 +109,9 @@
 #define IN_CONV_SYMBOL  36
 #define IN_MOV          37
 
-#define IN_MAX          38
+#define IN_HALT         38
+
+#define IN_MAX          39
 
 // pomocne defines pro zjednoduseni kodu
 // instrukce pro double se daji ziskat jako (instrukce pro int) + F_***_OFFSET
@@ -191,6 +193,7 @@ void listGoto(tListOfInstr *L, tListItem *gotoInstr); // nastavime aktivni instr
 void *listGetPointerLast(tListOfInstr *L); // vrati ukazatel na posledni instrukci
 
 void add_instr(int type, void * ptr1, void * ptr2, void * ptr3);
+void set_function_beginning(tListItem **item);
 void print_instr(tInstr *instr);
 void print_instr_list();
 

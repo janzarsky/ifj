@@ -47,6 +47,8 @@ void listInsertLast(tListOfInstr *L, tInstr I){
 
 #ifdef DEBUG
 void print_instr(tInstr *instr) {
+    printf("%p ", (void *)instr);
+
     switch (instr->instType) {
         case IN_ADD:
             printf("ADD"); break;
@@ -140,6 +142,11 @@ void add_instr(int type, void * ptr1, void * ptr2, void * ptr3) {
     printf("instr: ");
     print_instr(&instr);
 #endif
+}
+
+void set_function_beginning(tListItem **item) {
+    add_instr(IN_LABEL, NULL, NULL, NULL);
+    *item = instr_list->last;
 }
 
 void listFirst(tListOfInstr *L){

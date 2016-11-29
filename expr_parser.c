@@ -390,7 +390,7 @@ int check_type_id() {
             return ST_DATATYPE_ERROR;
     }
 
-    if (var->elem_type == ST_ELEMTYPE_VAR)
+    if (var->elem_type == ST_ELEMTYPE_VAR || var->elem_type == ST_ELEMTYPE_PARAM)
         return var->data_type;
 
     return ST_DATATYPE_ERROR;
@@ -623,9 +623,9 @@ int expr(int expr_type, int *type) {
     print_symbol(b);
     printf("\n");
 
-    printf("\n");
-    printf("Generated instructions:\n");
-    print_instr_list();
+    //printf("\n");
+    //printf("Generated instructions:\n");
+    //print_instr_list();
 #endif
 
     *type = stack.top->type;

@@ -183,12 +183,13 @@ int main(int argc, char** argv) {
     int parse_result = program();
     printf("******************************\n\nresult: %d\n", parse_result);
 
-    printf("MAIN: symtab\n");
-    st_print(symtab);
-
     //FIXME remove later
     symtab_elem_t *temp = st_find(symtab, "run");
-    add_instr(IN_CALL, temp, NULL, NULL);
+    add_instr(IN_CALL, NULL, NULL, temp);
+    set_function_beginning(&(temp->first_instr));
+
+    printf("MAIN: symtab\n");
+    st_print(symtab);
 
     rewind(source);
     parse_result = program();
@@ -198,7 +199,8 @@ int main(int argc, char** argv) {
     st_print(symtab);
 
     //FIXME remove later
-    add_instr(IN_RETURN, NULL, NULL, NULL);
+    //add_instr(IN_HALT, NULL, NULL, NULL);
+    //printf("\n");
 
     printf("\nMAIN: generated instructions\n");
     print_instr_list();

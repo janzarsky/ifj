@@ -21,40 +21,40 @@ int interpret(symtab_t *T, tListOfInstr *L)
   listFirst(L); // nastav aktivni prvni instrukci
   tInstr *I = NULL;
   bool hodnota;
+  bool load_next = false;
 
     inter_stack_item first;
     inter_stack_item second;
     inter_stack_item third;
     st_value_t value;
 
+    I = listGetData(L);
 
-  while (I != listGetPointerLast(L))
+  while (L->active != NULL)
   {
+      if (load_next) {
+          listNext(L);
+      }
+
       I = listGetData(L); // ziskej instrukci
-      listNext(L);
+
+      load_next = true;
 
 #ifdef DEBUG
-      printf("INTERPRET: ");
-      
-      stack_inter_print(&S);
-
-      printf("\nINTERPRET: instruction ");
-
-      print_instr(I);
-
-      printf("\n");
+      //printf("INTERPRET: ");stack_inter_print(&S);printf("\n");
+      printf("INTERPRET: instruction ");print_instr(I);printf("\n");
 #endif
 
       switch (I->instType)
     {
         case IN_CALL:
-
-            call_instr(L, &S, (symtab_elem_t *)I->addr1);
+            call_instr(L, &S, (symtab_elem_t *)I->addr3);
+            load_next = false;
         break;
 
         case IN_RETURN:
-
             return_instr(T, L);
+            load_next = false;
         break;
 
         case IN_ADD:
@@ -391,14 +391,8 @@ int interpret(symtab_t *T, tListOfInstr *L)
         break;
         
         case IN_GOTO:
-
-            bool_Top(&hodnota, &B);
-
-            if (hodnota){
-
               listGoto(L, I->addr3);
-            }
-
+              load_next = false;
         break;
 
         case IN_JMP_WHILE:
@@ -406,8 +400,8 @@ int interpret(symtab_t *T, tListOfInstr *L)
             bool_Top(&hodnota, &B);
 
             if (hodnota){
-
               listGoto(L, I->addr3);
+              load_next = false;
             }
             else
                 bool_Pop(&B);
@@ -422,6 +416,7 @@ int interpret(symtab_t *T, tListOfInstr *L)
             if (hodnota == false){
 
               listGoto(L, I->addr3);
+              load_next = false;
             }
 
         break;
