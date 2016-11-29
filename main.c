@@ -203,7 +203,7 @@ int main(int argc, char** argv) {
     printf("\nMAIN: generated instructions\n");
     print_instr_list();
     
-    if (parse_result != 100)
+    if (parse_result != ER_OK)
         return 1;
 
     printf("\nMAIN: interpret code\n");

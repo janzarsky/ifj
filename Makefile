@@ -1,5 +1,5 @@
 CFLAGS = -pedantic -Wall -Wextra -Wno-misleading-indentation -std=gnu99 -g
-SOURCES = $(filter-out parser.c expr_parser_test.c, $(wildcard *.c))
+SOURCES = $(wildcard *.c)
 OBJECTS = $(SOURCES:.c=.o)
 PROGRAMS = ifj
 
@@ -12,7 +12,7 @@ ifj: $(OBJECTS)
 	gcc $(CFLAGS) $^ -o $@
 
 %.o: %.c
-	gcc $(CFLAGS) -DNDEBUG -c $^ -o $@
+	gcc $(CFLAGS) -DDEBUG -c $^ -o $@
 
 clean:
 	rm *.o $(PROGRAMS)
