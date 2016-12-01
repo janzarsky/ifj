@@ -39,15 +39,6 @@ int func_params_list();
    listInsertLast(list, I);
 }*/
 
-//		1) <prog> 	   -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM
-// int statement[] = {CLASS, MAIN, LEFT_VINCULUM, STATIC, VOID, RUN, LEFT_BRACKET, RIGHT_BRACKET, LEFT_VINCULUM, RIGHT_VINCULUM, RIGHT_VINCULUM, END_OF_FILE}; 
-
-		// 2) <prog>      -> CLASS ID LEFT_VINCULUM <class-dec>  // declaration of class
-// int statement[] = {CLASS, ID, LEFT_VINCULUM,STATIC, INT, ID , LEFT_BRACKET, INT, ID, COMMA, DOUBLE, ID,COMMA,STRING,ID, RIGHT_BRACKET, LEFT_VINCULUM, RIGHT_VINCULUM, RIGHT_VINCULUM, END_OF_FILE}; 
-//int statement[] = {CLASS, ID, LEFT_VINCULUM,STATIC, INT, ID, ASSIGN, ID, LEFT_BRACKET, ID,COMMA, STRING_LITERAL, RIGHT_BRACKET,  SEMICOLON, RIGHT_VINCULUM, END_STATEMENT}; 
-
-		// 3) <prog>      -> STATIC [INT/DOUBLE/SRING/VOID] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>
-// int statement[] = { STATIC, INT, ID , LEFT_BRACKET, INT, ID, COMMA, DOUBLE, ID,COMMA,STRING,ID, RIGHT_BRACKET, LEFT_VINCULUM, RIGHT_VINCULUM, END_OF_FILE}; 
 static int pruchod = 0;
 symtab_t *tabulka;
 symtab_t *local_tabulka;
@@ -64,6 +55,16 @@ unsigned int run_counter=0;
 
 void set_symtable(symtab_t *table) {
     tabulka = table;
+}
+
+char * str_conc(char * class_name, char * var_name){
+
+	char * summ= malloc(sizeof(char) * (strlen(class_name) + strlen(var_name) + strlen(".") + 1)); 
+	strcpy(summ, class_name);
+	strcat(summ, ".");
+	strcat(summ, var_name);
+
+	return summ;
 }
 
 // 1) <prog>  -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM <prog>
@@ -113,44 +114,6 @@ int program(){
 							return ER_LEX;
 						return ER_SYNTAX;
 						break;	
-
-							/*if ( (token = get_next_token(&token_data)) != ER_LEX  && token == LEFT_VINCULUM)
-								 if ( (token = get_next_token(&token_data)) != ER_LEX && token == STATIC)
-								 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == VOID)
-								 		if ( (token = get_next_token(&token_data)) != ER_LEX && token == RUN){
-								 			if(st_find(tabulka,token_data) == NULL){
-								 				current_function = st_add(tabulka,token_data);
-								 				current_function->data_type = ST_DATATYPE_VOID;
-								 				current_function->elem_type = ST_ELEMTYPE_FUN;
-								 				#ifdef DEBUG1
-								 				printf("\x1b[31m" "\n---------------------------------------------------------------------------------------\n");
-								 				printf(  "new function = %s\n" ,current_function->id  );
-								 				printf( "---------------------------------------------------------------------------------------\n" "\x1b[0m");
-								 				#endif
-								 			}
-								 			else{
-								 				;
-								 				//FIXME make new ramec for recursive RUN call
-								 				;
-								 			}
-										 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET)
-											 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == RIGHT_BRACKET)
-												 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
-												 		if( (result = statement_list()) != ER_OK)
-												 			return result;
-												 		else
-														 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == RIGHT_VINCULUM){
-														 		if( (result = program()) != ER_OK)
-														 			return result;
-														 		else
-															 		return ER_OK;
-															}	 	
-													}
-										}				*/
-							if(token == ER_LEX)
-								return ER_LEX;						
-							return ER_SYNTAX;
-							break;	
 	// 2) <prog>  -> CLASS ID LEFT_VINCULUM <class-dec> <prog> // declaration of class
 					case ID: 
 
@@ -573,14 +536,19 @@ int func_var(){
 	int result;
 	id = token_data;
 	symtab_elem_t * local_item;
+
 	if ( (token = get_next_token(&token_data)) == ER_LEX )
 		return ER_LEX;
 	switch(token){
 // 1) LEFT_BRACKET <func-args> SEMICOLON //it's function call	
 		case LEFT_BRACKET:
 			current_function = item;
-			if( (current_function = st_find(tabulka, id)) == NULL){ //if function not in symtab we add it there.
+			if( (current_function = st_find(tabulka, id = str_conc(current_class->id, id))) == NULL){ //if function not in symtab
+				free(id);
 				return ER_SEM; //error type 3 not declarated function
+			}
+			else{
+				free(id);
 			}
 			if ( (result = func_args()) != ER_OK)
 				return result;
@@ -599,7 +567,13 @@ int func_var(){
 		case ASSIGN:
 			if( (local_item = item = st_find(local_tabulka, id)) == NULL){
 				if( (local_item = item = st_find(tabulka, id)) == NULL){ 
-					return ER_SEM; //error type 3 not declarated var
+					if( (local_item = item = st_find(tabulka, id = str_conc(current_class->id, id))) == NULL){ 
+						free(id);
+						return ER_SEM; //error type 3 not declarated var
+					}
+					else{
+						free(id);
+					}	
 				}	
 			}
 			if ( (result = assign()) != ER_OK)
@@ -695,10 +669,17 @@ int assign(){
             #endif
 
 
-            if( (temp_elem  = st_find(local_tabulka,temp_token_data)) == NULL)
-	            if( (temp_elem = st_find(tabulka,temp_token_data)) == NULL)
-	            	return ER_SEM; //error number 3 
-
+            if( (temp_elem  = st_find(local_tabulka,temp_token_data)) == NULL){
+	            if( (temp_elem = st_find(tabulka,temp_token_data)) == NULL){
+	            	if( (temp_elem  = st_find(tabulka, temp_token_data = str_conc(current_class->id, temp_token_data))) == NULL){ 
+	            		free(temp_token_data);
+						return ER_SEM; //error type 3 not declarated var
+					} 
+	            	else{
+	            		free(temp_token_data);
+	            	}
+	            }	
+	        } 
 
 			if ( (token = get_next_token(&token_data)) == ER_LEX )
 				return ER_LEX;
@@ -833,6 +814,8 @@ int assign(){
 		// 2) <func-args> -> [ID/INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] <func-args-list>
 int func_args(){
 	symtab_elem_t * temp_item;
+	char * temp_string;
+
 	#ifdef DEBUG1
     printf("PARSER: function func_args()\n");
     #endif
@@ -849,8 +832,15 @@ int func_args(){
 			//FIXME ADD control of function arguments types
 
 			if( (temp_item = st_find(local_tabulka,token_data)) == NULL)
-				if( (temp_item = st_find(tabulka,token_data)) == NULL)
-					return ER_SEM;// error number 3 not defined arguments
+				if( (temp_item = st_find(tabulka,token_data)) == NULL){
+					if( (temp_item = st_find(tabulka, temp_string = str_conc(current_class->id, id))) == NULL){ 
+						free(temp_string);
+						return ER_SEM; //error type 3 not declarated var
+					}
+					else{
+						free(temp_string);
+					}
+				}	
 
 			add_instr(IN_TAB_PUSH,(void *)temp_item,NULL,NULL);	 //push function argument(ID) to stack
 
@@ -883,6 +873,7 @@ int func_args_list(){
     #endif
 	symtab_elem_t * temp_item;
 	int result;
+	char * temp_string;
 
 	if ( (token = get_next_token(&token_data)) == ER_LEX )
 		return ER_LEX;
@@ -902,8 +893,15 @@ int func_args_list(){
 						//FIXME ADD control of function arguments types
 		
 						if( (temp_item = st_find(local_tabulka,token_data)) == NULL)
-							if( (temp_item = st_find(tabulka,token_data)) == NULL)
-								return ER_SEM;// error number 3 not defined arguments
+							if( (temp_item = st_find(tabulka,token_data)) == NULL){
+								if( (temp_item = st_find(tabulka, temp_string = str_conc(current_class->id, id))) == NULL){ 
+									free(temp_string);
+									return ER_SEM; //error type 3 not declarated var
+								}
+								else{
+									free(temp_string);
+								}
+							}
 
 						add_instr(IN_TAB_PUSH,(void *)temp_item,NULL,NULL);	 //push function argument(ID) to stack
 
@@ -941,7 +939,7 @@ int class_dec(){
 	int result;
 	int prev_token;
 	symtab_elem_t * find;
-
+	char * temp_string;
 
 	if(pruchod == 0){
 		if ( (token = get_next_token(&token_data)) == ER_LEX )
@@ -957,21 +955,19 @@ int class_dec(){
 						prev_token=token;
 						if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID){
 
-							if( (find = st_find(tabulka,token_data)) != NULL){
-								if(find->declared == 1 || find->initialized == 1)
+							if( (find = st_find(tabulka,temp_string = str_conc(current_class->id,token_data))) != NULL){
+								if(find->declared == 1 || find->initialized == 1){
+									free(temp_string);
 									return ER_SEM; //redeclaration of existing symbol
+								}
 								else{
+									free(temp_string);
 									find->declared = 1; //(must NOT happen) if ID exist in global table but not declared and not initialized 
 								}
 							}
 							else{
-								item = st_add(tabulka,token_data);
+								item = st_add(tabulka,temp_string);
 								item->declared = 1;
-								#ifdef DEBUG1
-								printf(ANSI_COLOR_RED"\n---------------------------------------------------------------------------------------\n");
-								printf(  "new global id = %s\n" ,item->id  );
-								printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-								#endif
 							}
 							switch(prev_token){
 								case INT:
@@ -991,9 +987,13 @@ int class_dec(){
 	// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID SEMICOLON <class-dec>							
 								case SEMICOLON:
 									
-
 									item->initialized = 0;
 									item->elem_type = ST_ELEMTYPE_VAR;
+									#ifdef DEBUG1
+									printf(ANSI_COLOR_MAGENTA"\n---------------------------------------------------------------------------------------\n");
+									printf(  "new global var id = %s\n" ,item->id  );
+									printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
+									#endif
 
 
 									if ( (result = class_dec()) != ER_OK)
@@ -1002,8 +1002,12 @@ int class_dec(){
 									break;
 	// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID  ASSIGN <math-expr> <class-dec>								
 								case ASSIGN:
-
 									item->elem_type = ST_ELEMTYPE_VAR;
+									#ifdef DEBUG1
+									printf(ANSI_COLOR_MAGENTA"\n---------------------------------------------------------------------------------------\n");
+									printf(  "new global var id = %s\n" ,item->id  );
+									printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
+									#endif
 
 									if ( (result = math_expr(&type)) != ER_OK)
 										return result;
@@ -1018,6 +1022,11 @@ int class_dec(){
 									current_function->elem_type = ST_ELEMTYPE_FUN;
                                     st_init(&(current_function->local_table));
                                     local_tabulka = current_function->local_table;
+                                    #ifdef DEBUG1
+                                    printf(ANSI_COLOR_MAGENTA"\n---------------------------------------------------------------------------------------\n");
+                                    printf(  "new global function = %s\n" ,current_function->id  );
+                                    printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
+                                    #endif
 
 									if ( (result = func_params()) != ER_OK)
 										return result;
@@ -1046,22 +1055,25 @@ int class_dec(){
 					case VOID:
 						if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID){
 
-							if( (find = st_find(tabulka,token_data)) != NULL){
-								if(find->declared == 1 || find->initialized == 1)
+							if( (find = st_find(tabulka,temp_string = str_conc(current_class->id,token_data))) != NULL){
+								if(find->declared == 1 || find->initialized == 1){
+									free(temp_string);
 									return ER_SEM; //redeclaration of existing symbol
+								}
 								else{
+									free(temp_string);
 									find->declared = 1;
 								}
 							}
 							else{
-								current_function = st_add(tabulka,token_data);
+								current_function = st_add(tabulka,temp_string);
 								current_function->elem_type = ST_ELEMTYPE_FUN;
 								current_function->data_type = ST_DATATYPE_VOID;
 								current_function->declared =  1;
                                 st_init(&(current_function->local_table));
                                 local_tabulka = current_function->local_table;
 								#ifdef DEBUG1
-								printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
+								printf(ANSI_COLOR_MAGENTA "\n---------------------------------------------------------------------------------------\n");
 								printf(  "new global function = %s\n" ,current_function->id  );
 								printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
 								#endif
@@ -1086,22 +1098,25 @@ int class_dec(){
 							if(strcmp(current_class->id, "Main") == 0)
 								run_counter++;
 
-							if( (find = st_find(tabulka,token_data)) != NULL){
-								if(find->declared == 1 || find->initialized == 1)
+							if( (find = st_find(tabulka,temp_string = str_conc(current_class->id,token_data))) != NULL){
+								if(find->declared == 1 || find->initialized == 1){
+									free(temp_string);
 									return ER_SEM; //redeclaration of existing symbol
+								}
 								else{
+									free(temp_string);
 									find->declared = 1;
 								}
 							}
 							else{
-								current_function = st_add(tabulka,token_data);
+								current_function = st_add(tabulka,temp_string);
 								current_function->elem_type = ST_ELEMTYPE_FUN;
 								current_function->data_type = ST_DATATYPE_VOID;
 								current_function->declared =  1;
                                 st_init(&(current_function->local_table));
                                 local_tabulka = current_function->local_table;
 								#ifdef DEBUG1
-								printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
+								printf(ANSI_COLOR_MAGENTA "\n---------------------------------------------------------------------------------------\n");
 								printf(  "new global function = %s\n" ,current_function->id  );
 								printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
 								#endif
@@ -1152,7 +1167,8 @@ int class_dec(){
 						prev_token=token;
 						if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID){
 
-							item = st_find(tabulka,token_data);
+							item = st_find(tabulka,temp_string = str_conc(current_class->id,token_data));
+							free(temp_string);
 
 							if ( (token = get_next_token(&token_data)) == ER_LEX )
 								return ER_LEX;
