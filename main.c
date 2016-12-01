@@ -24,6 +24,8 @@
 extern tListOfInstr *instr_list;
 
 #ifdef DEBUG
+extern symtab_t *local_tabulka;
+
 void symtab_test()
 {
 
@@ -178,22 +180,27 @@ int main(int argc, char** argv) {
     setSourceFile(source);
     set_symtable(symtab);
 
-    printf("MAIN: parse code\n");
+    printf("MAIN: parse code (first run)\n");
 
     int parse_result = program();
-    printf("******************************\n\nresult: %d\n", parse_result);
+    printf("******************************\n\nfirst run result: %d\n\n", parse_result);
 
     //FIXME remove later
     symtab_elem_t *temp = st_find(symtab, "Main.run");
     add_instr(IN_CALL, NULL, NULL, temp);
     set_function_beginning(&(temp->first_instr));
+    printf("\n\n");
 
     printf("MAIN: symtab\n");
     st_print(symtab);
+    printf("\nMAIN: parse code (second run)\n");
+
+    // FIXME
+    local_tabulka = NULL;
 
     rewind(source);
     parse_result = program();
-    printf("******************************\n\nresult: %d\n", parse_result);
+    printf("******************************\n\nsecond run result: %d\n\n", parse_result);
 
     printf("MAIN: symtab\n");
     st_print(symtab);

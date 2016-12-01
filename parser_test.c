@@ -153,6 +153,9 @@ int program(){
 	}
 //pruchod 2
 	else{
+        // FIXME
+        local_tabulka = st_find(tabulka, "Main.run")->local_table;
+
 		if ( (token = get_next_token(&token_data)) == ER_LEX )
 			return ER_LEX;
 		switch(token){
@@ -1194,6 +1197,8 @@ int class_dec(){
 								case LEFT_BRACKET:
 									if ( (result = func_params()) != ER_OK)
 										return result;
+
+                                    current_function = item;
 
                                     set_function_beginning(&(current_function->first_instr));
 
