@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
     printf("******************************\n\nresult: %d\n", parse_result);
 
     //FIXME remove later
-    symtab_elem_t *temp = st_find(symtab, "run");
+    symtab_elem_t *temp = st_find(symtab, "Main.run");
     add_instr(IN_CALL, NULL, NULL, temp);
     set_function_beginning(&(temp->first_instr));
 
