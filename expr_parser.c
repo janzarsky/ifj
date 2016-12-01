@@ -560,6 +560,9 @@ int expr(int expr_type, int *type) {
     push(END_OF_FILE, ST_DATATYPE_VOID);
 
     b = get_next_token(&token_data);
+
+    if (b == ER_LEX)
+        return ER_LEX;
     
     do {
 #ifdef DEBUG
@@ -581,15 +584,21 @@ int expr(int expr_type, int *type) {
             case T_E:
                 debug_printf("op: =    ");
                 push(b, ST_DATATYPE_VOID);
+
                 token_data_prev = token_data;
                 b = get_next_token(&token_data);
+                if (b == ER_LEX)
+                    return ER_LEX;
                 break;
             case T_L:
                 debug_printf("op: <    ");
                 insert_after_top_term(T_L);
                 push(b, ST_DATATYPE_VOID);
+
                 token_data_prev = token_data;
                 b = get_next_token(&token_data);
+                if (b == ER_LEX)
+                    return ER_LEX;
                 break;
             case T_R:
                 debug_printf("op: >    ");
