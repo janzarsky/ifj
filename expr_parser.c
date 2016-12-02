@@ -553,15 +553,15 @@ int rules() {
 #define BOOL_EXPR 2
 
 int expr(int expr_type, int *type) {
-    int b, result;
+    int result;
 
     stack_init();
 
     push(END_OF_FILE, ST_DATATYPE_VOID);
 
-    b = get_next_token(&token_data);
+    token = get_next_token(&token_data);
 
-    if (b == ER_LEX)
+    if (token == ER_LEX)
         return ER_LEX;
     
     do {
@@ -569,35 +569,35 @@ int expr(int expr_type, int *type) {
         printf("stack: ");
         print_stack();
         printf("    input: ");
-        print_symbol_aligned(b);
+        print_symbol_aligned(token);
 #endif
-        if (expr_type == MATH_EXPR && b == SEMICOLON) {
-            b = END_OF_FILE;
+        if (expr_type == MATH_EXPR && token == SEMICOLON) {
+            token = END_OF_FILE;
         }
         else if (expr_type == BOOL_EXPR
-            && b == RIGHT_BRACKET && top_term() == END_OF_FILE) {
+            && token == RIGHT_BRACKET && top_term() == END_OF_FILE) {
             debug_printf("\n");
             break;
         }
 
-        switch (table[map_token(top_term())][map_token(b)]) {
+        switch (table[map_token(top_term())][map_token(token)]) {
             case T_E:
                 debug_printf("op: =    ");
-                push(b, ST_DATATYPE_VOID);
+                push(token, ST_DATATYPE_VOID);
 
                 token_data_prev = token_data;
-                b = get_next_token(&token_data);
-                if (b == ER_LEX)
+                token = get_next_token(&token_data);
+                if (token == ER_LEX)
                     return ER_LEX;
                 break;
             case T_L:
                 debug_printf("op: <    ");
                 insert_after_top_term(T_L);
-                push(b, ST_DATATYPE_VOID);
+                push(token, ST_DATATYPE_VOID);
 
                 token_data_prev = token_data;
-                b = get_next_token(&token_data);
-                if (b == ER_LEX)
+                token = get_next_token(&token_data);
+                if (token == ER_LEX)
                     return ER_LEX;
                 break;
             case T_R:
@@ -622,14 +622,14 @@ int expr(int expr_type, int *type) {
                 return ER_SYNTAX;
         }
 
-    } while (top_term() != END_OF_FILE || b != END_OF_FILE);
+    } while (top_term() != END_OF_FILE || token != END_OF_FILE);
 
 #ifdef DEBUG
     printf("********** END OF ALGORITM **********\n");
     printf("stack: ");
     print_stack();
     printf("    input: ");
-    print_symbol(b);
+    print_symbol(token);
     printf("\n");
 
     //printf("\n");
