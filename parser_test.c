@@ -46,12 +46,13 @@ int token;
 char *token_data;
 symtab_elem_t * item;
 symtab_elem_t * current_function;
+symtab_elem_t * called_function;
 symtab_elem_t * current_class;
+symtab_elem_t * current_param;
 char *id;
 int type;
 extern tListOfInstr *instr_list;
 unsigned int run_counter=0;
-
 
 void set_symtable(symtab_t *table) {
     tabulka = table;
@@ -554,6 +555,7 @@ int func_var(){
 				free(id);
 			}
 
+			called_function = item;
 			#ifdef DEBUG1
 			printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
 			printf(  "func_var current_function = %s\n" ,current_function->id  );
@@ -618,7 +620,7 @@ int return_args(){
 			#endif
 
 			if(current_function->data_type != ST_DATATYPE_VOID){
-				return ER_SEM; //FIXME check return error type
+				return ER_RUN_INIT ; //return nothing from non-VOID function //FIXME
 			} 
 			add_instr(IN_RETURN, NULL, NULL, NULL);
 			return ER_OK;
@@ -632,32 +634,27 @@ int return_args(){
 			return_token(token, token_data);
 			if( (result = math_expr(&type)) == ER_OK){
 
-				printf(">>>>>>>>>>>>>>>>>>>check %d\n", 0);
 				if(current_function->data_type == ST_DATATYPE_DOUBLE && type == ST_DATATYPE_INT){
 					add_instr(IN_CONV, NULL, NULL, NULL);
 					type = ST_DATATYPE_DOUBLE;
 				}
-				printf(">>>>>>>>>>>>>>>>>>>check %d\n", 1);
 				if(current_function->data_type != (unsigned int)type){
-					return ER_SEM; //FIXME check return type
+					return ER_SEM_TYPES; //return wrong type
 				}
 				else{
-					add_instr(IN_RETURN, NULL, NULL, NULL); //FIXME current function must be changed to previous function
+					add_instr(IN_RETURN, NULL, NULL, NULL);
 				}
 				if(token == SEMICOLON){
 					return ER_OK;
 				}
 				else{ 
-					printf(">>>>>>>>>>>>>>>>>>>check %d\n", 2);
 					return ER_SYNTAX;
 				}
 			}
 			else{
-				printf(">>>>>>>>>>>>>>>>>>>check %d\n", 3);
 				return result;
 			}
 	}
-	printf(">>>>>>>>>>>>>>>>>>>check %d\n", 4);
 	return ER_SYNTAX;
 }
 
@@ -709,6 +706,7 @@ int assign(){
 					if(temp_elem->elem_type != ST_ELEMTYPE_FUN){
 						return ER_SEM; //FIXME check error type for trying to call not a function
 					}
+					called_function = temp_elem;
 					if ( (result = func_args()) != ER_OK)
 						return result;
 
@@ -835,6 +833,7 @@ int assign(){
 int func_args(){
 	symtab_elem_t * temp_item;
 	char * temp_string;
+	current_param = called_function->first_param;
 
 	#ifdef DEBUG1
     printf("PARSER: function func_args()\n");
@@ -849,8 +848,6 @@ int func_args(){
 			break;
 		case ID:
 
-			//FIXME ADD control of function arguments types
-
 			if( (temp_item = st_find(local_tabulka,token_data)) == NULL)
 				if( (temp_item = st_find(tabulka,token_data)) == NULL){
 					if( (temp_item = st_find(tabulka, temp_string = str_conc(current_class->id, id))) == NULL){ 
@@ -860,7 +857,12 @@ int func_args(){
 					else{
 						free(temp_string);
 					}
-				}	
+				}		
+			//argument's type check	
+			if(current_param == NULL || (temp_item->data_type != current_param->data_type) ){
+				return ER_SEM_TYPES; //wrong parameter's type or number
+			}	
+
 
 			add_instr(IN_TAB_PUSH,(void *)temp_item,NULL,NULL);	 //push function argument(ID) to stack
 
@@ -872,7 +874,24 @@ int func_args(){
 		case DOUBLE_LITERAL:
 		case STRING_LITERAL:
 
-			//FIXME ADD control of function arguments types
+			//argument's type check	
+			switch(token){
+				case INT_LITERAL:
+					if(current_param == NULL || (ST_DATATYPE_INT != current_param->data_type)){
+						return ER_SEM_TYPES; //wrong parameter's type or number
+					}
+					break;
+				case DOUBLE_LITERAL:
+					if(current_param == NULL || (ST_DATATYPE_DOUBLE != current_param->data_type)){
+						return ER_SEM_TYPES; //wrong parameter's type or number
+					}
+					break;
+				case STRING_LITERAL:
+					if(current_param == NULL || (ST_DATATYPE_STRING != current_param->data_type)){
+						return ER_SEM_TYPES; //wrong parameter's type or number
+					}
+					break;
+			}
 
 			add_instr(IN_VAL_PUSH,token_data,NULL,NULL); //push function argument(const) to stack
 
@@ -894,6 +913,7 @@ int func_args_list(){
 	symtab_elem_t * temp_item;
 	int result;
 	char * temp_string;
+	current_param = current_param->next_param;
 
 	if ( (token = get_next_token(&token_data)) == ER_LEX )
 		return ER_LEX;
@@ -909,9 +929,6 @@ int func_args_list(){
 						return ER_OK;
 						break;
 					case ID:
-
-						//FIXME ADD control of function arguments types
-		
 						if( (temp_item = st_find(local_tabulka,token_data)) == NULL)
 							if( (temp_item = st_find(tabulka,token_data)) == NULL){
 								if( (temp_item = st_find(tabulka, temp_string = str_conc(current_class->id, id))) == NULL){ 
@@ -923,6 +940,11 @@ int func_args_list(){
 								}
 							}
 
+						//argument's type check	
+						if(current_param == NULL || (temp_item->data_type != current_param->data_type) ){
+							return ER_SEM_TYPES; //wrong parameter's type  or number
+						}		
+
 						add_instr(IN_TAB_PUSH,(void *)temp_item,NULL,NULL);	 //push function argument(ID) to stack
 
 						if ( (result = func_args_list()) != ER_OK)
@@ -933,7 +955,24 @@ int func_args_list(){
 					case DOUBLE_LITERAL:
 					case STRING_LITERAL:
 
-						//FIXME ADD control of function arguments types
+						//argument's type check	
+						switch(token){
+							case INT_LITERAL:
+								if(current_param == NULL || (ST_DATATYPE_INT != current_param->data_type)){
+									return ER_SEM_TYPES; //wrong parameter's type or number
+								}
+								break;
+							case DOUBLE_LITERAL:
+								if(current_param == NULL || (ST_DATATYPE_DOUBLE != current_param->data_type)){
+									return ER_SEM_TYPES; //wrong parameter's type  or number
+								}
+								break;
+							case STRING_LITERAL:
+								if(current_param == NULL || (ST_DATATYPE_STRING != current_param->data_type)){
+									return ER_SEM_TYPES; //wrong parameter's type  or number
+								}
+								break;
+						}
 
 						add_instr(IN_VAL_PUSH,token_data,NULL,NULL); //push function argument(const) to stack
 
@@ -1038,12 +1077,6 @@ int class_dec(){
 	// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>							
 								case LEFT_BRACKET:
 
-									#ifdef DEBUG1
-									printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
-									printf(  "1039 changing current_function from %s to %s\n" ,current_function->id ,item->id  );
-									printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-									#endif
-
 									current_function = item;
 									current_function->elem_type = ST_ELEMTYPE_FUN;
                                     st_init(&(current_function->local_table));
@@ -1093,12 +1126,6 @@ int class_dec(){
 							}
 							else{
 
-								#ifdef DEBUG1
-								printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
-								printf(  "changing current_function to %s\n" ,temp_string  );
-								printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-								#endif
-
 								current_function = st_add(tabulka,temp_string);
 								current_function->elem_type = ST_ELEMTYPE_FUN;
 								current_function->data_type = ST_DATATYPE_VOID;
@@ -1139,21 +1166,11 @@ int class_dec(){
 								else{
 									free(temp_string);
 									find->declared = 1;
-									#ifdef DEBUG1
-									printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
-									printf(  "changing current_function from  to %s\n",find->id  );
-									printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-									#endif
 									current_function = find;
 									local_tabulka = current_function->local_table;
 								}
 							}
 							else{
-								#ifdef DEBUG1
-								printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
-								printf(  "changing current_function from  to %s\n",temp_string  );
-								printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-								#endif
 								current_function = st_add(tabulka,temp_string);
 								current_function->elem_type = ST_ELEMTYPE_FUN;
 								current_function->data_type = ST_DATATYPE_VOID;
@@ -1239,13 +1256,6 @@ int class_dec(){
 								case LEFT_BRACKET:
 									if ( (result = func_params()) != ER_OK)
 										return result;
-
-									#ifdef DEBUG1
-									printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
-									printf(  "changing current_function from %s to %s\n" ,current_function->id ,item->id  );
-									printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-									#endif
-
                                     current_function = item;
                                     local_tabulka = current_function->local_table;
 
@@ -1272,12 +1282,6 @@ int class_dec(){
 	// 3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>					
 					case VOID:
 						if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID){
-
-							#ifdef DEBUG1
-							printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
-							printf(  "changing current_function from %s to %s\n" ,current_function->id ,item->id  );
-							printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-							#endif
 							current_function = st_find(tabulka,temp_string = str_conc(current_class->id,token_data));
 							free(temp_string);
 
@@ -1290,6 +1294,9 @@ int class_dec(){
 								if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
 									if ( (result = statement_list()) != ER_OK)
 										return result;
+
+									add_instr(IN_RETURN,NULL,NULL,NULL);
+
 									if ( (result = class_dec()) != ER_OK)
 										return result;
 									else return ER_OK;
@@ -1297,12 +1304,6 @@ int class_dec(){
 							}
 						}
 						else if(token == RUN){
-
-							#ifdef DEBUG1
-							printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
-							printf(  "changing current_function from %s to %s\n" ,current_function->id ,item->id  );
-							printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-							#endif
 							current_function = st_find(tabulka,temp_string = str_conc(current_class->id,token_data));
 							free(temp_string);
 
@@ -1312,6 +1313,9 @@ int class_dec(){
 								if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_VINCULUM){
 									if ( (result = statement_list()) != ER_OK)
 										return result;
+
+									add_instr(IN_RETURN,NULL,NULL,NULL);
+
 									if ( (result = class_dec()) != ER_OK)
 										return result;
 									else return ER_OK;
