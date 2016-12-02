@@ -14,6 +14,9 @@ class Main {
         if (a != 0) {
             a = recurse_fun(a, b);
         }
+        else {
+            a = a + 0;
+        }
 
         a = a - 1;
 
