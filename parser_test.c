@@ -438,7 +438,7 @@ int func_params(){
 			temp_token = token;
 			if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID){
 
-				//pridavame parametry je pri prvnim pruchodu
+				//pridavame parametry jenom pri prvnim pruchodu
 				if(pruchod == 0){
 					item = st_add(current_function->local_table,token_data);	
 					current_function->first_param = item;
@@ -545,19 +545,26 @@ int func_var(){
 	switch(token){
 // 1) LEFT_BRACKET <func-args> SEMICOLON //it's function call	
 		case LEFT_BRACKET:
-			current_function = item;
-			if( (current_function = st_find(tabulka, id = str_conc(current_class->id, id))) == NULL){ //if function not in symtab
+			//current_function = item;
+			if( (item = st_find(tabulka, id = str_conc(current_class->id, id))) == NULL){ //if function not in symtab
 				free(id);
 				return ER_SEM; //error type 3 not declarated function
 			}
 			else{
 				free(id);
 			}
+
+			#ifdef DEBUG1
+			printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
+			printf(  "func_var current_function = %s\n" ,current_function->id  );
+			printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
+			#endif
+
 			if ( (result = func_args()) != ER_OK)
 				return result;
 
 
-			add_instr(IN_CALL,NULL,NULL, (void*)current_function); // instruction for FUNCTION CALL
+			add_instr(IN_CALL,NULL,NULL, (void*)item); // instruction for FUNCTION CALL
 
 
 			if ( (token = get_next_token(&token_data)) != ER_LEX && token == SEMICOLON)
@@ -603,6 +610,12 @@ int return_args(){
 	switch(token){
 // 1) <return-args> -> SEMICOLON (ONLY if we in VOID function)		
 		case SEMICOLON:
+
+			#ifdef DEBUG1
+			printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
+			printf(  "return_args current_function = %s\n" ,current_function->id  );
+			printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
+			#endif
 
 			if(current_function->data_type != ST_DATATYPE_VOID){
 				return ER_SEM; //FIXME check return error type
@@ -695,8 +708,8 @@ int assign(){
 					if ( (result = func_args()) != ER_OK)
 						return result;
 
-					current_function = temp_elem;
-			        add_instr(IN_CALL,NULL,NULL,(void *)current_function);
+					//current_function = temp_elem;
+			        add_instr(IN_CALL,NULL,NULL,(void *)temp_elem);
 
 
 					if ( (token = get_next_token(&token_data)) != ER_LEX && token == SEMICOLON)
@@ -1021,6 +1034,12 @@ int class_dec(){
 	// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>							
 								case LEFT_BRACKET:
 
+									#ifdef DEBUG1
+									printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
+									printf(  "1039 changing current_function from %s to %s\n" ,current_function->id ,item->id  );
+									printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
+									#endif
+
 									current_function = item;
 									current_function->elem_type = ST_ELEMTYPE_FUN;
                                     st_init(&(current_function->local_table));
@@ -1069,6 +1088,13 @@ int class_dec(){
 								}
 							}
 							else{
+
+								#ifdef DEBUG1
+								printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
+								printf(  "changing current_function to %s\n" ,temp_string  );
+								printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
+								#endif
+
 								current_function = st_add(tabulka,temp_string);
 								current_function->elem_type = ST_ELEMTYPE_FUN;
 								current_function->data_type = ST_DATATYPE_VOID;
@@ -1109,9 +1135,21 @@ int class_dec(){
 								else{
 									free(temp_string);
 									find->declared = 1;
+									#ifdef DEBUG1
+									printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
+									printf(  "changing current_function from  to %s\n",find->id  );
+									printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
+									#endif
+									current_function = find;
+									local_tabulka = current_function->local_table;
 								}
 							}
 							else{
+								#ifdef DEBUG1
+								printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
+								printf(  "changing current_function from  to %s\n",temp_string  );
+								printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
+								#endif
 								current_function = st_add(tabulka,temp_string);
 								current_function->elem_type = ST_ELEMTYPE_FUN;
 								current_function->data_type = ST_DATATYPE_VOID;
@@ -1198,7 +1236,14 @@ int class_dec(){
 									if ( (result = func_params()) != ER_OK)
 										return result;
 
+									#ifdef DEBUG1
+									printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
+									printf(  "changing current_function from %s to %s\n" ,current_function->id ,item->id  );
+									printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
+									#endif
+
                                     current_function = item;
+                                    local_tabulka = current_function->local_table;
 
                                     set_function_beginning(&(current_function->first_instr));
 
@@ -1223,6 +1268,15 @@ int class_dec(){
 	// 3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>					
 					case VOID:
 						if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID){
+
+							#ifdef DEBUG1
+							printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
+							printf(  "changing current_function from %s to %s\n" ,current_function->id ,item->id  );
+							printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
+							#endif
+							current_function = st_find(tabulka,temp_string = str_conc(current_class->id,token_data));
+							free(temp_string);
+
 							if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET){
 								if ( (result = func_params()) != ER_OK)
 									return result;
@@ -1239,6 +1293,15 @@ int class_dec(){
 							}
 						}
 						else if(token == RUN){
+
+							#ifdef DEBUG1
+							printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
+							printf(  "changing current_function from %s to %s\n" ,current_function->id ,item->id  );
+							printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
+							#endif
+							current_function = st_find(tabulka,temp_string = str_conc(current_class->id,token_data));
+							free(temp_string);
+
 							if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET){
 								if ( (token = get_next_token(&token_data)) != ER_LEX && token != RIGHT_BRACKET)
 									return ER_SYNTAX;
