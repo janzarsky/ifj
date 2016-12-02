@@ -632,28 +632,32 @@ int return_args(){
 			return_token(token, token_data);
 			if( (result = math_expr(&type)) == ER_OK){
 
-
+				printf(">>>>>>>>>>>>>>>>>>>check %d\n", 0);
 				if(current_function->data_type == ST_DATATYPE_DOUBLE && type == ST_DATATYPE_INT){
 					add_instr(IN_CONV, NULL, NULL, NULL);
 					type = ST_DATATYPE_DOUBLE;
 				}
-
+				printf(">>>>>>>>>>>>>>>>>>>check %d\n", 1);
 				if(current_function->data_type != (unsigned int)type){
 					return ER_SEM; //FIXME check return type
 				}
 				else{
 					add_instr(IN_RETURN, NULL, NULL, NULL); //FIXME current function must be changed to previous function
 				}
-
-				if(token == SEMICOLON)
+				if(token == SEMICOLON){
 					return ER_OK;
-				else 
+				}
+				else{ 
+					printf(">>>>>>>>>>>>>>>>>>>check %d\n", 2);
 					return ER_SYNTAX;
+				}
 			}
 			else{
+				printf(">>>>>>>>>>>>>>>>>>>check %d\n", 3);
 				return result;
 			}
 	}
+	printf(">>>>>>>>>>>>>>>>>>>check %d\n", 4);
 	return ER_SYNTAX;
 }
 
