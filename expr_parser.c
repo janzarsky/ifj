@@ -640,6 +640,9 @@ int expr(int expr_type, int *type) {
     *type = stack.top->type;
 
     if (expr_type == MATH_EXPR) {
+        if (token == END_OF_FILE)
+            token = SEMICOLON;
+
         if ((*type == ST_DATATYPE_INT) || 
             (*type == ST_DATATYPE_DOUBLE) ||
             (*type == ST_DATATYPE_STRING)) {
@@ -652,6 +655,9 @@ int expr(int expr_type, int *type) {
     }
 
     if (expr_type == BOOL_EXPR) {
+        if (token == END_OF_FILE)
+            token = RIGHT_BRACKET;
+
         if (*type == ST_DATATYPE_BOOL) {
             return ER_OK;
         }
