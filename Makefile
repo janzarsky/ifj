@@ -12,7 +12,7 @@ ifj: $(OBJECTS)
 	gcc $(CFLAGS) $^ -o $@
 
 %.o: %.c
-	gcc $(CFLAGS) -DNDEBUG -c $^ -o $@
+	gcc $(CFLAGS) -DDEBUG -c $^ -o $@
 
 test:
 	./tests/test.sh
