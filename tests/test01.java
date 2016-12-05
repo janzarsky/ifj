@@ -1,8 +1,8 @@
+// exit 0
+// output 5
 class Main {
     static void run() {
-        int b;
+        int b = 5;
+        ifj16.print(b + "\n");
     }
-}
-class A {
-    static int a = 4 + 8;
 }

@@ -264,6 +264,9 @@ int main(int argc, char** argv) {
 
     parse_result = program();
     
+    if (parse_result != ER_OK)
+       goto out;
+
     int interpret_result = interpret(instr_list);
 
     return interpret_result;

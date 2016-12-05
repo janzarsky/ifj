@@ -1,7 +1,10 @@
+// exit 0
+// output 8
 class Main {
     static void run() {
-        int a;
+        int a = 3;
         double b;
-        a = b + 5;
+        b = a + 5;
+        ifj16.print(b + "\n");
     }
 }
