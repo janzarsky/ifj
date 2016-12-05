@@ -174,6 +174,12 @@ int readInt()
         return -1;  //error, nevim num. 7?
     }
 
+    //pridani koncoveho znaku
+    if (length + 1 > allocated)   //pamet nestaci, je potreba provest realokaci
+      if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
+        return -1;  //error, num. 99
+    readed[strlen(readed)] = '\0';
+
     //prevod samotny...
     int number = atoi(readed);
     free(readed);
@@ -196,7 +202,7 @@ double readDouble ()
     //ukladani znaku...
     char c = getchar();
     bool dot = false;
-    for (int i = 0; (c > '0' && c < '9') || c == '.'; i++) {
+    for (int i = 0; (c >= '0' && c <= '9') || c == '.'; i++) {
 
         if (length + 1 > allocated) {
             //pamet nestaci, je potreba provest realokaci
@@ -220,10 +226,16 @@ double readDouble ()
     } //for
 
     //pokud vstup obsahuje dale jine znaky nez cisla nebo tecku - chyba
-    if (c != '\n' || c != EOF) {
+    if (c != '\n' && c != EOF) {
         free(readed);
         return -1;    //error, nevim num. 7?
     }
+
+    //pridani koncoveho znaku
+    if (length + 1 > allocated)   //pamet nestaci, je potreba provest realokaci
+      if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
+        return -1;  //error, num. 99
+    readed[strlen(readed)] = '\0';
 
     //prevod samotny
     double number = atof(readed);
@@ -263,5 +275,12 @@ char* readString()
         c = getchar();
 
     }  //for
+
+    //pridani koncoveho znaku
+    if (length + 1 > allocated)   //pamet nestaci, je potreba provest realokaci
+      if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
+        return -1;  //error, num. 99
+    readed[strlen(readed)] = '\0';
+   
     return readed;
 }
