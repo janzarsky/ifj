@@ -267,35 +267,77 @@ int lexer(string *buffer) {
 
     case 4: // RETEZCOVY LITERAL
 
-        if (c != '"' && c!= '\x5C'){ // dokud sme v retezci a nejsou pouzity specialni znaky jako \n \"
+         if (c != '"' && c!= '\x5C' && quote_count == 0 ){ // dokud sme v retezci a nejsou pouzity specialni znaky jako \n \" a nema nasledovat neco za spec znakem
 
          strAddChar(buffer, c); // tak normalne naplnuj strukturu
 
-         quote_count = 0; // radsi furt nuluj quote_count jelikoz se nejedna o specialni znak
+         //quote_count = 0; // radsi furt nuluj quote_count jelikoz se nejedna o specialni znak
 
          state = 4; // a zustan tady
         }
 
         else if (c == '\x5C'){ // bude nasledovat specialni znak
 
-         strAddChar(buffer, c); // nahraj lomitko do struktury
-
          quote_count = 1; // signalizuj ze se bude jedna o nejaky spec. znak
 
          state = 4; // a zustan tady
 
         }
-        
-        else if (c == 'n' && quote_count == 1) { //nemuze byt znak konce radku!
-		
-		return ER_LEX; break;
+
+        else if (c == 'n' && quote_count == 1) { // \n preved na new line
+
+        c = '\x0A';
+
+        strAddChar(buffer, c);
+
+        quote_count = 0;
+
+		state = 4;
 	}
 
         else if (c == '"' && quote_count == 1){ // jedna se o uvozovky uvnitr stringu NE signalizujici jeho konec
 
          strAddChar(buffer, c); // hod je do struktury
 
+         quote_count = 0;
+
          state = 4; // a zustan tady
+
+        }
+
+        else if ( c == 't' && quote_count == 1){ // jedna se o tab
+
+        c = '\x09';
+
+        strAddChar(buffer, c);
+
+        quote_count = 0;
+
+		state = 4;
+
+        }
+
+        else if ( c == '\x5C' && quote_count == 1){ // jedna se o  \ uvnitr stringu
+
+        strAddChar(buffer, c);
+
+        quote_count = 0;
+
+		state = 4;
+
+        }
+
+        else if (c != '\x5C' && c != 't' && c != '"' && c != 'n' && quote_count == 1){ // cokoliv jineho  \a, \b atd bude takto ve stringu
+
+        int h = '\x5C';
+
+        strAddChar(buffer, h); // ulozime '\'
+
+        strAddChar(buffer, c); // a to za tim
+
+        quote_count = 0;
+
+		state = 4;
 
         }
 
