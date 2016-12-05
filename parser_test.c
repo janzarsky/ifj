@@ -702,16 +702,14 @@ int assign(){
             #endif
 
 
-            if( (temp_elem  = st_find(local_tabulka,temp_token_data)) == NULL){
-	            if( (temp_elem = st_find(tabulka,temp_token_data)) == NULL){
-	            	if( (temp_elem  = st_find(tabulka, temp_token_data = str_conc(current_class->id, temp_token_data))) == NULL){ 
-	            		free(temp_token_data);
-						return ER_SEM; //error type 3 not declarated var
-					} 
-	            	else{
-	            		free(temp_token_data);
-	            	}
-	            }	
+	        if( (temp_elem = st_find_global(tabulka,temp_token_data, current_class->id)) == NULL){
+                if( (temp_elem  = st_find(local_tabulka,temp_token_data)) == NULL){
+                    free(temp_token_data);
+                    return ER_SEM; //error type 3 not declarated var
+                } 
+                else{
+                    free(temp_token_data);
+                }
 	        } 
 
 			if ( (token = get_next_token(&token_data)) == ER_LEX )
@@ -1074,6 +1072,7 @@ int class_dec(){
 									
 									item->initialized = 0;
 									item->elem_type = ST_ELEMTYPE_VAR;
+                                    item->is_global = true;
 									#ifdef DEBUG
 									printf(ANSI_COLOR_MAGENTA"\n---------------------------------------------------------------------------------------\n");
 									printf(  "new global var id = %s\n" ,item->id  );

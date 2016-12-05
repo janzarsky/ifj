@@ -38,6 +38,7 @@ typedef struct symtab_elem_t {
     st_value_t value;
     bool declared;
     bool initialized;
+    bool is_global;
     struct symtab_elem_t *first_param; // if elem is function, then this points to list of parameters
     struct symtab_elem_t *next_param; // if elem is parameter, this points to next parameter
     tListItem *first_instr;
@@ -56,6 +57,7 @@ void symbol_init(symtab_t **I, int idx);
 int st_init(symtab_t **table);
 symtab_elem_t *st_add(symtab_t *table, char *token);
 symtab_elem_t *st_find (symtab_t *table, char *token);
+symtab_elem_t *st_find_global (symtab_t *tabulka, char *token, char *class);
 void st_free(symtab_t *table);
 void st_add_builtin_functions(symtab_t *table);
 

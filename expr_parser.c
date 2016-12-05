@@ -17,6 +17,7 @@ extern symtab_t *tabulka;
 extern symtab_t *local_tabulka;
 extern int token;
 extern char *token_data;
+extern symtab_elem_t *current_class;
 
 extern tListOfInstr instr_list;
 
@@ -381,10 +382,10 @@ int check_type_brackets() {
 }
 
 int check_type_id() {
-    symtab_elem_t *var = st_find(local_tabulka, token_data_prev);
+    symtab_elem_t *var = st_find_global(tabulka, token_data_prev, current_class->id);
 
     if (var == NULL) {
-        var = st_find(tabulka, token_data_prev);
+        var = st_find(local_tabulka, token_data_prev);
 
         if (var == NULL)
             return ST_DATATYPE_ERROR;
@@ -468,7 +469,7 @@ int rules() {
 
         debug_printf("token_data_prev: %s ", token_data_prev);
 
-        symtab_elem_t *var = st_find(tabulka, token_data_prev);
+        symtab_elem_t *var = st_find_global(tabulka, token_data_prev, current_class->id);
 
         if (var == NULL) {
             var = st_find(local_tabulka, token_data_prev);
@@ -559,6 +560,7 @@ int expr(int expr_type, int *type) {
 
     push(END_OF_FILE, ST_DATATYPE_VOID);
 
+    token_data_prev = token_data;
     token = get_next_token(&token_data);
 
     if (token == ER_LEX)
@@ -570,6 +572,7 @@ int expr(int expr_type, int *type) {
         print_stack();
         printf("    input: ");
         print_symbol_aligned(token);
+        printf("    token_data_prev: '%s' ", token_data_prev);
 #endif
         if (expr_type == MATH_EXPR && token == SEMICOLON) {
             token = END_OF_FILE;
@@ -699,7 +702,7 @@ int concat() {
         else {
             switch (token) {
                 case ID:
-                    var = st_find(tabulka, token_data);
+                    var = st_find_global(tabulka, token_data, current_class->id);
 
                     if (var == NULL) {
                         var = st_find(local_tabulka, token_data);

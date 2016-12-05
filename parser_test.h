@@ -10,4 +10,6 @@ void set_symtable_local(symtab_t *table);
 
 int program();
 
+char * str_conc(char * class_name, char * var_name);
+
 #endif

@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "parser_test.h"
 #include "symtab.h"
 
 unsigned int hash_function(const char *str, unsigned htab_size) {
@@ -45,6 +46,8 @@ symtab_elem_t *st_add(symtab_t *tabulka, char *token) {
         tabulka->elements[klic] = synon;
     }
 
+    synon->is_global = false;
+
     return synon;
 }
 
@@ -61,6 +64,19 @@ symtab_elem_t *st_find (symtab_t *tabulka, char *token){
     }
 
     return NULL;
+}
+
+symtab_elem_t *st_find_global (symtab_t *tabulka, char *token, char *class){
+    symtab_elem_t *ptr = st_find(tabulka, token);
+
+    if (ptr != NULL)
+        return ptr;
+    
+    char * str = str_conc(class, token);
+
+    ptr = st_find(tabulka, str);
+
+    return ptr;
 }
 
 void st_free(symtab_t *table) {
@@ -174,7 +190,10 @@ void st_add_builtin_functions(symtab_t *table) {
     st_add_builtin(table, "ifj16.readDouble", ST_DATATYPE_DOUBLE);
     st_add_builtin(table, "ifj16.readString", ST_DATATYPE_STRING);
     temp = st_add_builtin(table, "ifj16.print", ST_DATATYPE_VOID);
-    temp->first_param = st_add(table, "s");
+
+    st_init(&(temp->local_table));
+
+    temp->first_param = st_add(temp->local_table, "s");
     temp->first_param->elem_type = ST_ELEMTYPE_PARAM;
     temp->first_param->data_type = ST_DATATYPE_STRING;
     temp->first_param->next_param = NULL;

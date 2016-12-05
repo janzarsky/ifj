@@ -222,9 +222,13 @@ int interpret(tListOfInstr *L)
             stack_inter_Top(&(first.value), &S);
             stack_inter_Pop(&S);
 
-            *(first.value.union_value.dval) = (double) first.value.union_value.ival;
+            third.value.union_value.dval = malloc(sizeof(double));
+            if (third.value.union_value.dval == NULL)
+                return ER_INTERN;
+            
+            *(third.value.union_value.dval) = (double) first.value.union_value.ival;
 
-            push_tab(first.value.union_value, &S);
+            push_tab(third.value.union_value, &S);
         break;
 
         case IN_SWAP:

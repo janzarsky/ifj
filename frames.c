@@ -272,13 +272,20 @@ int return_instr(tListOfInstr *instrlist) {
 }
 
 st_value_t get_value(symtab_elem_t *var) {
+    if (var->is_global)
+        return var->value;
+
     st_value_t val;
     fr_get(active_frame, var, &val);
     return val;
 }
 
 void set_value(symtab_elem_t *var, inter_value *value) {
-    fr_set(active_frame, var, value->union_value);
+    if (var->is_global)
+        var->value = value->union_value;
+    else
+        fr_set(active_frame, var, value->union_value);
+
 #ifdef DEBUG
     fr_print_frames();
 #endif
