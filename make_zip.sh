@@ -1,3 +1,3 @@
 #!/bin/sh
 
-zip xzarsk03.zip *.c *.h rozdeleni Makefile
+zip -r xzarsk03.zip *.c *.h rozdeleni tests/ Makefile

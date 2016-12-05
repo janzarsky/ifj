@@ -14,5 +14,8 @@ ifj: $(OBJECTS)
 %.o: %.c
 	gcc $(CFLAGS) -DNDEBUG -c $^ -o $@
 
+test:
+	./tests/test.sh
+
 clean:
 	rm *.o $(PROGRAMS)
