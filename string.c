@@ -154,7 +154,7 @@ int readInt()
     //fixme ... prazdny vstup? znamenko minus?
     //ukladani znaku...
     char c = getchar();
-    for (int i = 0; c > '0' || c < '9'; i++)  {
+    for (int i = 0; c >= '0' && c <= '9'; i++)  {
 
         if (length + 1 > allocated) {
             //pamet nestaci, je potreba provest realokaci
@@ -169,7 +169,7 @@ int readInt()
     }
 
     //pokud vstup obsahuje dale jine znaky nez cisla - chyba
-    if (c != '\n' || c != EOF)  {
+    if (c != '\n' && c != EOF)  {
         free(readed);
         return -1;  //error, nevim num. 7?
     }

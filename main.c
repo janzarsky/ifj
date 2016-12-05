@@ -23,8 +23,8 @@
 
 extern tListOfInstr *instr_list;
 
-#ifdef DEBUG
 extern symtab_t *local_tabulka;
+#ifdef DEBUG
 
 void symtab_test()
 {
@@ -173,6 +173,8 @@ int main(int argc, char** argv) {
     symtab_t *symtab;
     st_init(&symtab);
 
+    st_add_builtin_functions(symtab);
+
     instr_list = malloc(sizeof(tListOfInstr));
     listInit(instr_list);
 
@@ -205,10 +207,6 @@ int main(int argc, char** argv) {
     printf("MAIN: symtab\n");
     st_print(symtab);
 
-    //FIXME remove later
-    //add_instr(IN_HALT, NULL, NULL, NULL);
-    //printf("\n");
-
     printf("\nMAIN: generated instructions\n");
     print_instr_list();
     
@@ -217,7 +215,7 @@ int main(int argc, char** argv) {
 
     printf("\nMAIN: interpret code\n");
 
-    int interpret_result = interpret(symtab, instr_list);
+    int interpret_result = interpret(instr_list);
     printf("******************************\n\nresult: %d\n", interpret_result);
 
     printf("MAIN: symtab\n");
@@ -244,6 +242,8 @@ int main(int argc, char** argv) {
     symtab_t *symtab;
     st_init(&symtab);
 
+    st_add_builtin_functions(symtab);
+
     instr_list = malloc(sizeof(tListOfInstr));
     listInit(instr_list);
 
@@ -253,11 +253,20 @@ int main(int argc, char** argv) {
     int parse_result = program();
 
     if (parse_result != ER_OK)
-        goto out;
+       goto out;
 
+    symtab_elem_t *temp = st_find(symtab, "Main.run");
+    add_instr(IN_CALL, NULL, NULL, temp);
+    set_function_beginning(&(temp->first_instr));
+
+    local_tabulka = NULL;
     rewind(source);
 
     parse_result = program();
+    
+    int interpret_result = interpret(instr_list);
+
+    return interpret_result;
 
 out:
     fclose(source);

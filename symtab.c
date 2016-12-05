@@ -80,6 +80,7 @@ void st_free(symtab_t *table) {
     free(table);
 }
 
+#ifdef DEBUG
 void st_print_elem(symtab_elem_t *elem, char *prefix) {
     printf("%saddr: %p, id: %s, elem_type: ", prefix, (void *)elem, elem->id);
 
@@ -88,6 +89,8 @@ void st_print_elem(symtab_elem_t *elem, char *prefix) {
             printf("var"); break;
         case ST_ELEMTYPE_FUN:
             printf("fun"); break;
+        case ST_ELEMTYPE_BUILTIN:
+            printf("builtin"); break;
         case ST_ELEMTYPE_PARAM:
             printf("param"); break;
         case ST_ELEMTYPE_CLASS:
@@ -150,4 +153,29 @@ void st_print(symtab_t *table) {
             }
         }
     }
+}
+#endif
+
+symtab_elem_t *st_add_builtin(symtab_t *table, char* name, int type) {
+    char *name_dup = strdup(name);
+
+    symtab_elem_t *temp = st_add(table, name_dup);
+    temp->elem_type = ST_ELEMTYPE_BUILTIN;
+    temp->data_type = type;
+    temp->first_param = NULL;
+
+    return temp;
+}
+
+void st_add_builtin_functions(symtab_t *table) {
+    symtab_elem_t *temp;
+
+    st_add_builtin(table, "ifj16.readInt", ST_DATATYPE_INT);
+    st_add_builtin(table, "ifj16.readDouble", ST_DATATYPE_DOUBLE);
+    st_add_builtin(table, "ifj16.readString", ST_DATATYPE_STRING);
+    temp = st_add_builtin(table, "ifj16.print", ST_DATATYPE_VOID);
+    temp->first_param = st_add(table, "s");
+    temp->first_param->elem_type = ST_ELEMTYPE_PARAM;
+    temp->first_param->data_type = ST_DATATYPE_STRING;
+    temp->first_param->next_param = NULL;
 }

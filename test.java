@@ -17,7 +17,7 @@ vysl = vysl * a;
 a = a - 1;
 }
 String s;
-s = "Vysledek je: " + vysl + "\n";
+s = "Vysledek je:";
 ifj16.print(s);
 }
 }

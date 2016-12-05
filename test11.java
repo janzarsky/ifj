@@ -11,14 +11,14 @@ class Main {
         return;
     }
     static int recurse_fun(int a, int b) {
+        a = a - 1;
+
         if (a != 0) {
             a = recurse_fun(a, b);
         }
         else {
             a = a + 0;
         }
-
-        a = a - 1;
 
         return a;
     }

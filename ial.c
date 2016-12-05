@@ -1,8 +1,9 @@
-/*#include "ial.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "ial.h"
 
 //pomocna funkce sortu
 void SiftDown(char *A, int Left, int Right)
@@ -63,5 +64,3 @@ int find(char *s, char *search)
 
   return 5; //fixme tato funkce neni dokoncena!
 }
-
-*/

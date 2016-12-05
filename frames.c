@@ -5,11 +5,14 @@
 #include "instrlist.h"
 #include "frames.h"
 #include "interpret.h"
+#include "string.h"
 #include "error_codes.h"
+#include "debug.h"
 
 frame_t *new_frame = NULL;
 frame_t *active_frame = NULL;
 
+#ifdef DEBUG
 void fr_print(frame_t *frame) {
     printf("frame: next_instr: %p ( ", (void *) frame->next_instr);
     
@@ -38,12 +41,16 @@ void fr_print_frames() {
 
     frame_t *temp = active_frame;
 
+    if (temp == NULL)
+        printf("INTERPRET: no active_frame\n");
+
     while (temp != NULL) {
         printf("INTERPRET: active_frame: \n");
         fr_print(temp);
         temp = temp->next;
     }
 }
+#endif
 
 int fr_add_item(frame_t *frame, symtab_elem_t *var) {
     frame_item_t *temp = malloc(sizeof(frame_item_t));
@@ -131,55 +138,103 @@ void fr_free(frame_t **frame) {
     *frame = NULL;
 }
 
-int call_instr(tListOfInstr *instrlist, inter_stack *stack, symtab_elem_t *func) {
-    printf("INTERPRET: inside call instruction, params: %p %p %p\n", (void *) instrlist, (void *) stack, (void *) func);
+int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
+    if (strcmp(func->id, "ifj16.readInt") == 0) {
+        int result = readInt();
+        push_val((void *)(unsigned long)result, stack);
+    }
+    else if (strcmp(func->id, "ifj16.readDouble") == 0) {
+        double *result = malloc(sizeof(double));
 
-    new_frame = malloc(sizeof(frame_t));
+        if (result == NULL)
+            return ER_INTERN;
 
-    if (new_frame == NULL)
-        return INTERNAL_ERROR;
+        *result = readDouble();
 
-    symtab_elem_t *param = func->first_param;
-
-    while (param != NULL) {
-        fr_add_item(new_frame, param);
-
+        push_val((void *) result, stack);
+    }
+    else if (strcmp(func->id, "ifj16.readString") == 0) {
+        char *result = readString();
+        push_val((void *) result, stack);
+    }
+    else if (strcmp(func->id, "ifj16.print") == 0) {
         inter_value param_value;
         stack_inter_Top(&param_value, stack);
         stack_inter_Pop(stack);
-        fr_set(new_frame, param, param_value.union_value);
-
-        printf("INTERPRET: adding param to frame, id: %s\n", param->id);
-        param = param->next_param;
+        printf("%s", param_value.union_value.strval);
     }
 
-    new_frame->next = active_frame;
-    active_frame = new_frame;
-    new_frame = NULL;
-
-    if (strcmp(func->id, "run") == 0) {
-        printf("!!!! setting next_instr to %p\n", (void *) NULL);
-        active_frame->next_instr = NULL;
-    }
-    else {
-        printf("!!!! setting next_instr to %p\n", (void *)instrlist->active->nextItem);
-        active_frame->next_instr = instrlist->active->nextItem;
-    }
-    printf("!!!! going to %p\n", (void *)func->first_instr);
-    listGoto(instrlist, func->first_instr);
-
-    fr_print_frames();
+#ifdef DEBUG
+    stack_inter_print(stack);
+#endif
 
     return ER_OK;
 }
 
-int return_instr(symtab_t *symtab, tListOfInstr *instrlist) {
-    printf("inside return instruction, params: %p %p\n", (void *) symtab, (void *) instrlist);
+int call_instr(tListOfInstr *instrlist, inter_stack *stack, symtab_elem_t *func) {
+    debug_printf("INTERPRET: inside call instruction, params: %p %p %p\n", (void *) instrlist, (void *) stack, (void *) func);
+
+    if (func->elem_type == ST_ELEMTYPE_FUN) {
+        new_frame = malloc(sizeof(frame_t));
+
+        if (new_frame == NULL)
+            return INTERNAL_ERROR;
+
+        symtab_elem_t *param = func->first_param;
+
+        while (param != NULL) {
+            fr_add_item(new_frame, param);
+
+            inter_value param_value;
+            stack_inter_Top(&param_value, stack);
+            stack_inter_Pop(stack);
+            fr_set(new_frame, param, param_value.union_value);
+
+            debug_printf("INTERPRET: adding param to frame, id: %s\n", param->id);
+            param = param->next_param;
+        }
+
+        new_frame->next = active_frame;
+        active_frame = new_frame;
+        new_frame = NULL;
+
+        if (strcmp(func->id, "run") == 0) {
+            debug_printf("!!!! setting next_instr to %p\n", (void *) NULL);
+            active_frame->next_instr = NULL;
+        }
+        else {
+            debug_printf("!!!! setting next_instr to %p\n", (void *)instrlist->active->nextItem);
+            active_frame->next_instr = instrlist->active->nextItem;
+        }
+        debug_printf("!!!! going to %p\n", (void *)func->first_instr);
+        listGoto(instrlist, func->first_instr);
+    }
+    else if (func->elem_type == ST_ELEMTYPE_BUILTIN) {
+        debug_printf("***** calling builtin function %s\n", func->id);
+
+        call_builtin_function(stack, func);
+
+        listNext(instrlist);
+    }
+
+#ifdef DEBUG
+    fr_print_frames();
+#endif
+
+    return ER_OK;
+}
+
+int return_instr(tListOfInstr *instrlist) {
+    debug_printf("inside return instruction, %p\n", (void *) instrlist);
+
+#ifdef DEBUG
+    fr_print_frames();
+#endif
 
     if (active_frame == NULL)
-        return INTERNAL_ERROR;
+        return ER_INTERN;
 
-    printf("!!!! going to %p\n", (void *)active_frame->next_instr);
+    debug_printf("!!!! going to %p\n", (void *)active_frame->next_instr);
     listGoto(instrlist, active_frame->next_instr);
 
     frame_t *temp = active_frame;
@@ -187,7 +242,14 @@ int return_instr(symtab_t *symtab, tListOfInstr *instrlist) {
 
     fr_free(&temp);
 
+#ifdef DEBUG
     fr_print_frames();
+#endif
+
+    if (active_frame == NULL) {
+        debug_printf("!!!! no frames\n");
+        return FR_NO_FRAMES;
+    }
 
     return ER_OK;
 }
@@ -200,5 +262,7 @@ st_value_t get_value(symtab_elem_t *var) {
 
 void set_value(symtab_elem_t *var, inter_value *value) {
     fr_set(active_frame, var, value->union_value);
+#ifdef DEBUG
     fr_print_frames();
+#endif
 }
