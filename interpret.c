@@ -23,6 +23,7 @@ int interpret(tListOfInstr *L)
   bool hodnota;
   bool load_next = false;
   int result;
+  char *str;
 
     inter_stack_item first;
     inter_stack_item second;
@@ -42,7 +43,7 @@ int interpret(tListOfInstr *L)
       load_next = true;
 
 #ifdef DEBUG
-      //printf("INTERPRET: ");stack_inter_print(&S);printf("\n");
+      printf("INTERPRET: ");stack_inter_print(&S);printf("\n");
       printf("INTERPRET: instruction ");print_instr(I);printf("\n");
 #endif
 
@@ -71,6 +72,42 @@ int interpret(tListOfInstr *L)
             }
 
             load_next = false;
+        break;
+
+        case IN_INT_TO_STR:
+            
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            str = malloc(20*sizeof(char));
+
+            if (str == NULL)
+                return ER_INTERN;
+
+            sprintf(str, "%d", first.value.union_value.ival);
+
+            third.value.union_value.strval = str;
+
+            push_tab(third.value.union_value, &S);
+
+        break;
+
+        case IN_DBL_TO_STR:
+
+            stack_inter_Top(&(first.value), &S);
+            stack_inter_Pop(&S);
+
+            str = malloc(30*sizeof(char));
+
+            if (str == NULL)
+                return ER_INTERN;
+
+            sprintf(str, "%g", *(first.value.union_value.dval));
+
+            third.value.union_value.strval = str;
+
+            push_tab(third.value.union_value, &S);
+
         break;
 
         case IN_ADD:

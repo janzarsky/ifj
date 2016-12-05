@@ -161,7 +161,24 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
         inter_value param_value;
         stack_inter_Top(&param_value, stack);
         stack_inter_Pop(stack);
-        printf("%s", param_value.union_value.strval);
+        debug_printf("##### builtin function ifj16.print(): ");
+
+        bool backslash = false;
+
+        for (int i = 0; param_value.union_value.strval[i] != 0; i++) {
+            if (backslash) {
+                backslash = false;
+                
+                if (param_value.union_value.strval[i] == 'n')
+                    putchar('\n');
+            }
+            else if (param_value.union_value.strval[i] == '\\') {
+                backslash = true;
+            }
+            else {
+                putchar(param_value.union_value.strval[i]);
+            }
+        }
     }
 
 #ifdef DEBUG

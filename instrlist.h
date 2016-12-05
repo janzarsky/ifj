@@ -109,9 +109,10 @@
 #define IN_CONV_SYMBOL  36
 #define IN_MOV          37
 
-#define IN_HALT         38
+#define IN_INT_TO_STR   38
+#define IN_DBL_TO_STR   39
 
-#define IN_MAX          39
+#define IN_MAX          40
 
 // pomocne defines pro zjednoduseni kodu
 // instrukce pro double se daji ziskat jako (instrukce pro int) + F_***_OFFSET

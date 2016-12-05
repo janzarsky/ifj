@@ -670,6 +670,98 @@ int expr(int expr_type, int *type) {
     return ER_SYNTAX;
 }
 
+int concat() {
+    bool expect_plus = false;
+    bool is_first_term = true;
+
+    token = get_next_token(&token_data);
+
+    if (token == ER_LEX)
+        return ER_LEX;
+
+    while (token != RIGHT_BRACKET) {
+#ifdef DEBUG
+        printf("    input: ");
+        print_symbol_aligned(token);
+#endif
+
+        symtab_elem_t *var;
+        long int int_value;
+        double *double_value;
+        char *char_value;
+
+        if (expect_plus) {
+            if (token != PLUS)
+                return ER_SYNTAX;
+
+            expect_plus = false;
+        }
+        else {
+            switch (token) {
+                case ID:
+                    var = st_find(tabulka, token_data);
+
+                    if (var == NULL) {
+                        var = st_find(local_tabulka, token_data);
+
+                        if (var == NULL)
+                            return ER_SEM;
+                    }
+
+                    add_instr(IN_TAB_PUSH, (void *) var, NULL, NULL);
+
+                    if (var->data_type == ST_DATATYPE_INT)
+                        add_instr(IN_INT_TO_STR, NULL, NULL, NULL);
+                    else if (var->data_type == ST_DATATYPE_DOUBLE)
+                        add_instr(IN_DBL_TO_STR, NULL, NULL, NULL);
+                    break;
+                case INT_LITERAL:
+                    int_value = int_from_token(token_data);
+                    add_instr(IN_VAL_PUSH, (void *) int_value, NULL, NULL);
+                    add_instr(IN_INT_TO_STR, NULL, NULL, NULL);
+                    break;
+                case DOUBLE_LITERAL:
+                    double_value = double_from_token(token_data);
+                    add_instr(IN_VAL_PUSH, (void *) double_value, NULL, NULL);
+                    add_instr(IN_DBL_TO_STR, NULL, NULL, NULL);
+                    break;
+                case STRING_LITERAL:
+                    char_value = string_from_token(token_data);
+
+                    if (char_value == NULL)
+                        return ER_SEM;
+
+                    add_instr(IN_VAL_PUSH, (void *) char_value, NULL, NULL);
+
+                    break;
+                default:
+                    return ER_SYNTAX;
+            }
+
+            expect_plus = true;
+
+            if (!is_first_term)
+                add_instr(IN_CONCAT, NULL, NULL, NULL);
+
+            is_first_term = false;
+        }
+
+        token = get_next_token(&token_data);
+
+        if (token == ER_LEX)
+            return ER_LEX;
+    }
+
+#ifdef DEBUG
+    printf("********** END OF ALGORITM **********\n");
+    printf("    input: ");
+    print_symbol(token);
+    printf("\n");
+#endif
+
+    return ER_OK;
+}
+
 int bool_expr() {
     int type;
 
@@ -689,5 +781,15 @@ int math_expr(int *type) {
 
     debug_printf("*****\n");
     
+    return result;
+}
+
+int string_concat() {
+    debug_printf("*****\nEXPR_PARSER: function string_concat()\n");
+
+    int result = concat();
+
+    debug_printf("*****\n");
+
     return result;
 }

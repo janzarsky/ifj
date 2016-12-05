@@ -16,9 +16,7 @@ while (a > 0) {
 vysl = vysl * a;
 a = a - 1;
 }
-String s;
-s = "Vysledek je:";
-ifj16.print(s);
+ifj16.print("Vysledek je: " + vysl + "\n");
 }
 }
 }

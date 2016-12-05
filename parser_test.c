@@ -23,6 +23,7 @@ int assign();
 int class_dec();
 int func_args();
 int func_args_list();
+int func_args_print();
 int func_params();
 int func_params_list();
 
@@ -562,9 +563,24 @@ int func_var(){
 			printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
 			#endif
 
-			if ( (result = func_args()) != ER_OK)
-				return result;
-
+            if (called_function->elem_type == ST_ELEMTYPE_FUN) { // if normal function
+			    if ( (result = func_args()) != ER_OK)
+			    	return result;
+            }
+            if (called_function->elem_type == ST_ELEMTYPE_BUILTIN) { // if builtin function
+                if (strcmp(called_function->id, "ifj16.print") == 0) {
+                    if ( (result = func_args_print()) != ER_OK)
+                        return result;
+                }
+                else {
+			        if ( (result = func_args()) != ER_OK)
+    			    	return result;
+                }
+            }
+            else { // if not a function
+                free(id);
+                return ER_SEM;
+            }
 
 			add_instr(IN_CALL,NULL,NULL, (void*)item); // instruction for FUNCTION CALL
 
@@ -901,6 +917,16 @@ int func_args(){
 			break;
 	}
 	return ER_SYNTAX;
+}
+
+// <func-args-print>//function CALL
+		// 1) <func-args> -> STRING_CONCAT RIGHT_BRACKET
+int func_args_print(){
+	#ifdef DEBUG
+    printf("PARSER: function func_args_print()\n");
+    #endif
+
+	return string_concat();
 }
 
 // <func-args-list>
