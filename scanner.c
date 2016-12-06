@@ -332,7 +332,7 @@ int lexer(string *buffer) {
             return ER_LEX; break;
         }
 
-        else if (c != '\x5C' && c != 't' && c != '"' && c != 'n' && quote_count == 1){ // cokoliv jineho  \a, \b atd bude takto ve stringu
+       /* else if (c != '\x5C' && c != 't' && c != '"' && c != 'n' && quote_count == 1){ // cokoliv jineho  \a, \b atd bude takto ve stringu
 
         int h = '\x5C';
 
@@ -344,7 +344,7 @@ int lexer(string *buffer) {
 
 		state = 4;
 
-        }
+        }*/
 
         else if (c == '"' && quote_count == 0){ // sme na konci retezce
 
