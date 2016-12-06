@@ -1,5 +1,5 @@
 // exit 0
-// output 0
+// output -5
 class Main {
     static void run() {
         int a;
