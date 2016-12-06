@@ -521,13 +521,13 @@ int lexer(string *buffer) {
       a[2] = c;
       num_count = 3; //naplneno mame vsechny cisla 
 	
-      int helpmepls = strtoul(a, null, 8);
+      int helpmepls = strtoul(a, NULL, 8);
 	      
-      if ( helpmepls > 0377 || helpmepls < 01 ){ return ER_LEX } else {
+      if ( helpmepls > 0377 || helpmepls < 01 ){ return ER_LEX; } else {
 	      
       strAddChar(buffer, helpmepls);
 	      
-      num_count == 0;
+      num_count = 0;
       
       state = 4; 
 	      
