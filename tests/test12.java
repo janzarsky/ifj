@@ -1,3 +1,5 @@
+// exit 0
+// output 1 10.2 asdfqwertyjklmn 3 11.2 asdfqwertyjklmnjklmn
 class Main {
     static int a;
     static double b;
@@ -20,11 +22,11 @@ class Main {
         lb = b + a;
         lc = c + "jklmn";
 
-        ifj16.print("a = " + a + "\n");
-        ifj16.print("b = " + b + "\n");
-        ifj16.print("c = " + c + "\n");
-        ifj16.print("la = " + la + "\n");
-        ifj16.print("lb = " + lb + "\n");
-        ifj16.print("lc = " + lc + "\n");
+        ifj16.print(a + " ");
+        ifj16.print(b + " ");
+        ifj16.print(c + " ");
+        ifj16.print(la + " ");
+        ifj16.print(lb + " ");
+        ifj16.print(lc + "\n");
     }
 }
