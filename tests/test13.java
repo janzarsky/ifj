@@ -2,15 +2,12 @@
 // output 1
 class Main {
     static void run() {
-        int a;
-        double b;
-        a = b + 5;
-        blight.darspawn();
+        blight.darkspawn();
     }
 }
 
 class blight {
-    static void darkspawn (){
+    static void darkspawn () {
         int hurlock;
         double shriek;
         double gemlock;

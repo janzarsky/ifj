@@ -1,17 +1,14 @@
 // exit 0
-// output -5
+// output 0 1 15 10
 class Main {
     static void run() {
-        int a;
-        double b;
-        a = b + 5;
         hero.approval();
     }
 }
 
 class mages {
     static int morrigan() {
-        return -1;
+        return 0;
     }
 
     static int wynne () {
@@ -29,10 +26,14 @@ class mages {
 
 class hero {
     static void approval() {
-        int approves = morrigan();
-        approves = approves + wynne ();
-        approves = approves - anders();
-        approves = approves + bethany();
+        int approves;
+        approves = mages.morrigan();
+        ifj16.print(approves + " ");
+        approves = mages.wynne();
+        ifj16.print(approves + " ");
+        approves = mages.anders();
+        ifj16.print(approves + " ");
+        approves = mages.bethany();
         ifj16.print(approves + "\n");
     }
 }

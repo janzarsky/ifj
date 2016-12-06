@@ -27,10 +27,10 @@ for file in $files ; do
 
         grep "output" temp | cut -f 1,2 -d ' ' --complement > exp_output
 
-        if [ "$(cat exp_output | wc -l)" -gt 0 ]; then
+        if [ "$(cat exp_output | wc -l)" -gt "0" ]; then
             diff output exp_output > /dev/null
 
-            if [ "$?" -eq 0 ]; then
+            if [ "$?" -eq "0" ]; then
                 output_status="PASS"
             else
                 output_status="FAIL"
