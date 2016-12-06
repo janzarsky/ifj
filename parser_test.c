@@ -153,9 +153,6 @@ int program(){
 	}
 //pruchod 2
 	else{
-        // FIXME
-        local_tabulka = st_find(tabulka, "Main.run")->local_table;
-
 		if ( (token = get_next_token(&token_data)) == ER_LEX )
 			return ER_LEX;
 		switch(token){
@@ -165,6 +162,14 @@ int program(){
 				switch(token){
 	// 1) <prog>  -> CLASS MAIN LEFT_VINCULUM STATIC VOID RUN LEFT_BRACKET RIGHT_BRACKET LEFT_VINCULUM <st-list>  RIGHT_VINCULUM <prog>
 					case MAIN:
+                        current_class = st_find(tabulka, "Main");
+
+                        if (current_class == NULL) {
+                            return ER_INTERN;
+                        }
+                        else if (current_class->elem_type != ST_ELEMTYPE_CLASS) {
+                            return ER_INTERN;
+                        }
 						/*if ( (token = get_next_token(&token_data)) != ER_LEX  && token == LEFT_VINCULUM)
 							 if ( (token = get_next_token(&token_data)) != ER_LEX && token == STATIC)
 							 	if ( (token = get_next_token(&token_data)) != ER_LEX && token == VOID)
@@ -197,6 +202,13 @@ int program(){
 						break;
 	// 2) <prog>  -> CLASS ID LEFT_VINCULUM <class-dec> <prog> // declaration of class
 					case ID: 
+                        current_class = st_find(tabulka, token_data);
+
+                        if (current_class == NULL)
+                            return ER_INTERN;
+                        else if (current_class->elem_type != ST_ELEMTYPE_CLASS)
+                            return ER_INTERN;
+
 						if ( (token = get_next_token(&token_data)) != ER_LEX  && token == LEFT_VINCULUM){
 					 		if( (result = class_dec()) != ER_OK)
 					 			return result;
@@ -567,7 +579,7 @@ int func_var(){
 			    if ( (result = func_args()) != ER_OK)
 			    	return result;
             }
-            if (called_function->elem_type == ST_ELEMTYPE_BUILTIN) { // if builtin function
+            else if (called_function->elem_type == ST_ELEMTYPE_BUILTIN) { // if builtin function
                 if (strcmp(called_function->id, "ifj16.print") == 0) {
                     if ( (result = func_args_print()) != ER_OK)
                         return result;
@@ -1306,6 +1318,11 @@ int class_dec(){
 					case VOID:
 						if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID){
 							current_function = st_find(tabulka,temp_string = str_conc(current_class->id,token_data));
+
+                            if (current_function == NULL)
+                                return ER_INTERN;
+
+                            local_tabulka = current_function->local_table;
 							free(temp_string);
 
 							if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET){
@@ -1328,6 +1345,7 @@ int class_dec(){
 						}
 						else if(token == RUN){
 							current_function = st_find(tabulka,temp_string = str_conc(current_class->id,token_data));
+                            local_tabulka = current_function->local_table;
 							free(temp_string);
 
 							if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET){

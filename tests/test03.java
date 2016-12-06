@@ -1,7 +1,8 @@
+// exit 4
 class Main {
     static void run() {
         int a;
         String b;
-        a = b + 42.0;
+        a = 5 + b;
     }
 }
