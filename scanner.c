@@ -267,7 +267,7 @@ int lexer(string *buffer) {
 
     case 4: // RETEZCOVY LITERAL
 
-         if (c != '"' && c!= '\x5C' && quote_count == 0 ){ // dokud sme v retezci a nejsou pouzity specialni znaky jako \n \" a nema nasledovat neco za spec znakem
+         if (c != '"' && c!= '\x5C' && quote_count == 0 && c > '\x000' && c < '\x17A'){ // dokud sme v retezci a nejsou pouzity specialni znaky jako \n \" a nema nasledovat neco za spec znakem
 
          strAddChar(buffer, c); // tak normalne naplnuj strukturu
 
