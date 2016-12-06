@@ -317,7 +317,7 @@ bool check_rule(int num, ...) {
 
 int execute_rule(int num, int symbol, int type) {
     if (type == ST_DATATYPE_ERROR)
-        return ER_SEM;
+        return ER_SEM_TYPES;
 
     // pop additional '<' from stack
     pop_n_times(num + 1);
@@ -543,10 +543,7 @@ int rules() {
         return ER_SYNTAX;
     }
 
-    if (result == ER_SEM)
-        return ER_SEM;
-
-    return ER_OK;
+    return result;
 }
 
 
@@ -606,16 +603,11 @@ int expr(int expr_type, int *type) {
             case T_R:
                 debug_printf("op: >    ");
                 result = rules();
-                if (result == ER_SYNTAX) {
+                if (result != ER_OK) {
                     debug_printf("\n");
                     *type = ST_DATATYPE_ERROR;
-                    return ER_SYNTAX;
-                }
-                else if (result == ER_SEM) {
-                    debug_printf("\n");
-                    *type = ST_DATATYPE_ERROR;
-                    return ER_SEM;
-                }
+                    return result;
+				}
                 debug_printf("\n");
                 break;
             case T_N:
@@ -653,7 +645,7 @@ int expr(int expr_type, int *type) {
         }
         else {
             *type = ST_DATATYPE_ERROR;
-            return ER_SEM;
+            return ER_SEM_TYPES;
         }
     }
 
@@ -666,7 +658,7 @@ int expr(int expr_type, int *type) {
         }
         else {
             *type = ST_DATATYPE_ERROR;
-            return ER_SEM;
+            return ER_SEM_TYPES;
         }
     }
 
