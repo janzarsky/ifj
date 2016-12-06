@@ -138,7 +138,7 @@ int lexer(string *buffer) {
     int state = 0; // stav automatu
     int c; // promenna pro znak
     char a [4]; // promenna pomocna pro zadani retezce pomoci hex cisla
-    a[3] = "/0";
+    a[3] = '/0';
 
     int num_count = 0; 
 
