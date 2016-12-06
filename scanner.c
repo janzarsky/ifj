@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "instrlist.h"
 #include "string.h"
@@ -521,7 +522,16 @@ int lexer(string *buffer) {
       a[2] = c;
       num_count = 3; //naplneno mame vsechny cisla 
 	
-      int helpmepls = strtoul(a, NULL, 8);
+      errno = 0;
+      char *endptr;
+
+      int helpmepls = strtoul(a, &endptr, 8);
+
+      if (errno != 0)
+          return ER_LEX;
+
+      if (endptr != NULL)
+          return ER_LEX;
 	      
       if ( helpmepls > 0377 || helpmepls < 01 ){ return ER_LEX; } else {
 	      

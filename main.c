@@ -197,6 +197,10 @@ int main(int argc, char** argv) {
     st_print(symtab);
     printf("\nMAIN: parse code (second run)\n");
 
+    if (parse_result != ER_OK)
+        return 1;
+
+
     // FIXME
     local_tabulka = NULL;
 
