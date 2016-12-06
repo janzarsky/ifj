@@ -694,7 +694,8 @@ int assign(){
 	switch(token){
 		case ID:
             temp_token = token;
-            temp_token_data = token_data;
+            temp_token_data = strdup(token_data);
+
             #ifdef DEBUG
             printf(ANSI_COLOR_CYAN"------------------------------------------------------------------------\n");
             printf("\ntoken_data: %s\n",temp_token_data);
@@ -707,9 +708,6 @@ int assign(){
                     free(temp_token_data);
                     return ER_SEM; //error type 3 not declarated var
                 } 
-                else{
-                    free(temp_token_data);
-                }
 	        } 
 
 			if ( (token = get_next_token(&token_data)) == ER_LEX )

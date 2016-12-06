@@ -5,14 +5,11 @@ PROGRAMS = ifj
 
 all: ifj
 
-#expr_parser_test: expr_parser_test.c expr_parser.c instrlist.c
-#	gcc $(CFLAGS) -DDEBUG $^ -o $@
-
 ifj: $(OBJECTS)
 	gcc $(CFLAGS) $^ -o $@
 
 %.o: %.c
-	gcc $(CFLAGS) -DDEBUG -c $^ -o $@
+	gcc $(CFLAGS) -D$(debug)DEBUG -c $^ -o $@
 
 test:
 	./tests/test.sh
