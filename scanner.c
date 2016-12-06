@@ -137,6 +137,10 @@ int get_next_token(char **buffer) {
 int lexer(string *buffer) {
     int state = 0; // stav automatu
     int c; // promenna pro znak
+    char a [4]; // promenna pomocna pro zadani retezce pomoci hex cisla
+    a[3] = "/0";
+
+    int num_count = 0; 
 
     int dot_count = 0; // promenna pro kontrolu spravnosti plne kvalifikovaneho identifikatoru
     int quote_count = 0; // promenna pro signalizaci pouziti znaku " uvnitr stringu
@@ -267,7 +271,7 @@ int lexer(string *buffer) {
 
     case 4: // RETEZCOVY LITERAL
 
-         if (c != '"' && c!= '\x5C' && quote_count == 0 && c > '\x000' && c < '\x17A' && c != '\n'){ // dokud sme v retezci a nejsou pouzity specialni znaky jako \n \" a nema nasledovat neco za spec znakem
+         if (c != '"' && c!= '\x5C' && quote_count == 0 && c != '\n'){ // dokud sme v retezci a nejsou pouzity specialni znaky jako \n \" a nema nasledovat neco za spec znakem
 
          strAddChar(buffer, c); // tak normalne naplnuj strukturu
 
@@ -345,6 +349,18 @@ int lexer(string *buffer) {
 		state = 4;
 
         }*/
+		    
+        else if (isdigit(c) && quote_count == 1) { // znak zadany pomoci \xxx
+		
+	a[0] = c; 
+	
+	quote_count = 0;
+	
+	num_count = 1; // prislo prvni cislo 
+		
+	state = 9;
+		
+	}
 
         else if (c == '"' && quote_count == 0){ // sme na konci retezce
 
@@ -488,6 +504,38 @@ int lexer(string *buffer) {
      else if (quote_count == 1 && c == '*') {state = 2;} // jedna se o blokovy komentar
      else return ER_LEX;
      break;
+		     
+   case 9: // RETEZCE DODATEK 
+
+      if (!isdigit(c) && num_count < 3) { return ER_LEX; } // error typu \01abc
+      
+      else if ( isdigit(c) && num_count == 1 ) {
+	      
+	 a[1] = c;
+	 num_count = 2; 
+	      
+	 state = 9; 
+      }
+      else if ( isdigit(c) && num_count == 2 ) {
+      
+      a[2] = c;
+      num_count = 3; //naplneno mame vsechny cisla 
+	
+      int helpmepls = strtoul(a, null, 8);
+	      
+      if ( helpmepls > 0377 || helpmepls < 01 ){ return ER_LEX } else {
+	      
+      strAddChar(buffer, helpmepls);
+	      
+      num_count == 0;
+      
+      state = 4; 
+	      
+      }
+	      
+      }
+		    
+    break;
 
   } // konec switche
  } // konec while
