@@ -817,6 +817,10 @@ int assign(){
             return_token(token, token_data);
 
             result = math_expr(&type);
+
+            if (result != ER_OK)
+                return result;
+
             if(item->declared ){
 
             	switch(item->data_type){

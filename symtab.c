@@ -186,6 +186,9 @@ symtab_elem_t *st_add_builtin(symtab_t *table, char* name, int type) {
 void st_add_builtin_functions(symtab_t *table) {
     symtab_elem_t *temp;
 
+    temp = st_add(table, "ifj16");
+    temp->elem_type = ST_ELEMTYPE_CLASS;
+
     st_add_builtin(table, "ifj16.readInt", ST_DATATYPE_INT);
     st_add_builtin(table, "ifj16.readDouble", ST_DATATYPE_DOUBLE);
     st_add_builtin(table, "ifj16.readString", ST_DATATYPE_STRING);
