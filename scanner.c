@@ -141,7 +141,8 @@ int lexer(string *buffer) {
     char a [4]; // promenna pomocna pro zadani retezce pomoci hex cisla
     a[3] = '\0';
 
-    int num_count = 0; 
+    int num_count = 0;
+    int E_count = 0;
 
     int dot_count = 0; // promenna pro kontrolu spravnosti plne kvalifikovaneho identifikatoru
     int quote_count = 0; // promenna pro signalizaci pouziti znaku " uvnitr stringu
@@ -331,36 +332,30 @@ int lexer(string *buffer) {
 		state = 4;
 
         }
-	
+
 	else if (c == '\n' && quote_count == 0){
 
             return ER_LEX; break;
         }
 
        /* else if (c != '\x5C' && c != 't' && c != '"' && c != 'n' && quote_count == 1){ // cokoliv jineho  \a, \b atd bude takto ve stringu
-
         int h = '\x5C';
-
         strAddChar(buffer, h); // ulozime '\'
-
         strAddChar(buffer, c); // a to za tim
-
         quote_count = 0;
-
 		state = 4;
-
         }*/
-		    
+
         else if (isdigit(c) && quote_count == 1) { // znak zadany pomoci \xxx
-		
-	a[0] = c; 
-	
+
+	a[0] = c;
+
 	quote_count = 0;
-	
-	num_count = 1; // prislo prvni cislo 
-		
+
+	num_count = 1; // prislo prvni cislo
+
 	state = 9;
-		
+
 	}
 
         else if (c == '"' && quote_count == 0){ // sme na konci retezce
@@ -377,12 +372,12 @@ int lexer(string *buffer) {
          state = 5; // a zustan tady
         }
 
-        else if (!isdigit(c) && c != ';' && c != '.' && c != 'e' && c != 'E' && !isspace(c) && c != ')' && c != '+' && c != '-' && c != '/' && c != '*' && c != '!' && c != ','){ // pokud nasleduje znak jiny nez ; ktery signalizuje konec zadavani literalu nebo tecka signalizujici des. cislo nebo exponent, je to error
+        else if (!isdigit(c) && c != ';' && c != '.' && c != 'e' && c != 'E' && !isspace(c) && c != ')' && c != '+' && c != '-' && c != '/' && c != '*' && c != '!' && c != ',' && c != '=' && c != '<' && c != '>'){ // pokud nasleduje znak jiny nez ; ktery signalizuje konec zadavani literalu nebo tecka signalizujici des. cislo nebo exponent, je to error
 
           return ER_LEX; break;
         }
 
-        else if (c == ';'){
+        else if (isspace(c) || c == ')' || c == ',' || c == ';' || c == '+' || c == '-' || c == '/' || c == '*' || c == '!' || c == '=' || c == '<' || c == '>'){
 
           ungetc(c, source); // konec celeho cisla, vracime ; nebo volny zpatky, zpracujem pak
 
@@ -390,12 +385,7 @@ int lexer(string *buffer) {
 
         }
 
-        else if (isspace(c) || c == ')' || c == ','){ // nasleduje volne misto, konec zadavani cisla, cislo muze byt zprava v zavorce! DOPLNIT DO FLOATU!!!!
 
-          ungetc(c, source);
-
-          return INT_LITERAL; // a vrati se celociselny literal
-        }
 
         else if(c == '.') { // bude se jednat o desetinny literal ve kterem se nachazi desetinna cast
 
@@ -407,6 +397,9 @@ int lexer(string *buffer) {
         else if(c == 'e' || c == 'E') { // bude se jednat o desetinny literal ve kterem NENI desetinna cast ale pouze exponent
 
          strAddChar(buffer, c);
+
+         E_count = 1;
+
          state = 7;
 
         }
@@ -425,27 +418,21 @@ int lexer(string *buffer) {
 
          strAddChar(buffer, c);
 
+         E_count = 1;
+
          state = 7;
         }
 
-        else if (!isdigit(c) && c != ';' && c != 'e' && c != 'E' && !isspace(c) && c != ')' && c != '+' && c != '-' && c != '/' && c != '*' && c != '!'){ // pokud nasleduje znak jiny nez ; ktery signalizuje konec zadavani literalu a nebo exponent, je to error
+        else if (!isdigit(c) && c != ';' && c != 'e' && c != 'E' && !isspace(c) && c != ')' && c != '+' && c != '-' && c != '/' && c != '*' && c != '!' && c != ',' && c != '=' && c != '<' && c != '>'){ // pokud nasleduje znak jiny nez ; ktery signalizuje konec zadavani literalu nebo tecka signalizujici des. cislo nebo exponent, je to error
 
           return ER_LEX; break;
         }
 
-        else if (c == ';'){
+        else if (isspace(c) || c == ')' || c == ',' || c == ';' || c == '+' || c == '-' || c == '/' || c == '*' || c == '!' || c == '=' || c == '<' || c == '>'){
 
-          ungetc(c, source); // konec desetinneho cisla, vracime ; zpatky, zpracujem pak
+          ungetc(c, source); // konec celeho cisla, vracime ; nebo volny zpatky, zpracujem pak
 
-          return DOUBLE_LITERAL; // a vrati se desetinny literal bez exponentu
-
-        }
-
-        else if (isspace(c) || c == ')'){
-
-        ungetc(c, source);
-
-        return DOUBLE_LITERAL; // a vrati se celociselny literal
+          return DOUBLE_LITERAL; // a vrati se celociselny literal
 
         }
 
@@ -453,37 +440,49 @@ int lexer(string *buffer) {
 
     case 7: // DESETINNY LITERAL S EXPONENTEM
 
-        if ((c == '+' || c == '-') && sign_count == 0){ // nasleduje nepovinne znamenko
+        if ((c == '+' || c == '-') && sign_count == 0 && E_count == 1 ){ // nasleduje nepovinne znamenko
 
          sign_count = 1; // bylo pouzito nepovinne znamenko
 
-         strAddChar(buffer, c); // uloz ho do struktury
-
-         state = 7; // a zustan tady
-        }
-
-        else if (isdigit(c)) { // nasleduje neprazdna posloupnost cislic
+         E_count = 0;
 
          strAddChar(buffer, c); // uloz ho do struktury
 
          state = 7; // a zustan tady
         }
 
-        else if (!isdigit(c) && c != ';' && c != '+' && c != '-') {// nic jineho nez cisla za exponentem nebo semicolon tu byt nemuze
+        else if ((c != '+' || c != '-') && !isdigit(c) && E_count == 1){ // hned po exponentu nenasleduje cislo nebo nepovinne znamenko
 
-         return ER_LEX; break;
+        return ER_LEX; break;
+
         }
 
-        else if (c == '+' || (c == '-' && sign_count == 1)) { // pokus o pouziti dalsiho znamenka, nepovoleno
+        else if (isdigit(c) && E_count == 1 ) { // nebylo vyuzito nepovinne znamenko
 
-         return ER_LEX; break;
+         strAddChar(buffer, c); // uloz ho do struktury
+
+         E_count = 0;
+
+         state = 7; // a zustan tady
         }
 
-        else if (c == ';'){
+        else if (isdigit(c) && E_count == 0 ) { // neprazdna posloupnost cislic
 
-          ungetc(c, source); // konec desetinneho cisla s exponentem, vracime ; zpatky, zpracujem pak
+         strAddChar(buffer, c); // uloz ho do struktury
 
-          return DOUBLE_LITERAL; // a vrati se desetinny literal bez exponentu
+         state = 7; // a zustan tady
+        }
+
+        else if (!isdigit(c) && c != ';' && !isspace(c) && c != ')' && c != '+' && c != '-' && c != '/' && c != '*' && c != '!' && c != ',' && c != '=' && c != '<' && c != '>'){ // pokud nasleduje znak jiny nez ; ktery signalizuje konec zadavani literalu nebo tecka signalizujici des. cislo nebo exponent, je to error
+
+          return ER_LEX; break;
+        }
+
+        else if (isspace(c) || c == ')' || c == ',' || c == ';' || c == '+' || c == '-' || c == '/' || c == '*' || c == '!' || c == '=' || c == '<' || c == '>'){
+
+          ungetc(c, source); // konec celeho cisla, vracime ; nebo volny zpatky, zpracujem pak
+
+          return DOUBLE_LITERAL; // a vrati se celociselny literal
 
         } break;
 
@@ -505,23 +504,23 @@ int lexer(string *buffer) {
      else if (quote_count == 1 && c == '*') {state = 2;} // jedna se o blokovy komentar
      else return ER_LEX;
      break;
-		     
-   case 9: // RETEZCE DODATEK 
+
+   case 9: // RETEZCE DODATEK
 
       if (!isdigit(c) && num_count < 3) { return ER_LEX; } // error typu \01abc
-      
+
       else if ( isdigit(c) && num_count == 1 ) {
-	      
+
 	 a[1] = c;
-	 num_count = 2; 
-	      
-	 state = 9; 
+	 num_count = 2;
+
+	 state = 9;
       }
       else if ( isdigit(c) && num_count == 2 ) {
-      
+
       a[2] = c;
-      num_count = 3; //naplneno mame vsechny cisla 
-	
+      num_count = 3; //naplneno mame vsechny cisla
+
       errno = 0;
       char *endptr;
 
@@ -532,19 +531,19 @@ int lexer(string *buffer) {
 
       if (endptr != NULL)
           return ER_LEX;
-	      
+
       if ( helpmepls > 0377 || helpmepls < 01 ){ return ER_LEX; } else {
-	      
+
       strAddChar(buffer, helpmepls);
-	      
+
       num_count = 0;
-      
-      state = 4; 
-	      
+
+      state = 4;
+
       }
-	      
+
       }
-		    
+
     break;
 
   } // konec switche
