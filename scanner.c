@@ -144,6 +144,7 @@ int lexer(string *buffer) {
     int num_count = 0;
     int E_count = 0;
 
+    int dbl_dot_count = 0; // promenna pro kontrolu tecky u doublu
     int dot_count = 0; // promenna pro kontrolu spravnosti plne kvalifikovaneho identifikatoru
     int quote_count = 0; // promenna pro signalizaci pouziti znaku " uvnitr stringu
     int sign_count = 0; // promenna pro signalizaci pouziti nepovinneho znamenka u desetinneho exponentu
@@ -338,13 +339,11 @@ int lexer(string *buffer) {
             return ER_LEX; break;
         }
 
-       /* else if (c != '\x5C' && c != 't' && c != '"' && c != 'n' && quote_count == 1){ // cokoliv jineho  \a, \b atd bude takto ve stringu
-        int h = '\x5C';
-        strAddChar(buffer, h); // ulozime '\'
-        strAddChar(buffer, c); // a to za tim
-        quote_count = 0;
-		state = 4;
-        }*/
+       else if (!isdigit(c) && c != '\x5C' && c != 't' && c != '"' && c != 'n' && quote_count == 1){ // cokoliv jineho  \a, \b atd bude zamitnuto
+
+        return ER_LEX; break;
+
+        }
 
         else if (isdigit(c) && quote_count == 1) { // znak zadany pomoci \xxx
 
@@ -389,6 +388,7 @@ int lexer(string *buffer) {
 
         else if(c == '.') { // bude se jednat o desetinny literal ve kterem se nachazi desetinna cast
 
+         dbl_dot_count = 1;
          strAddChar(buffer, c);
          state = 6;
 
@@ -407,11 +407,25 @@ int lexer(string *buffer) {
 
     case 6: // DESETINNY LITERAL
 
-        if (isdigit(c)){ // pokud prichazi cislo
+        if (isdigit(c) && dbl_dot_count == 1){ // pokud prichazi cislo
+
+         dbl_dot_count = 0;
 
          strAddChar(buffer, c); // pln strukturu
 
          state = 6; // a zustan tady
+        }
+
+        else if (isdigit(c) && dbl_dot_count == 0){
+
+         strAddChar(buffer, c); // pln strukturu
+
+         state = 6; // a zustan tady
+        }
+
+        else if (dbl_dot_count == 1 && !isdigit(c)){ // po tecce musi nasledovat cislo
+
+            return ER_LEX;
         }
 
         else if (c == 'e' || c == 'E'){ // nasleduje exponent
@@ -440,11 +454,25 @@ int lexer(string *buffer) {
 
     case 7: // DESETINNY LITERAL S EXPONENTEM
 
-        if ((c == '+' || c == '-') && sign_count == 0 && E_count == 1 ){ // nasleduje nepovinne znamenko
+        if ((c == '+' || c == '-') && E_count == 1 ){ // nasleduje nepovinne znamenko
+
+         E_count = 0;
 
          sign_count = 1; // bylo pouzito nepovinne znamenko
 
-         E_count = 0;
+         strAddChar(buffer, c); // uloz ho do struktury
+
+         state = 7; // a zustan tady
+        }
+
+        else if (!isdigit(c) && sign_count == 1){
+
+           return ER_LEX; break; // za nepovinnym znamenkem nenasledovala neprazdna posloupnost cislic
+        }
+
+        else if (isdigit(c) && sign_count == 1){
+
+         sign_count = 0; // bylo pouzito nepovinne znamenko
 
          strAddChar(buffer, c); // uloz ho do struktury
 
@@ -549,4 +577,5 @@ int lexer(string *buffer) {
   } // konec switche
  } // konec while
 } // konec funkce
+
 
