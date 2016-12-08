@@ -283,7 +283,7 @@ int lexer(string *buffer) {
          state = 4; // a zustan tady
         }
 
-        else if (c == '\x5C'){ // bude nasledovat specialni znak
+        else if (c == '\x5C' && quote_count == 0){ // bude nasledovat specialni znak
 
          quote_count = 1; // signalizuj ze se bude jedna o nejaky spec. znak
 
@@ -577,5 +577,6 @@ int lexer(string *buffer) {
   } // konec switche
  } // konec while
 } // konec funkce
+
 
 
