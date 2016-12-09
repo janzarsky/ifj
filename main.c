@@ -215,7 +215,7 @@ int main(int argc, char** argv) {
     print_instr_list();
     
     if (parse_result != ER_OK)
-        return 1;
+        return parse_result;
 
     printf("\nMAIN: interpret code\n");
 
@@ -229,7 +229,7 @@ int main(int argc, char** argv) {
     // free instruction list
     fclose(source);
 
-    return 0;
+    return interpret_result;
 }
 #else
 int main(int argc, char** argv) {
