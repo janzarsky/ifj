@@ -58,9 +58,70 @@ char *sort(char *s)
   return sor;
 }
 
+//pomocna funkce 'findu'
+//skenuje retezec search a zapisuje do pole shody znaku, ktere budou pouzity jako dalsi pri neshode
+void preKMP(char *search, int fail[])
+{
+  int search_len = strlen(search);
+  int r;	//hlavne pro zapis indexu do pole fail
+
+  fail[0] = -1;		//hodnota '-1' je "defaultni" stav promenne 'r'
+  for (int i = 1; i < search_len; i++) {   //pocitadlo indexu...
+    
+    r = fail[i - 1];  //ulozeni predchozi hodnoty 'fail'
+
+    //cyklus je navrzen tak, aby v prvnim pruchodu nedoslo ke cteni nechtene hodnoty z search[-1] a zaroven,
+    //aby hlidal, zda-li neni porovnavany znak na indexu [i-1] shodny se znakem na indexu [r]
+    //speciality: "AAcAAAx" a dalsi
+    while (r > -1 && search[r] != search[i - 1])
+      r = fail[r];  //do 'r' se ulozi cislo z pole 'fail', ktere je na pozici "konce shody"
+
+	//pokud byla promenna 'r' v "defaultnim" stavu (r = -1), tak se ulozi hodnota 0
+	//pokud byla promenna vetsi nez -1, tak se zacne navysovat, jelikoz doslo ke shode znaku v retezci
+  fail[i] = r + 1;
+  }
+}
+
+//funkce vrati pozici (pocitano od 0) na ktere zacina retezec 'search', pokud se nachazi v retezci 's'
+//pokud 's' neobsahuje retezec 'search' funkce vraci hodnotu -1
+//Algoritmus:  Knuth-Morris-Prattuv (KMP)
 int find(char *s, char *search)
 {
-  //... Knuth-Morris-Pratt
+  int string_len = strlen(s);
+  int search_len = strlen(search);
 
-  return 5; //fixme tato funkce neni dokoncena!
+  //pro pripad hledani prazdneho retezce
+  if (search_len == 0)
+    return 0;
+
+  //vytvoreni pomocneho pole
+  int fail[search_len];
+  preKMP(search, fail);
+
+  //hledani
+  int string_index = 0;
+  int search_index = 0;
+  while (string_index < string_len) {
+    //shoda znaku
+    if (search[search_index] == s[string_index]) {
+      search_index++;
+      string_index++;
+
+      //nalezeno kompletne
+      if (search_index == search_len)
+        return string_index - search_index;
+    }
+    //neshoda znaku
+    else {
+      if (search_index != -1)
+        search_index = fail[search_index];
+      else {
+        search_index = 0;
+        string_index++;
+      }
+    }
+  } //while
+
+  //retezec nebyl nalezen
+  return -1;
 }
