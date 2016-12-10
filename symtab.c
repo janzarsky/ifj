@@ -94,51 +94,88 @@ void st_free(symtab_t *table) {
         }
     }
     free(table);
-}
-
+} 
 #ifdef DEBUG
-void st_print_elem(symtab_elem_t *elem, char *prefix) {
-    printf("%saddr: %p, id: %s, elem_type: ", prefix, (void *)elem, elem->id);
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
+void st_print_elem(symtab_elem_t *elem, bool indent) {
+    switch (elem->elem_type) {
+        case ST_ELEMTYPE_VAR:
+            printf(ANSI_COLOR_YELLOW); break;
+        case ST_ELEMTYPE_FUN:
+            printf(ANSI_COLOR_CYAN); break;
+        case ST_ELEMTYPE_BUILTIN:
+            printf(ANSI_COLOR_MAGENTA); break;
+        case ST_ELEMTYPE_PARAM:
+            printf(ANSI_COLOR_GREEN); break;
+        case ST_ELEMTYPE_CLASS:
+            printf(ANSI_COLOR_BLUE); break;
+        default:
+            printf(ANSI_COLOR_RED); break;
+    }
+
+    if (indent)
+        printf(" ->");
+
+    printf("addr: %p, ", (void *)elem);
+
+    if (!indent)
+        printf("   ");
+
+    printf("id: %-20s, elem_type: ", elem->id);
 
     switch (elem->elem_type) {
         case ST_ELEMTYPE_VAR:
-            printf("var"); break;
+            printf("var    "); break;
         case ST_ELEMTYPE_FUN:
-            printf("fun"); break;
+            printf("fun    "); break;
         case ST_ELEMTYPE_BUILTIN:
             printf("builtin"); break;
         case ST_ELEMTYPE_PARAM:
-            printf("param"); break;
+            printf("param  "); break;
         case ST_ELEMTYPE_CLASS:
-            printf("class"); break;
+            printf("class  "); break;
         default:
-            printf("other"); break;
+            printf("other  "); break;
     }
 
-    printf(", data_type: ");
+    if (elem->is_global)
+        printf(", is global, ");
+    else
+        printf(", is local,  ");
+
+    printf("data_type: ");
 
     switch (elem->data_type) {
         case ST_DATATYPE_ERROR:
-            printf("error"); break;
+            printf("error "); break;
         case ST_DATATYPE_VOID:
-            printf("void"); break;
+            printf("void  "); break;
         case ST_DATATYPE_INT:
-            printf("int, value: %d", elem->value.ival); break;
+            printf("int,    value: %10d", elem->value.ival); break;
         case ST_DATATYPE_DOUBLE:
             if (elem->value.dval != NULL)
-                printf("double, value: %g", *(elem->value.dval));
+                printf("double, value: %10g", *(elem->value.dval));
             else
-                printf("double, value: NULL");
+                printf("double, value:       NULL");
             break;
         case ST_DATATYPE_STRING:
-            printf("string, value: %s", elem->value.strval); break;
+            printf("string, value: %10s", elem->value.strval); break;
         case ST_DATATYPE_BOOL:
-            printf("bool"); break;
+            printf("bool  "); break;
         default:
-            printf("other"); break;
+            printf("other "); break;
     }
 
     printf(", local_table: %p, first_instr: %p\n", (void *)elem->local_table, (void *)elem->first_instr);
+
+    printf(ANSI_COLOR_RESET);
 }
 
 void st_print(symtab_t *table) {
@@ -150,7 +187,7 @@ void st_print(symtab_t *table) {
             ptr = table->elements[i];
 
             while (ptr != NULL) {
-                st_print_elem(ptr, "");
+                st_print_elem(ptr, false);
 
                 if (ptr->local_table != NULL) {
                     for (int j = 0; j < TABLE_SIZE; j++) {
@@ -158,7 +195,7 @@ void st_print(symtab_t *table) {
                             ptr2 = ptr->local_table->elements[j]; 
 
                             while (ptr2 != NULL) {
-                                st_print_elem(ptr2, "-> ");
+                                st_print_elem(ptr2, true);
                                 ptr2 = ptr2->nextElem;
                             }
                         }

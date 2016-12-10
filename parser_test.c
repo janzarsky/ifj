@@ -93,7 +93,9 @@ int program(){
 							return ER_SEM;
 						current_class = st_add(tabulka, token_data);
 						current_class->elem_type = ST_ELEMTYPE_CLASS;
-						current_class->declared = current_class->initialized = 1;
+						current_class->declared = 1;
+                        current_class->initialized = 1;
+                        current_class->is_global = 1;
 						#ifdef DEBUG
 						printf(ANSI_COLOR_YELLOW "\n---------------------------------------------------------------------------------------\n");
 						printf(  "new  class = %s\n" ,current_class->id  );
@@ -1065,6 +1067,7 @@ int class_dec(){
 							else{
 								item = st_add(tabulka,temp_string);
 								item->declared = 1;
+                                item->is_global = true;
 							}
 							switch(prev_token){
 								case INT:
@@ -1109,6 +1112,9 @@ int class_dec(){
 
 									if ( (result = math_expr(&type)) != ER_OK)
 										return result;
+                                    
+                                    add_instr(IN_MOVSTACK, NULL, NULL, (void *) item);
+
 									if ( (result = class_dec()) != ER_OK)
 										return result;
 									else return ER_OK;
@@ -1118,6 +1124,7 @@ int class_dec(){
 
 									current_function = item;
 									current_function->elem_type = ST_ELEMTYPE_FUN;
+                                    current_function->is_global = true;
                                     st_init(&(current_function->local_table));
                                     local_tabulka = current_function->local_table;
                                     #ifdef DEBUG

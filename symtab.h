@@ -62,7 +62,7 @@ void st_free(symtab_t *table);
 void st_add_builtin_functions(symtab_t *table);
 
 #ifdef DEBUG
-void st_print_elem(symtab_elem_t *elem, char *prefix);
+void st_print_elem(symtab_elem_t *elem, bool indent);
 void st_print(symtab_t *table);
 #endif
 
