@@ -22,12 +22,14 @@
 #include "debug.h"
 
 extern tListOfInstr *instr_list;
+extern symtab_t *local_tabulka;
 
 int main(int argc, char** argv) {
     if (argc != 2) {
         return ER_INTERN;
     }
 
+    // open file
     FILE *source;
 
     if ((source = fopen(argv[1], "r")) == NULL) {
@@ -51,17 +53,20 @@ int main(int argc, char** argv) {
     }
 #endif
 
+    // initialize table of symbols
     symtab_t *symtab;
     st_init(&symtab);
 
     st_add_builtin_functions(symtab);
 
+    // initialize list of instructions
     instr_list = malloc(sizeof(tListOfInstr));
     listInit(instr_list);
 
     setSourceFile(source);
     set_symtable(symtab);
 
+    // run parser (first run)
     debug_printf("MAIN: parse code (first run)\n");
 
     int parse_result = program();
@@ -76,11 +81,16 @@ int main(int argc, char** argv) {
     if (parse_result != ER_OK)
        goto out;
 
+    local_tabulka = NULL;
+
     symtab_elem_t *temp = st_find(symtab, "Main.run");
     add_instr(IN_CALL, NULL, NULL, temp);
     set_function_beginning(&(temp->first_instr));
 
+    // run parser (second run)
     debug_printf("\nMAIN: parse code (second run)\n");
+
+    rewind(source);
 
     parse_result = program();
     
@@ -94,11 +104,10 @@ int main(int argc, char** argv) {
     print_instr_list();
 #endif
 
-    rewind(source);
-
     if (parse_result != ER_OK)
        goto out;
 
+    // run interpret
     debug_printf("\nMAIN: interpret code\n");
 
     int interpret_result = interpret(instr_list);
@@ -109,6 +118,8 @@ int main(int argc, char** argv) {
     printf("MAIN: symtab\n");
     st_print(symtab);
 #endif
+
+    st_free(symtab);
 
     return interpret_result;
 
