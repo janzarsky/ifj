@@ -596,7 +596,7 @@ int func_var(){
                 return ER_SEM;
             }
 
-			add_instr(IN_CALL,NULL,NULL, (void*)item); // instruction for FUNCTION CALL
+			add_instr(IN_CALL, NULL, NULL, (void *) called_function); // instruction for FUNCTION CALL
 
 
 			if ( (token = get_next_token(&token_data)) != ER_LEX && token == SEMICOLON)
@@ -737,7 +737,7 @@ int assign(){
 						return result;
 
 					//current_function = temp_elem;
-			        add_instr(IN_CALL,NULL,NULL,(void *)temp_elem);
+			        add_instr(IN_CALL, NULL, NULL, (void *) temp_elem);
 
 
 					if ( (token = get_next_token(&token_data)) != ER_LEX && token == SEMICOLON)

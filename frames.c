@@ -29,7 +29,7 @@ void fr_print(frame_t *frame) {
             printf("frame_item: var: %p, id: %s, value: %i\n",
                 (void *)temp->var, temp->var->id, temp->value.ival);
         else
-            printf("some error/n");
+            printf("some error\n");
         temp = temp->next;
     }
 }
@@ -57,7 +57,7 @@ int fr_add_item(frame_t *frame, symtab_elem_t *var) {
     frame_item_t *temp = malloc(sizeof(frame_item_t));
 
     if (temp == NULL)
-        return INTERNAL_ERROR;
+        return ER_INTERN;
 
     temp->var = var;
 
@@ -201,6 +201,8 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
         inter_value param_s;
         stack_inter_Top(&param_s, stack);
         stack_inter_Pop(stack);
+        debug_printf("%s %d %d\n", param_s.union_value.strval,
+            param_i.union_value.ival, param_n.union_value.ival);
 
         char * result = substr(param_s.union_value.strval,
             param_i.union_value.ival, param_n.union_value.ival);
@@ -265,6 +267,8 @@ int call_instr(tListOfInstr *instrlist, inter_stack *stack, symtab_elem_t *func)
         if (new_frame == NULL)
             return INTERNAL_ERROR;
 
+        new_frame->first_item = NULL;
+        
         symtab_elem_t *param = func->first_param;
 
         while (param != NULL) {

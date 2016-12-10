@@ -13,13 +13,15 @@ void listInit(tListOfInstr *L){
 }
 
 void listFree(tListOfInstr *L){
+    L->active = L->first;
 
-	for(L->active = L->first;L->first != NULL;L->first = L->active){
-			L->active = L->first->nextItem;		//zachovavame pointer na nastupny prvek
-			free(L->first);
-		}
+	while (L->first != NULL) {
+        L->active = L->first->nextItem;
+        free(L->first);
+        L->first = L->active;
+    }
+
 	L->last = NULL;
-
 }
 
 void listInsertLast(tListOfInstr *L, tInstr I){

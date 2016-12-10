@@ -5,6 +5,7 @@
 
 #include "parser_test.h"
 #include "symtab.h"
+#include "debug.h"
 
 unsigned int hash_function(const char *str, unsigned htab_size) {
     unsigned int h = 0;
@@ -49,6 +50,7 @@ symtab_elem_t *st_add(symtab_t *tabulka, char *token) {
     synon->is_global = false;
     synon->first_param = NULL;
     synon->next_param = NULL;
+    synon->local_table = NULL;
 
     return synon;
 }
@@ -81,22 +83,6 @@ symtab_elem_t *st_find_global (symtab_t *tabulka, char *token, char *class){
     return ptr;
 }
 
-void st_free(symtab_t *table) {
-    symtab_elem_t *ptr;
-    for (int i = 0; i <TABLE_SIZE; i++)
-    {
-        if (table->elements[i] != NULL) {
-            while (table->elements[i]->nextElem != NULL) {
-                ptr = table->elements[i]->nextElem;
-                table->elements[i]->nextElem = table->elements[i]->nextElem->nextElem;
-                free(ptr);
-            }
-
-            free(table->elements[i]);
-        }
-    }
-    free(table);
-} 
 #ifdef DEBUG
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -189,6 +175,7 @@ void st_print(symtab_t *table) {
             ptr = table->elements[i];
 
             while (ptr != NULL) {
+                printf("i=%4d ", i);
                 st_print_elem(ptr, false);
 
                 if (ptr->local_table != NULL) {
@@ -197,6 +184,7 @@ void st_print(symtab_t *table) {
                             ptr2 = ptr->local_table->elements[j]; 
 
                             while (ptr2 != NULL) {
+                                printf("j=%4d ", j);
                                 st_print_elem(ptr2, true);
                                 ptr2 = ptr2->nextElem;
                             }
@@ -211,21 +199,38 @@ void st_print(symtab_t *table) {
 }
 #endif
 
-void st_add_builtin_param(symtab_elem_t *elem, char *name, st_datatype_t data_type) {
-    char *name_dup = strdup(name);
+void st_free(symtab_t *table) {
+    symtab_elem_t *ptr;
 
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        while (table->elements[i] != NULL) {
+            ptr = table->elements[i];
+            table->elements[i] = ptr->nextElem;
+
+            debug_printf("freeing element, i: %-4d id: %s\n", i, ptr->id);
+
+            if (ptr->local_table != NULL) {
+                st_free(ptr->local_table);
+            }
+
+            free(ptr->id);
+            free(ptr);
+        }
+    }
+
+    free(table);
+} 
+void st_add_builtin_param(symtab_elem_t *elem, char *name, st_datatype_t data_type) {
     symtab_elem_t *temp = elem->first_param;
 
-    elem->first_param = st_add(elem->local_table, name_dup);
+    elem->first_param = st_add(elem->local_table, name);
     elem->first_param->elem_type = ST_ELEMTYPE_PARAM;
     elem->first_param->data_type = data_type;
     elem->first_param->next_param = temp;
 }
 
 symtab_elem_t *st_add_builtin(symtab_t *table, char* name, int type) {
-    char *name_dup = strdup(name);
-
-    symtab_elem_t *temp = st_add(table, name_dup);
+    symtab_elem_t *temp = st_add(table, name);
     temp->elem_type = ST_ELEMTYPE_BUILTIN;
     temp->data_type = type;
     temp->is_global = true;

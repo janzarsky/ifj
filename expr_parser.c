@@ -294,11 +294,13 @@ bool check_rule(int num, ...) {
 
     for (int i = 0; i < num; i++) {
         if (temp->symbol != symbols[i]) {
+            free(symbols);
             va_end(valist);
             return false;
         }
 
         if (temp->next == NULL) {
+            free(symbols);
             va_end(valist);
             return false;
         }
@@ -307,10 +309,12 @@ bool check_rule(int num, ...) {
     }
 
     if (temp->symbol != T_L) {
+        free(symbols);
         va_end(valist);
         return false;
     }
 
+    free(symbols);
     va_end(valist);
     return true;
 }
@@ -557,7 +561,6 @@ int expr(int expr_type, int *type) {
 
     push(END_OF_FILE, ST_DATATYPE_VOID);
 
-    token_data_prev = token_data;
     token = get_next_token(&token_data);
 
     if (token == ER_LEX)
@@ -585,6 +588,7 @@ int expr(int expr_type, int *type) {
                 debug_printf("op: =    ");
                 push(token, ST_DATATYPE_VOID);
 
+                free(token_data_prev);
                 token_data_prev = token_data;
                 token = get_next_token(&token_data);
                 if (token == ER_LEX)
@@ -595,6 +599,7 @@ int expr(int expr_type, int *type) {
                 insert_after_top_term(T_L);
                 push(token, ST_DATATYPE_VOID);
 
+                free(token_data_prev);
                 token_data_prev = token_data;
                 token = get_next_token(&token_data);
                 if (token == ER_LEX)
@@ -669,6 +674,9 @@ int concat() {
     bool expect_plus = false;
     bool is_first_term = true;
 
+    if (token_data != NULL)
+        free(token_data);
+
     token = get_next_token(&token_data);
 
     if (token == ER_LEX)
@@ -741,6 +749,7 @@ int concat() {
             is_first_term = false;
         }
 
+        free(token_data);
         token = get_next_token(&token_data);
 
         if (token == ER_LEX)

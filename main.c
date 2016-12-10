@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
     local_tabulka = NULL;
 
     symtab_elem_t *temp = st_find(symtab, "Main.run");
-    add_instr(IN_CALL, NULL, NULL, temp);
+    add_instr(IN_CALL, NULL, NULL, (void *) temp);
     set_function_beginning(&(temp->first_instr));
 
     // run parser (second run)
@@ -119,11 +119,17 @@ int main(int argc, char** argv) {
     st_print(symtab);
 #endif
 
+    debug_printf("MAIN: freeing symtab\n");
     st_free(symtab);
+    debug_printf("MAIN: freeing instr_list\n");
+    listFree(instr_list);
+    debug_printf("MAIN: closing file\n");
+    fclose(source);
 
     return interpret_result;
 
 out:
+    st_free(symtab);
     fclose(source);
 
     return parse_result;

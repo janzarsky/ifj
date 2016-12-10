@@ -263,6 +263,9 @@ int interpret(tListOfInstr *L)
             strcpy(third.value.union_value.strval, second.value.union_value.strval);
             strcat(third.value.union_value.strval, first.value.union_value.strval);
 
+            //free(first.value.union_value.strval);
+            //free(second.value.union_value.strval);
+
            push_tab(third.value.union_value, &S);
 
         break;
