@@ -180,6 +180,34 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
             }
         }
     }
+    else if (strcmp(func->id, "ifj16.length") == 0) {
+        inter_value param_value;
+        stack_inter_Top(&param_value, stack);
+        stack_inter_Pop(stack);
+
+        int result = length(param_value.union_value.strval);
+        push_val((void *)(unsigned long) result, stack);
+    }
+    else if (strcmp(func->id, "ifj16.substr") == 0) {
+        inter_value param_n;
+        stack_inter_Top(&param_n, stack);
+        stack_inter_Pop(stack);
+
+        inter_value param_i;
+        stack_inter_Top(&param_i, stack);
+        stack_inter_Pop(stack);
+
+        inter_value param_s;
+        stack_inter_Top(&param_s, stack);
+        stack_inter_Pop(stack);
+
+        debug_printf("***** builtin function ifj16.substr(), params: %s, %d, %d\n",
+            param_s.union_value.strval, param_i.union_value.ival, param_n.union_value.ival);
+
+        char * result = substr(param_s.union_value.strval,
+            param_i.union_value.ival, param_n.union_value.ival);
+        push_val((void *) result, stack);
+    }
 
 #ifdef DEBUG
     stack_inter_print(stack);

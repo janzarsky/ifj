@@ -1,5 +1,5 @@
 // exit 0
-// output 1 10.2 asdfqwertyjklmn 3 11.2 asdfqwertyjklmnjklmn
+// output 32 28.64 012abcdef
 class Main {
     static int a = 5;
     static int aa = 5*a;

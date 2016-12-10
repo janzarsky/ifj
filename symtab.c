@@ -47,6 +47,8 @@ symtab_elem_t *st_add(symtab_t *tabulka, char *token) {
     }
 
     synon->is_global = false;
+    synon->first_param = NULL;
+    synon->next_param = NULL;
 
     return synon;
 }
@@ -209,12 +211,24 @@ void st_print(symtab_t *table) {
 }
 #endif
 
+void st_add_builtin_param(symtab_elem_t *elem, char *name, st_datatype_t data_type) {
+    char *name_dup = strdup(name);
+
+    symtab_elem_t *temp = elem->first_param;
+
+    elem->first_param = st_add(elem->local_table, name_dup);
+    elem->first_param->elem_type = ST_ELEMTYPE_PARAM;
+    elem->first_param->data_type = data_type;
+    elem->first_param->next_param = temp;
+}
+
 symtab_elem_t *st_add_builtin(symtab_t *table, char* name, int type) {
     char *name_dup = strdup(name);
 
     symtab_elem_t *temp = st_add(table, name_dup);
     temp->elem_type = ST_ELEMTYPE_BUILTIN;
     temp->data_type = type;
+    temp->is_global = true;
     temp->first_param = NULL;
 
     return temp;
@@ -229,12 +243,33 @@ void st_add_builtin_functions(symtab_t *table) {
     st_add_builtin(table, "ifj16.readInt", ST_DATATYPE_INT);
     st_add_builtin(table, "ifj16.readDouble", ST_DATATYPE_DOUBLE);
     st_add_builtin(table, "ifj16.readString", ST_DATATYPE_STRING);
+
     temp = st_add_builtin(table, "ifj16.print", ST_DATATYPE_VOID);
-
     st_init(&(temp->local_table));
+    st_add_builtin_param(temp, "s", ST_DATATYPE_STRING);
 
-    temp->first_param = st_add(temp->local_table, "s");
-    temp->first_param->elem_type = ST_ELEMTYPE_PARAM;
-    temp->first_param->data_type = ST_DATATYPE_STRING;
-    temp->first_param->next_param = NULL;
+    temp = st_add_builtin(table, "ifj16.length", ST_DATATYPE_INT);
+    st_init(&(temp->local_table));
+    st_add_builtin_param(temp, "s", ST_DATATYPE_STRING);
+
+    temp = st_add_builtin(table, "ifj16.substr", ST_DATATYPE_STRING);
+    st_init(&(temp->local_table));
+    // reverse order needed
+    st_add_builtin_param(temp, "n", ST_DATATYPE_INT);
+    st_add_builtin_param(temp, "i", ST_DATATYPE_INT);
+    st_add_builtin_param(temp, "s", ST_DATATYPE_STRING);
+
+    temp = st_add_builtin(table, "ifj16.compare", ST_DATATYPE_INT);
+    st_init(&(temp->local_table));
+    st_add_builtin_param(temp, "s2", ST_DATATYPE_STRING);
+    st_add_builtin_param(temp, "s1", ST_DATATYPE_STRING);
+
+    temp = st_add_builtin(table, "ifj16.find", ST_DATATYPE_INT);
+    st_init(&(temp->local_table));
+    st_add_builtin_param(temp, "search", ST_DATATYPE_STRING);
+    st_add_builtin_param(temp, "s", ST_DATATYPE_STRING);
+
+    temp = st_add_builtin(table, "ifj16.sort", ST_DATATYPE_STRING);
+    st_init(&(temp->local_table));
+    st_add_builtin_param(temp, "s", ST_DATATYPE_STRING);
 }

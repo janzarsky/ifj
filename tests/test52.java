@@ -1,3 +1,4 @@
+// exit 0
 class Main
 {
     static void run()

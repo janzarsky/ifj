@@ -910,20 +910,24 @@ int func_args(){
 					if(current_param == NULL || (ST_DATATYPE_INT != current_param->data_type)){
 						return ER_SEM_TYPES; //wrong parameter's type or number
 					}
+
+        			add_instr(IN_VAL_PUSH, (void *)(unsigned long)int_from_token(token_data),NULL,NULL); //push function argument(const) to stack
 					break;
 				case DOUBLE_LITERAL:
 					if(current_param == NULL || (ST_DATATYPE_DOUBLE != current_param->data_type)){
 						return ER_SEM_TYPES; //wrong parameter's type or number
 					}
+
+        			add_instr(IN_VAL_PUSH, (void *)double_from_token(token_data),NULL,NULL); //push function argument(const) to stack
 					break;
 				case STRING_LITERAL:
 					if(current_param == NULL || (ST_DATATYPE_STRING != current_param->data_type)){
 						return ER_SEM_TYPES; //wrong parameter's type or number
 					}
+
+        			add_instr(IN_VAL_PUSH, (void *)string_from_token(token_data),NULL,NULL); //push function argument(const) to stack
 					break;
 			}
-
-			add_instr(IN_VAL_PUSH,token_data,NULL,NULL); //push function argument(const) to stack
 
 			if ( (result = func_args_list()) != ER_OK)
 				return result;
@@ -1001,20 +1005,24 @@ int func_args_list(){
 								if(current_param == NULL || (ST_DATATYPE_INT != current_param->data_type)){
 									return ER_SEM_TYPES; //wrong parameter's type or number
 								}
+
+                    			add_instr(IN_VAL_PUSH, (void *)(unsigned long)int_from_token(token_data),NULL,NULL); //push function argument(const) to stack
 								break;
 							case DOUBLE_LITERAL:
 								if(current_param == NULL || (ST_DATATYPE_DOUBLE != current_param->data_type)){
 									return ER_SEM_TYPES; //wrong parameter's type  or number
 								}
+
+                    			add_instr(IN_VAL_PUSH, (void *)double_from_token(token_data),NULL,NULL); //push function argument(const) to stack
 								break;
 							case STRING_LITERAL:
 								if(current_param == NULL || (ST_DATATYPE_STRING != current_param->data_type)){
 									return ER_SEM_TYPES; //wrong parameter's type  or number
 								}
+
+                    			add_instr(IN_VAL_PUSH, (void *)string_from_token(token_data),NULL,NULL); //push function argument(const) to stack
 								break;
 						}
-
-						add_instr(IN_VAL_PUSH,token_data,NULL,NULL); //push function argument(const) to stack
 
 						if ( (result = func_args_list()) != ER_OK)
 							return result;
