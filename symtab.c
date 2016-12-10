@@ -38,15 +38,17 @@ symtab_elem_t *st_add(symtab_t *tabulka, char *token) {
 
     synon->id = strdup(token);
 
-    if (tabulka->elements[klic] != NULL) {
+ /*   if (tabulka->elements[klic] != NULL) {
         synon->nextElem = tabulka->elements[klic]->nextElem;
         tabulka->elements[klic]->nextElem = synon;
     }
     else {
         synon->nextElem = NULL;
         tabulka->elements[klic] = synon;
-    }
-
+    }*/
+    synon->nextElem = tabulka->elements[klic];
+    tabulka->elements[klic] = synon;
+    
     synon->is_global = false;
     synon->first_param = NULL;
     synon->next_param = NULL;
