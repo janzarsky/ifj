@@ -136,7 +136,15 @@ char *substr(char *s, int i, int n)
 //Z hlediska funkcnosti simulujte metodu 'compareTo' tridy String jazyka Java
 int compare(char *s1, char *s2)
 {
-  return strcmp(s1, s2);
+  int result = strcmp(s1, s2);
+
+  if (result > 0)
+      return 1;
+  
+  if (result < 0)
+      return -1;
+
+  return 0;
   //zkontrolovat s Java 8?
 }
 

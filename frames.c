@@ -6,6 +6,7 @@
 #include "frames.h"
 #include "interpret.h"
 #include "string.h"
+#include "ial.h"
 #include "error_codes.h"
 #include "debug.h"
 
@@ -201,11 +202,42 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
         stack_inter_Top(&param_s, stack);
         stack_inter_Pop(stack);
 
-        debug_printf("***** builtin function ifj16.substr(), params: %s, %d, %d\n",
-            param_s.union_value.strval, param_i.union_value.ival, param_n.union_value.ival);
-
         char * result = substr(param_s.union_value.strval,
             param_i.union_value.ival, param_n.union_value.ival);
+        push_val((void *) result, stack);
+    }
+    else if (strcmp(func->id, "ifj16.compare") == 0) {
+        inter_value param_s2;
+        stack_inter_Top(&param_s2, stack);
+        stack_inter_Pop(stack);
+        
+        inter_value param_s1;
+        stack_inter_Top(&param_s1, stack);
+        stack_inter_Pop(stack);
+
+        int result = compare(param_s1.union_value.strval,
+            param_s2.union_value.strval);
+        push_val((void *)(unsigned long) result, stack);
+    }
+    else if (strcmp(func->id, "ifj16.find") == 0) {
+        inter_value param_search;
+        stack_inter_Top(&param_search, stack);
+        stack_inter_Pop(stack);
+        
+        inter_value param_s;
+        stack_inter_Top(&param_s, stack);
+        stack_inter_Pop(stack);
+
+        int result = find(param_s.union_value.strval,
+            param_search.union_value.strval);
+        push_val((void *)(unsigned long) result, stack);
+    }
+    else if (strcmp(func->id, "ifj16.sort") == 0) {
+        inter_value param_value;
+        stack_inter_Top(&param_value, stack);
+        stack_inter_Pop(stack);
+
+        char * result = sort(param_value.union_value.strval);
         push_val((void *) result, stack);
     }
 
