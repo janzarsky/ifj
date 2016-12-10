@@ -269,7 +269,7 @@ char* readString()
     if (c == '\n' || c == EOF)  //pro pripad nacitani prazdneho retezce, viz zadani
         readed[0] = '\0';
    
-    for (int i = 0; c != '\n' || c != EOF; i++) {
+    for (int i = 0; c != '\n' && c != EOF; i++) {
 
         if (length + 1 > allocated) {
             //pamet nestaci, je potreba provest realokaci
@@ -289,6 +289,6 @@ char* readString()
       if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
         return -1;  //error, num. 99
     readed[strlen(readed)] = '\0';
-   
+
     return readed;
 }

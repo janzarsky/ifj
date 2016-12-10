@@ -8,7 +8,16 @@ for file in $files ; do
     echo "********************************************************************************"
     echo "* Testing file: $file"
     echo "********************************************************************************"
-    ./ifj $file > output
+    
+    if [ "$file" == "./tests/test30.java" ]; then
+        echo "5" | ./ifj $file > output
+    elif [ "$file" == "./tests/test31.java" ]; then
+        echo "5" | ./ifj $file > output
+    elif [ "$file" == "./tests/test32.java" ]; then
+        echo "not running test32.java" > output
+    else
+        ./ifj $file > output
+    fi
 
     exit=$(echo -n $?)
 
