@@ -257,7 +257,7 @@ char* readString()
     //vytvoreni retezce do ktereho se ulozi znaky
     char *readed;
     if ((readed = (char*) malloc(sizeof(char) * STR_LEN_INC)) == NULL)
-        return -1;  //error, num. 99 -alokace
+        return NULL;  //error, num. 99 -alokace
     int allocated = STR_LEN_INC;
     int length = 0;
 
@@ -274,7 +274,7 @@ char* readString()
         if (length + 1 > allocated) {
             //pamet nestaci, je potreba provest realokaci
             if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
-                return -1;  //error, num. 99 -realokace
+                return NULL;  //error, num. 99 -realokace
             allocated = length + STR_LEN_INC;
         }
 
@@ -287,7 +287,7 @@ char* readString()
     //pridani koncoveho znaku
     if (length + 1 > allocated)   //pamet nestaci, je potreba provest realokaci
       if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
-        return -1;  //error, num. 99
+        return NULL;  //error, num. 99
     readed[strlen(readed)] = '\0';
 
     return readed;

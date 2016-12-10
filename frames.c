@@ -204,6 +204,10 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
 
         char * result = substr(param_s.union_value.strval,
             param_i.union_value.ival, param_n.union_value.ival);
+
+        if (result == NULL)
+            return ER_RUN_OTHER;
+
         push_val((void *) result, stack);
     }
     else if (strcmp(func->id, "ifj16.compare") == 0) {
@@ -238,6 +242,10 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
         stack_inter_Pop(stack);
 
         char * result = sort(param_value.union_value.strval);
+
+        if (result == NULL)
+            return ER_RUN_OTHER;
+
         push_val((void *) result, stack);
     }
 
