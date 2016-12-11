@@ -717,8 +717,8 @@ int assign(){
             #endif
 
 
-	        if( (temp_elem = st_find_global(tabulka,temp_token_data, current_class->id)) == NULL){
-                if( (temp_elem  = st_find(local_tabulka,temp_token_data)) == NULL){
+	        if( (temp_elem = st_find(local_tabulka,temp_token_data)) == NULL){
+                if( (temp_elem  = st_find_global(tabulka,temp_token_data, current_class->id)) == NULL){
                     free(temp_token_data);
                     return ER_SEM; //error type 3 not declarated var
                 } 
@@ -878,7 +878,7 @@ int func_args(){
 			break;
 		case ID:
 
-			if( (temp_item = st_find(local_tabulka,token_data)) == NULL)
+			if( (temp_item = st_find(local_tabulka,token_data)) == NULL) {
 				if( (temp_item = st_find(tabulka,token_data)) == NULL){
 					if( (temp_item = st_find(tabulka, temp_string = str_conc(current_class->id, id))) == NULL){ 
 						free(temp_string);
@@ -888,13 +888,21 @@ int func_args(){
 						free(temp_string);
 					}
 				}		
-			//argument's type check	
-			if(current_param == NULL || (temp_item->data_type != current_param->data_type) ){
-				return ER_SEM_TYPES; //wrong parameter's type or number
-			}	
-
+            }
 
 			add_instr(IN_TAB_PUSH,(void *)temp_item,NULL,NULL);	 //push function argument(ID) to stack
+
+			//argument's type check	
+			if(current_param == NULL)
+                return ER_SEM_TYPES;
+
+            if (temp_item->data_type != current_param->data_type) {
+                if (temp_item->data_type == ST_DATATYPE_INT &&
+                    current_param->data_type == ST_DATATYPE_DOUBLE)
+                    add_instr(IN_CONV, NULL, NULL, NULL);
+                else
+    				return ER_SEM_TYPES;
+			}
 
 			if ( (result = func_args_list()) != ER_OK)
 				return result;
