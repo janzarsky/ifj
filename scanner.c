@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <limits.h>
 
 #include "instrlist.h"
 #include "string.h"
@@ -357,6 +358,10 @@ int lexer(string *buffer) {
         else if (isspace(c) || c == ')' || c == ',' || c == ';' || c == '+' || c == '-' || c == '/' || c == '*' || c == '!' || c == '=' || c == '<' || c == '>'){
 
           ungetc(c, source); // konec celeho cisla, vracime ; nebo volny zpatky, zpracujem pak
+		
+	  long int int_control = atoi(buffer->str);
+
+          if (int_control > INT_MAX) {return ER_LEX; break;} 
 
           return INT_LITERAL; // a vrati se celociselny literal
 
