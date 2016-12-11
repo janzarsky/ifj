@@ -10,6 +10,8 @@
 #include "error_codes.h"
 #include "debug.h"
 
+extern int ifj_errno;
+
 frame_t *new_frame = NULL;
 frame_t *active_frame = NULL;
 
@@ -150,12 +152,23 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
         if (result == NULL)
             return ER_INTERN;
 
+        ifj_errno = ER_OK;
+
         *result = readDouble();
+
+        if (ifj_errno != ER_OK)
+            return ifj_errno;
 
         push_val((void *) result, stack);
     }
     else if (strcmp(func->id, "ifj16.readString") == 0) {
+        ifj_errno = ER_OK;
+
         char *result = readString();
+
+        if (ifj_errno != ER_OK)
+            return ifj_errno;
+
         push_val((void *) result, stack);
     }
     else if (strcmp(func->id, "ifj16.print") == 0) {
@@ -186,7 +199,13 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
         stack_inter_Top(&param_value, stack);
         stack_inter_Pop(stack);
 
+        ifj_errno = ER_OK;
+
         int result = length(param_value.union_value.strval);
+
+        if (ifj_errno != ER_OK)
+            return ifj_errno;
+
         push_val((void *)(unsigned long) result, stack);
     }
     else if (strcmp(func->id, "ifj16.substr") == 0) {
@@ -201,14 +220,17 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
         inter_value param_s;
         stack_inter_Top(&param_s, stack);
         stack_inter_Pop(stack);
+
         debug_printf("%s %d %d\n", param_s.union_value.strval,
             param_i.union_value.ival, param_n.union_value.ival);
+
+        ifj_errno = ER_OK;
 
         char * result = substr(param_s.union_value.strval,
             param_i.union_value.ival, param_n.union_value.ival);
 
-        if (result == NULL)
-            return ER_RUN_OTHER;
+        if (ifj_errno != ER_OK)
+            return ifj_errno;
 
         push_val((void *) result, stack);
     }
@@ -221,8 +243,14 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
         stack_inter_Top(&param_s1, stack);
         stack_inter_Pop(stack);
 
+        ifj_errno = ER_OK;
+
         int result = compare(param_s1.union_value.strval,
             param_s2.union_value.strval);
+
+        if (ifj_errno != ER_OK)
+            return ifj_errno;
+
         push_val((void *)(unsigned long) result, stack);
     }
     else if (strcmp(func->id, "ifj16.find") == 0) {
@@ -234,8 +262,14 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
         stack_inter_Top(&param_s, stack);
         stack_inter_Pop(stack);
 
+        ifj_errno = ER_OK;
+
         int result = find(param_s.union_value.strval,
             param_search.union_value.strval);
+
+        if (ifj_errno != ER_OK)
+            return ifj_errno;
+
         push_val((void *)(unsigned long) result, stack);
     }
     else if (strcmp(func->id, "ifj16.sort") == 0) {
@@ -243,10 +277,12 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
         stack_inter_Top(&param_value, stack);
         stack_inter_Pop(stack);
 
+        ifj_errno = ER_OK;
+
         char * result = sort(param_value.union_value.strval);
 
-        if (result == NULL)
-            return ER_RUN_OTHER;
+        if (ifj_errno != ER_OK)
+            return ifj_errno;
 
         push_val((void *) result, stack);
     }
@@ -301,7 +337,10 @@ int call_instr(tListOfInstr *instrlist, inter_stack *stack, symtab_elem_t *func)
     else if (func->elem_type == ST_ELEMTYPE_BUILTIN) {
         debug_printf("***** calling builtin function %s\n", func->id);
 
-        call_builtin_function(stack, func);
+        int result = call_builtin_function(stack, func);
+        
+        if (result != ER_OK)
+            return result;
 
         listNext(instrlist);
     }

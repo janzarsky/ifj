@@ -4,6 +4,9 @@
 #include <string.h>
 
 #include "ial.h"
+#include "error_codes.h"
+
+extern int ifj_errno;
 
 //pomocna funkce sortu
 void SiftDown(char *A, int Left, int Right)
@@ -30,10 +33,13 @@ void SiftDown(char *A, int Left, int Right)
 char *sort(char *s)
 {
   //vytvoreni noveho stringu, ktery bude obsahovat serazene znaky
-  char *sor;
+  char *sor = NULL;
   int need_size = ((strlen(s) + 1) / STR_LEN_INC) + 1;  //pomocna promenna, aby byl alokovany prostor nasobek osmi
-  if ((sor = (char*) malloc(sizeof(char) * STR_LEN_INC * need_size)) == NULL)
-    printf("CHYBA pri alokaci\n"); //error, num. 99
+
+  if ((sor = (char*) malloc(sizeof(char) * STR_LEN_INC * need_size)) == NULL) {
+      ifj_errno = ER_INTERN;
+      return NULL;
+  }
 
   strcpy(sor, s);
 
@@ -44,6 +50,7 @@ char *sort(char *s)
   //ustaveni hromady
   Left = (N -1) / 2;           //index nejpravejsiho nejspodnejsiho uzlu
   Right = N -1;
+
   for (int i = Left; i >= 0; i--)
     SiftDown(A, i, Right);
 
@@ -53,8 +60,8 @@ char *sort(char *s)
     A[0] = A[i];
     A[i] = Temp;
     SiftDown(A, 0, i -1);     //znovuustaveni hromady
-
   }
+
   return sor;
 }
 
@@ -101,6 +108,7 @@ int find(char *s, char *search)
   //hledani
   int string_index = 0;
   int search_index = 0;
+
   while (string_index < string_len) {
     //shoda znaku
     if (search[search_index] == s[string_index]) {

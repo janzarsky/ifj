@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "string.h"
+#include "error_codes.h"
 
 #define STR_LEN_INC 8
 // konstanta STR_LEN_INC udava, na kolik bytu provedeme pocatecni alokaci pameti
@@ -17,6 +18,8 @@
 
 #define STR_ERROR  -1
 #define STR_SUCCESS 0
+
+extern int ifj_errno;
 
 // funkce vytvori novy retezec
 int strInit(string *s){
@@ -106,27 +109,28 @@ int length(char *s)
 //V okrajovych pripadech simulujte metodu substring tridy String z jazyka Java a vracejte chybu 10.
 char *substr(char *s, int i, int n)
 {
-  char *sub;
+  char *sub = NULL;
 
   //pokud zacatek podretezce 'i' nepresahuje velikost pole,
   //a zaroven pocet pozadovanych znaku 'n' nepresahuje konec puvodniho retezce,
   //anebo nejsou zaporne
   if ((i < (int) strlen(s)) && (n <= (int) (strlen(s) - i)) && i >= 0 && n >= 0) {
-
     //vytvareni podretezce
     int need_size = (n / STR_LEN_INC) + 1;  //pomocna promenna, aby byl alokovany prostor nasobek osmi
-    if ((sub = (char*) malloc(STR_LEN_INC * need_size)) == NULL)
-      printf("CHYBA pri realokaci\n"); //error
+
+    if ((sub = (char*) malloc(STR_LEN_INC * need_size)) == NULL) {
+        ifj_errno = ER_INTERN;
+        return NULL;
+    }
 
     sub = strncpy(sub, s + i, n);
     sub[n] = '\0';
-
-  } //konec if ((i < s.length) && (n <= ... ) ... )
-  else {
-    //error, num. 10
-    printf("CHYBA, mimo rozsah.\n");
-
   }
+  else {
+      ifj_errno = ER_RUN_OTHER;
+      return NULL;
+  }
+
   return sub;
   //zkontrolovat s Java 8?
 }
@@ -152,9 +156,13 @@ int compare(char *s1, char *s2)
 int readInt()
 {
     //vytvoreni retezce do ktereho se budou ukladat znaky -ten se potom prevede na double
-    char *readed;
-    if ((readed = (char*) malloc(sizeof(char) * STR_LEN_INC)) == NULL)
-        return -1;  //error, num. 99
+    char *readed = NULL;
+
+    if ((readed = (char*) malloc(sizeof(char) * STR_LEN_INC)) == NULL) {
+        ifj_errno = ER_INTERN;
+        return -1;
+    }
+
     int allocated = STR_LEN_INC;
     int length = 0;
 
@@ -166,8 +174,10 @@ int readInt()
 
         if (length + 1 > allocated) {
             //pamet nestaci, je potreba provest realokaci
-            if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
-                return -1;  //chyba, num. 99
+            if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL) {
+                ifj_errno = ER_INTERN;
+                return -1;
+            }
             allocated = length + STR_LEN_INC;
         }
 
@@ -178,14 +188,19 @@ int readInt()
 
     //pokud vstup obsahuje dale jine znaky nez cisla - chyba
     if (c != '\n' && c != EOF)  {
+        ifj_errno = ER_RUN_READ;
         free(readed);
         return -1;  //error, nevim num. 7?
     }
 
     //pridani koncoveho znaku
-    if (length + 1 > allocated)   //pamet nestaci, je potreba provest realokaci
-      if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
+    if (length + 1 > allocated) {  //pamet nestaci, je potreba provest realokaci
+      if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL) {
+        ifj_errno = ER_RUN_READ;
         return -1;  //error, num. 99
+      }
+    }
+
     readed[strlen(readed)] = '\0';
 
     //prevod samotny...
@@ -198,9 +213,13 @@ int readInt()
 double readDouble ()
 {
     //vytvoreni retezce do ktereho se budou ukladat znaky -ten se potom prevede na double
-    char *readed;
-    if ((readed = (char*) malloc(sizeof(char) * STR_LEN_INC)) == NULL)
-        return -1;  //error, num. 99
+    char *readed = NULL;
+
+    if ((readed = (char*) malloc(sizeof(char) * STR_LEN_INC)) == NULL) {
+        ifj_errno = ER_INTERN;
+        return 0;
+    }
+
     int allocated = STR_LEN_INC;
     int length = 0;
 
@@ -214,8 +233,10 @@ double readDouble ()
 
         if (length + 1 > allocated) {
             //pamet nestaci, je potreba provest realokaci
-            if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
-                return -1;  //error, num. 99
+            if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL) {
+                ifj_errno = ER_INTERN;
+                return 0; 
+            }
             allocated = length + STR_LEN_INC;
         }
 
@@ -235,14 +256,19 @@ double readDouble ()
 
     //pokud vstup obsahuje dale jine znaky nez cisla nebo tecku - chyba
     if (c != '\n' && c != EOF) {
+        ifj_errno = ER_RUN_READ;
         free(readed);
         return -1;    //error, nevim num. 7?
     }
 
     //pridani koncoveho znaku
-    if (length + 1 > allocated)   //pamet nestaci, je potreba provest realokaci
-      if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
-        return -1;  //error, num. 99
+    if (length + 1 > allocated) {  //pamet nestaci, je potreba provest realokaci
+      if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL) {
+        ifj_errno = ER_INTERN;
+        return 0;
+      }
+    }
+
     readed[strlen(readed)] = '\0';
 
     //prevod samotny
@@ -255,9 +281,13 @@ double readDouble ()
 char* readString()
 {
     //vytvoreni retezce do ktereho se ulozi znaky
-    char *readed;
-    if ((readed = (char*) malloc(sizeof(char) * STR_LEN_INC)) == NULL)
-        return NULL;  //error, num. 99 -alokace
+    char *readed = NULL;
+
+    if ((readed = (char*) malloc(sizeof(char) * STR_LEN_INC)) == NULL) {
+        ifj_errno = ER_INTERN;
+        return NULL;
+    }
+
     int allocated = STR_LEN_INC;
     int length = 0;
 
@@ -273,8 +303,11 @@ char* readString()
 
         if (length + 1 > allocated) {
             //pamet nestaci, je potreba provest realokaci
-            if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
-                return NULL;  //error, num. 99 -realokace
+            if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL) {
+                ifj_errno = ER_INTERN;
+                return NULL;
+            }
+
             allocated = length + STR_LEN_INC;
         }
 
@@ -285,9 +318,13 @@ char* readString()
     }  //for
 
     //pridani koncoveho znaku
-    if (length + 1 > allocated)   //pamet nestaci, je potreba provest realokaci
-      if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL)
-        return NULL;  //error, num. 99
+    if (length + 1 > allocated) {  //pamet nestaci, je potreba provest realokaci
+      if ((readed = (char*) realloc(readed, length + STR_LEN_INC)) == NULL) {
+          ifj_errno = ER_INTERN;
+          return NULL;
+      }
+    }
+
     readed[strlen(readed)] = '\0';
 
     return readed;

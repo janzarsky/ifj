@@ -9,6 +9,8 @@
 #include "frames.h"
 #include "error_codes.h"
 
+int ifj_errno = 0;
+
 void stack_inter_print(inter_stack *stack);
 void alloc_double(double **dval_ptr);
 
@@ -50,7 +52,11 @@ int interpret(tListOfInstr *L)
       switch (I->instType)
     {
         case IN_CALL:
-            call_instr(L, &S, (symtab_elem_t *)I->addr3);
+            result = call_instr(L, &S, (symtab_elem_t *)I->addr3);
+
+            if (result != ER_OK)
+                return result;
+
             load_next = false;
         break;
 
