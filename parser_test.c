@@ -53,6 +53,7 @@ char *id;
 int type;
 extern tListOfInstr *instr_list;
 unsigned int run_counter=0;
+bool is_empty_file = true;
 
 void set_symtable(symtab_t *table) {
     tabulka = table;
@@ -84,6 +85,8 @@ int program(){
 			return ER_LEX;
 		switch(token){
 			case CLASS:
+                is_empty_file = false;
+
 				if ( (token = get_next_token(&token_data)) == ER_LEX )
 					return ER_LEX;
 				switch(token){
@@ -148,7 +151,11 @@ int program(){
 				return ER_SYNTAX;
 	//	3) <prog>      -> END_OF_FILE	
 			case END_OF_FILE:
-				pruchod++;	
+				pruchod++;
+                
+                if (is_empty_file)
+                    return ER_SEM;
+
 				return ER_OK;
 				break;
 		}
