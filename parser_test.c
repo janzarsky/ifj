@@ -868,7 +868,6 @@ int assign(){
 		// 2) <func-args> -> [ID/INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] <func-args-list>
 int func_args(){
 	symtab_elem_t * temp_item;
-	char * temp_string;
 	current_param = called_function->first_param;
 
 	#ifdef DEBUG
@@ -885,15 +884,9 @@ int func_args(){
 		case ID:
 
 			if( (temp_item = st_find(local_tabulka,token_data)) == NULL) {
-				if( (temp_item = st_find(tabulka,token_data)) == NULL){
-					if( (temp_item = st_find(tabulka, temp_string = str_conc(current_class->id, id))) == NULL){ 
-						free(temp_string);
-						return ER_SEM; //error type 3 not declarated var
-					}
-					else{
-						free(temp_string);
-					}
-				}		
+				if( (temp_item = st_find_global(tabulka, token_data, current_class->id)) == NULL){
+                    return ER_SEM; //error type 3 not declarated var
+                }
             }
 
 			add_instr(IN_TAB_PUSH,(void *)temp_item,NULL,NULL);	 //push function argument(ID) to stack
@@ -970,7 +963,6 @@ int func_args_list(){
     #endif
 	symtab_elem_t * temp_item;
 	int result;
-	char * temp_string;
 	current_param = current_param->next_param;
 
 	if ( (token = get_next_token(&token_data)) == ER_LEX )
@@ -987,16 +979,11 @@ int func_args_list(){
 						return ER_OK;
 						break;
 					case ID:
-						if( (temp_item = st_find(local_tabulka,token_data)) == NULL)
-							if( (temp_item = st_find(tabulka,token_data)) == NULL){
-								if( (temp_item = st_find(tabulka, temp_string = str_conc(current_class->id, id))) == NULL){ 
-									free(temp_string);
-									return ER_SEM; //error type 3 not declarated var
-								}
-								else{
-									free(temp_string);
-								}
-							}
+						if( (temp_item = st_find(local_tabulka,token_data)) == NULL) {
+							if( (temp_item = st_find_global(tabulka, token_data, current_class->id)) == NULL){
+                                return ER_SEM; //error type 3 not declarated var
+                            }
+                        }
 
 						//argument's type check	
 						if(current_param == NULL || (temp_item->data_type != current_param->data_type) ){
