@@ -143,7 +143,13 @@ void fr_free(frame_t **frame) {
 
 int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
     if (strcmp(func->id, "ifj16.readInt") == 0) {
+        ifj_errno = ER_OK;
+
         int result = readInt();
+
+        if (ifj_errno != ER_OK)
+            return ifj_errno;
+
         push_val((void *)(unsigned long)result, stack);
     }
     else if (strcmp(func->id, "ifj16.readDouble") == 0) {
@@ -383,6 +389,12 @@ int return_instr(tListOfInstr *instrlist) {
 }
 
 st_value_t get_value(symtab_elem_t *var) {
+    if (!var->initialized) {
+        ifj_errno = ER_RUN_INIT;
+        st_value_t temp;
+        return temp;
+    }
+
     if (var->is_global)
         return var->value;
 
@@ -396,6 +408,8 @@ void set_value(symtab_elem_t *var, inter_value *value) {
         var->value = value->union_value;
     else
         fr_set(active_frame, var, value->union_value);
+
+    var->initialized = true;
 
 #ifdef DEBUG
     fr_print_frames();

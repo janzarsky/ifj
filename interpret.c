@@ -154,6 +154,9 @@ int interpret(tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
+            if (first.value.union_value.ival == 0)
+                return ER_RUN_ZERO;
+
             third.value.union_value.ival = second.value.union_value.ival / first.value.union_value.ival;
             push_tab(third.value.union_value, &S);
         break;
@@ -207,16 +210,26 @@ int interpret(tListOfInstr *L)
             stack_inter_Top(&(second.value), &S);
             stack_inter_Pop(&S);
 
+            if (*(first.value.union_value.dval) == 0.0)
+                return ER_RUN_ZERO;
+
             third.value.union_value.dval = malloc(sizeof(double)); 
+
             if (third.value.union_value.dval == NULL)
                 return ER_INTERN;
-            
+
             *(third.value.union_value.dval) = *(second.value.union_value.dval) / *(first.value.union_value.dval);
             push_tab(third.value.union_value, &S);
         break;
         
          case IN_TAB_PUSH:
+            ifj_errno = ER_OK;
+
             value = get_value((symtab_elem_t *)(I->addr1));
+            
+            if (ifj_errno != ER_OK)
+                return ifj_errno;
+
             push_tab(value, &S);
         break;
 
