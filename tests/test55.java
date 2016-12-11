@@ -5,7 +5,7 @@ class Main
 	static void run()
 	{
 		Dva.asdfrun();
-		ifj16.print("ANO");
+		ifj16.print("ANO\n");
 	}
 }
 

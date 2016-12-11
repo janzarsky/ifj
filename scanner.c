@@ -598,7 +598,7 @@ int lexer(string *buffer) {
       if (errno != 0)
           return ER_LEX;
 
-      if (endptr != NULL)
+      if (*endptr != '\0')
           return ER_LEX;
 
       if ( helpmepls > 0377 || helpmepls < 01 ){ return ER_LEX; } else {
