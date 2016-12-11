@@ -1267,6 +1267,8 @@ int class_dec(){
 
 	//pruchod 2
 	else{
+        local_tabulka = NULL;
+
 		if ( (token = get_next_token(&token_data)) == ER_LEX )
 			return ER_LEX;
 		switch(token){

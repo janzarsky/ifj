@@ -58,6 +58,9 @@ symtab_elem_t *st_add(symtab_t *tabulka, char *token) {
 }
 
 symtab_elem_t *st_find (symtab_t *tabulka, char *token){
+    if (tabulka == NULL)
+        return NULL;
+
     unsigned int klic = hash_function(token, TABLE_SIZE);
 
     symtab_elem_t *ptr = tabulka->elements[klic];
