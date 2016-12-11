@@ -103,7 +103,7 @@ int interpret(tListOfInstr *L)
             stack_inter_Top(&(first.value), &S);
             stack_inter_Pop(&S);
 
-            str = malloc(30*sizeof(char));
+            str = malloc(50*sizeof(char));
 
             if (str == NULL)
                 return ER_INTERN;
@@ -242,6 +242,7 @@ int interpret(tListOfInstr *L)
             stack_inter_Pop(&S);
 
             third.value.union_value.dval = malloc(sizeof(double));
+
             if (third.value.union_value.dval == NULL)
                 return ER_INTERN;
             

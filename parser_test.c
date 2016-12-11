@@ -993,6 +993,8 @@ int func_args_list(){
 
                         debug_printf("current_param: %s\n", current_param->id);
 
+						add_instr(IN_TAB_PUSH,(void *)temp_item,NULL,NULL);	 //push function argument(ID) to stack
+
                         if (temp_item->data_type != current_param->data_type) {
                             if (temp_item->data_type == ST_DATATYPE_INT &&
                                 current_param->data_type == ST_DATATYPE_DOUBLE)
@@ -1000,8 +1002,6 @@ int func_args_list(){
                             else
                                 return ER_SEM_TYPES;
                         }
-
-						add_instr(IN_TAB_PUSH,(void *)temp_item,NULL,NULL);	 //push function argument(ID) to stack
 
 						if ( (result = func_args_list()) != ER_OK)
 							return result;
@@ -1014,11 +1014,18 @@ int func_args_list(){
 						//argument's type check	
 						switch(token){
 							case INT_LITERAL:
-								if(current_param == NULL || (ST_DATATYPE_INT != current_param->data_type)){
-									return ER_SEM_TYPES; //wrong parameter's type or number
+								if(current_param == NULL) {
+									return ER_SEM_TYPES; //wrong parameter's number
 								}
 
                     			add_instr(IN_VAL_PUSH, (void *)(unsigned long)int_from_token(token_data),NULL,NULL); //push function argument(const) to stack
+
+								if(ST_DATATYPE_INT != current_param->data_type){
+                                    if (current_param->data_type == ST_DATATYPE_DOUBLE)
+                                        add_instr(IN_CONV, NULL, NULL, NULL);
+                                    else
+                                        return ER_SEM_TYPES;
+                                }
 								break;
 							case DOUBLE_LITERAL:
 								if(current_param == NULL || (ST_DATATYPE_DOUBLE != current_param->data_type)){
