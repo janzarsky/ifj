@@ -8,28 +8,33 @@
 
 extern int ifj_errno;
 
-//pomocna funkce sortu
+//pomocna funkce sortu, opravi heap tak, aby platilo pravidlo heapu (vsech uzlech musi byt nejvyssi prvek)
 void SiftDown(char *A, int Left, int Right)
 {
   int i = Left;           //i = otec
   int j = (2 * i) +1;     //index leveho syna
   char Temp = A[i];       //ulozeni otce
 
+  //do promenne j se nastavi index vetsiho syna
   if (j < Right && A[j] < A[j + 1])
     j = j + 1;
 
+  //pokud je otec mensi nez mensi syn
   while (j <= Right && Temp < A[j]) {
     A[i] = A[j];          //nastav nejvetsiho jako otce
     i = j;                //syn se stane otcem pro pristi cyklus
     j = (2 * i) +1;       //pristi levy
 
+    //do promenne j se nastavi index vetsiho syna
     if (j < Right && A[j] < A[j + 1])
       j = j + 1;
+  } //while
 
-  }
   A[i] = Temp;  //konecne umisteni proseteho uzlu
 }
 
+//seradi prvky v retezci 's' podle ordinalni hodnoty, od nejnizsi po nejvyssi,
+//vracen je retezec obsahujici serazene znaky
 char *sort(char *s)
 {
   //vytvoreni noveho stringu, ktery bude obsahovat serazene znaky
@@ -47,10 +52,10 @@ char *sort(char *s)
   int N = strlen(sor);
   char *A = sor;
 
-  //ustaveni hromady
-  Left = (N -1) / 2;           //index nejpravejsiho nejspodnejsiho uzlu
-  Right = N -1;
+  Left = (N -2) / 2;            //index nejpravejsiho nejspodnejsiho uzlu
+  Right = N -1;			//index max.
 
+  //ustaveni hromady
   for (int i = Left; i >= 0; i--)
     SiftDown(A, i, Right);
 
@@ -83,8 +88,8 @@ void preKMP(char *search, int fail[])
     while (r > -1 && search[r] != search[i - 1])
       r = fail[r];  //do 'r' se ulozi cislo z pole 'fail', ktere je na pozici "konce shody"
 
-	//pokud byla promenna 'r' v "defaultnim" stavu (r = -1), tak se ulozi hodnota 0
-	//pokud byla promenna vetsi nez -1, tak se zacne navysovat, jelikoz doslo ke shode znaku v retezci
+  //pokud byla promenna 'r' v "defaultnim" stavu (r = -1), tak se ulozi hodnota 0
+  //pokud byla promenna vetsi nez -1, tak se zacne navysovat, jelikoz doslo ke shode znaku v retezci
   fail[i] = r + 1;
   }
 }
