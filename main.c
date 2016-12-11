@@ -69,21 +69,27 @@ int main(int argc, char** argv) {
     // run parser (first run)
     debug_printf("MAIN: parse code (first run)\n");
 
-    int parse_result = program();
+    int result = program();
 
-    debug_printf("******************************\n\nfirst run result: %d\n\n", parse_result);
+    debug_printf("******************************\n\nfirst run result: %d\n\n", result);
 
 #ifdef DEBUG
     printf("MAIN: symtab\n");
     st_print(symtab);
 #endif
 
-    if (parse_result != ER_OK)
+    if (result != ER_OK)
        goto out;
 
     local_tabulka = NULL;
 
     symtab_elem_t *temp = st_find(symtab, "Main.run");
+
+    if (temp == NULL) {
+        result = ER_SYNTAX;
+        goto out;
+    }
+
     add_instr(IN_CALL, NULL, NULL, (void *) temp);
     set_function_beginning(&(temp->first_instr));
 
@@ -92,9 +98,9 @@ int main(int argc, char** argv) {
 
     rewind(source);
 
-    parse_result = program();
+    result = program();
     
-    debug_printf("******************************\n\nsecond run result: %d\n\n", parse_result);
+    debug_printf("******************************\n\nsecond run result: %d\n\n", result);
 
 #ifdef DEBUG
     printf("MAIN: symtab\n");
@@ -104,15 +110,15 @@ int main(int argc, char** argv) {
     print_instr_list();
 #endif
 
-    if (parse_result != ER_OK)
+    if (result != ER_OK)
        goto out;
 
     // run interpret
     debug_printf("\nMAIN: interpret code\n");
 
-    int interpret_result = interpret(instr_list);
+    result = interpret(instr_list);
 
-    debug_printf("******************************\n\nresult: %d\n", interpret_result);
+    debug_printf("******************************\n\nresult: %d\n", result);
 
 #ifdef DEBUG
     printf("MAIN: symtab\n");
@@ -126,11 +132,11 @@ int main(int argc, char** argv) {
     debug_printf("MAIN: closing file\n");
     fclose(source);
 
-    return interpret_result;
+    return result;
 
 out:
     st_free(symtab);
     fclose(source);
 
-    return parse_result;
+    return result;
 }

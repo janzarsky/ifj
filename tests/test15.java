@@ -1,6 +1,6 @@
-// exit 1
+// exit 2
 
-class main {
+class Main {
 	static void run () {
 		int a = -3;
 		ifj16.print(a + "\n");

@@ -1,6 +1,6 @@
 // exit 1
 
-class main {
+class Main {
         static void run () {
 		int a = 9!;
         }
