@@ -1,5 +1,5 @@
-#ifndef INTERPRET_H_INCLUDED
-#define INTERPRET_H_INCLUDED
+#ifndef _INTERPRET_H
+#define _INTERPRET_H
 
 #include "symtab.h"
 
@@ -36,8 +36,4 @@ void bool_Pop(bool_stack *B);
 void bool_Push(bool val, bool_stack *B);
 void bool_Top(bool *val, bool_stack *B);
 
-#ifdef DEBUG
-void stack_inter_print(inter_stack *stack);
 #endif
-
-#endif // INTERPRET_H_INCLUDED

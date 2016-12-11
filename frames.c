@@ -1,3 +1,14 @@
+/**
+ * Implementace interpretu imperativniho jazyka IFJ16
+ * 
+ * xzarsk03   Jan Zarsky
+ * xvlcek23   David Vlcek
+ * xpelan04   Pelantova Lucie
+ * xmrlik00   Vit Mrlik
+ * xpapla00   Andrei Paplauski
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,52 +19,11 @@
 #include "string.h"
 #include "ial.h"
 #include "error_codes.h"
-#include "debug.h"
 
 extern int ifj_errno;
 
 frame_t *new_frame = NULL;
 frame_t *active_frame = NULL;
-
-#ifdef DEBUG
-void fr_print(frame_t *frame) {
-    printf("frame: next_instr: %p ( ", (void *) frame->next_instr);
-    
-    if (frame->next_instr != NULL)
-        print_instr(&(frame->next_instr->instruction));
-
-    printf(" )\n");
-
-    frame_item_t *temp = frame->first_item;
-
-    while (temp != NULL) {
-        if (temp->var != NULL)
-            printf("frame_item: var: %p, id: %s, value: %i\n",
-                (void *)temp->var, temp->var->id, temp->value.ival);
-        else
-            printf("some error\n");
-        temp = temp->next;
-    }
-}
-
-void fr_print_frames() {
-    if (new_frame != NULL) {
-        printf("INTERPRET: new_frame: \n");
-        fr_print(new_frame);
-    }
-
-    frame_t *temp = active_frame;
-
-    if (temp == NULL)
-        printf("INTERPRET: no active_frame\n");
-
-    while (temp != NULL) {
-        printf("INTERPRET: active_frame: \n");
-        fr_print(temp);
-        temp = temp->next;
-    }
-}
-#endif
 
 int fr_add_item(frame_t *frame, symtab_elem_t *var) {
     frame_item_t *temp = malloc(sizeof(frame_item_t));
@@ -190,7 +160,6 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
         inter_value param_value;
         stack_inter_Top(&param_value, stack);
         stack_inter_Pop(stack);
-        debug_printf("##### builtin function ifj16.print(): ");
 
         bool backslash = false;
 
@@ -235,9 +204,6 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
         inter_value param_s;
         stack_inter_Top(&param_s, stack);
         stack_inter_Pop(stack);
-
-        debug_printf("%s %d %d\n", param_s.union_value.strval,
-            param_i.union_value.ival, param_n.union_value.ival);
 
         ifj_errno = ER_OK;
 
@@ -302,16 +268,10 @@ int call_builtin_function(inter_stack *stack, symtab_elem_t *func) {
         push_val((void *) result, stack);
     }
 
-#ifdef DEBUG
-    stack_inter_print(stack);
-#endif
-
     return ER_OK;
 }
 
 int call_instr(tListOfInstr *instrlist, inter_stack *stack, symtab_elem_t *func) {
-    debug_printf("INTERPRET: inside call instruction, params: %p %p %p\n", (void *) instrlist, (void *) stack, (void *) func);
-
     if (func->elem_type == ST_ELEMTYPE_FUN) {
         new_frame = malloc(sizeof(frame_t));
 
@@ -330,7 +290,6 @@ int call_instr(tListOfInstr *instrlist, inter_stack *stack, symtab_elem_t *func)
             stack_inter_Pop(stack);
             fr_set(new_frame, param, param_value.union_value);
 
-            debug_printf("INTERPRET: adding param to frame, id: %s\n", param->id);
             param = param->prev_param;
         }
 
@@ -339,19 +298,15 @@ int call_instr(tListOfInstr *instrlist, inter_stack *stack, symtab_elem_t *func)
         new_frame = NULL;
 
         if (strcmp(func->id, "run") == 0) {
-            debug_printf("!!!! setting next_instr to %p\n", (void *) NULL);
             active_frame->next_instr = NULL;
         }
         else {
-            debug_printf("!!!! setting next_instr to %p\n", (void *)instrlist->active->nextItem);
             active_frame->next_instr = instrlist->active->nextItem;
         }
-        debug_printf("!!!! going to %p\n", (void *)func->first_instr);
+
         listGoto(instrlist, func->first_instr);
     }
     else if (func->elem_type == ST_ELEMTYPE_BUILTIN) {
-        debug_printf("***** calling builtin function %s\n", func->id);
-
         int result = call_builtin_function(stack, func);
         
         if (result != ER_OK)
@@ -360,24 +315,13 @@ int call_instr(tListOfInstr *instrlist, inter_stack *stack, symtab_elem_t *func)
         listNext(instrlist);
     }
 
-#ifdef DEBUG
-    fr_print_frames();
-#endif
-
     return ER_OK;
 }
 
 int return_instr(tListOfInstr *instrlist) {
-    debug_printf("inside return instruction, %p\n", (void *) instrlist);
-
-#ifdef DEBUG
-    fr_print_frames();
-#endif
-
     if (active_frame == NULL)
         return ER_INTERN;
 
-    debug_printf("!!!! going to %p\n", (void *)active_frame->next_instr);
     listGoto(instrlist, active_frame->next_instr);
 
     frame_t *temp = active_frame;
@@ -385,14 +329,8 @@ int return_instr(tListOfInstr *instrlist) {
 
     fr_free(&temp);
 
-#ifdef DEBUG
-    fr_print_frames();
-#endif
-
-    if (active_frame == NULL) {
-        debug_printf("!!!! no frames\n");
+    if (active_frame == NULL)
         return FR_NO_FRAMES;
-    }
 
     return ER_OK;
 }
@@ -423,11 +361,7 @@ void set_value(symtab_elem_t *var, inter_value *value) {
         var->value = value->union_value;
         var->initialized = true;
     }
-    else
+    else {
         fr_set(active_frame, var, value->union_value);
-
-
-#ifdef DEBUG
-    fr_print_frames();
-#endif
+    }
 }

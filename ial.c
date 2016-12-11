@@ -1,3 +1,14 @@
+/**
+ * Implementace interpretu imperativniho jazyka IFJ16
+ * 
+ * xzarsk03   Jan Zarsky
+ * xvlcek23   David Vlcek
+ * xpelan04   Pelantova Lucie
+ * xmrlik00   Vit Mrlik
+ * xpapla00   Andrei Paplauski
+ *
+ */
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>

@@ -1,10 +1,21 @@
+/**
+ * Implementace interpretu imperativniho jazyka IFJ16
+ * 
+ * xzarsk03   Jan Zarsky
+ * xvlcek23   David Vlcek
+ * xpelan04   Pelantova Lucie
+ * xmrlik00   Vit Mrlik
+ * xpapla00   Andrei Paplauski
+ *
+ */
+
 #ifndef _SYMTAB_H
 #define _SYMTAB_H
 
 #include <stdbool.h>
 #include "instrlist.h"
 
-#define TABLE_SIZE 1000
+#define TABLE_SIZE 100
 
 typedef enum {
     ST_ELEMTYPE_VAR,
@@ -62,10 +73,5 @@ symtab_elem_t *st_find (symtab_t *table, char *token);
 symtab_elem_t *st_find_global (symtab_t *tabulka, char *token, char *class);
 void st_free(symtab_t *table);
 void st_add_builtin_functions(symtab_t *table);
-
-#ifdef DEBUG
-void st_print_elem(symtab_elem_t *elem, bool indent);
-void st_print(symtab_t *table);
-#endif
 
 #endif

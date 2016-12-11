@@ -1,3 +1,14 @@
+/**
+ * Implementace interpretu imperativniho jazyka IFJ16
+ * 
+ * xzarsk03   Jan Zarsky
+ * xvlcek23   David Vlcek
+ * xpelan04   Pelantova Lucie
+ * xmrlik00   Vit Mrlik
+ * xpapla00   Andrei Paplauski
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,11 +55,6 @@ int interpret(tListOfInstr *L)
 
       load_next = true;
 
-#ifdef DEBUG
-      printf("INTERPRET: ");stack_inter_print(&S);printf("\n");
-      printf("INTERPRET: instruction ");print_instr(I);printf("\n");
-#endif
-
       switch (I->instType)
     {
         case IN_CALL:
@@ -61,18 +67,8 @@ int interpret(tListOfInstr *L)
         break;
 
         case IN_RETURN:
-#ifdef DEBUG
-            stack_inter_print(&S);
-            printf("\n");
-#endif
-
             result = return_instr(L);
 
-#ifdef DEBUG
-            stack_inter_print(&S);
-            printf("\n");
-#endif
-            
             if (result == FR_NO_FRAMES) {
                 return ER_OK;
             }
@@ -500,59 +496,7 @@ int interpret(tListOfInstr *L)
 
         break;
 
-         // rozsireni
-
-        case IN_DEC:
-
-            stack_inter_Top(&(first.value), &S);
-            stack_inter_Pop(&S);
-
-            //first.value.union_value.ival = first.value.union_value.ival--;
-            first.value.union_value.ival--;
-
-            push_tab(first.value.union_value, &S);
-
-        break;
-
-        case IN_INC:
-
-            stack_inter_Top(&(first.value), &S);
-            stack_inter_Pop(&S);
-
-            //first.value.union_value.ival = first.value.union_value.ival++;
-            first.value.union_value.ival++;
-
-            push_tab(first.value.union_value, &S);
-
-        break;
-
-        case IN_F_DEC:
-
-            stack_inter_Top(&(first.value), &S);
-            stack_inter_Pop(&S);
-
-           // first.value.union_value.dval = first.value.union_value.dval--;
-           first.value.union_value.dval--;
-
-            push_tab(first.value.union_value, &S);
-
-        break;
-
-        case IN_F_INC:
-
-            stack_inter_Top(&(first.value), &S);
-            stack_inter_Pop(&S);
-
-            //first.value.union_value.dval = first.value.union_value.dval++;
-            first.value.union_value.dval++;
-
-            push_tab(first.value.union_value, &S);
-
-        break;
-
         case IN_LABEL:
-            
-            
             
         break;
 
@@ -566,13 +510,6 @@ int interpret(tListOfInstr *L)
         break;
     }
  }
-#ifdef DEBUG
-      printf("INTERPRET: ");
-      
-      stack_inter_print(&S);
-
-      printf("\n");
-#endif
 
   return 0;
 }
@@ -612,20 +549,6 @@ void stack_inter_Pop(inter_stack *S){
     (*S).top = (*S).top->next;
     free(temp);
 }
-
-#ifdef DEBUG
-void stack_inter_print(inter_stack *stack) {
-    printf("inter stack (starting from top): ");
-
-    inter_stack_item *temp = stack->top;
-
-    while (temp != NULL) {
-        printf("%p ", temp->value.vval);
-
-        temp = temp->next;
-    };
-}
-#endif
 
 //FCE pro hodnoty bool
 void bool_Pop(bool_stack *B)

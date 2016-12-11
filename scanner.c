@@ -1,3 +1,14 @@
+/**
+ * Implementace interpretu imperativniho jazyka IFJ16
+ * 
+ * xzarsk03   Jan Zarsky
+ * xvlcek23   David Vlcek
+ * xpelan04   Pelantova Lucie
+ * xmrlik00   Vit Mrlik
+ * xpapla00   Andrei Paplauski
+ *
+ */
+
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -26,61 +37,6 @@ void setSourceFile(FILE *f)
   source = f;
 }
 
-#ifdef DEBUG
-void print_token(int symbol) {
-    switch (symbol) {
-        case PLUS:
-            printf("+"); break;
-        case MINUS:
-            printf("-"); break;
-        case MUL:
-            printf("*"); break;
-       case DIV:
-            printf("/"); break;
-        case LESS:
-            printf("'<'"); break;
-        case GREAT:
-            printf("'>'"); break;
-        case LESS_EQ:
-            printf("'<='"); break;
-        case GREAT_EQ:
-            printf("'>='"); break;
-        case EQUAL:
-            printf("=="); break;
-        case N_EQUAL:
-            printf("!="); break;
-        case LEFT_BRACKET:
-            printf("("); break;
-        case RIGHT_BRACKET:
-            printf(")"); break;
-        case LEFT_VINCULUM:
-            printf("{"); break;
-        case RIGHT_VINCULUM:
-            printf("}"); break;
-        case COMMA:
-            printf(","); break;
-        case ASSIGN:
-            printf("="); break;
-        //case :
-        //    printf(""); break;
-        case INT_LITERAL:
-            printf("int literal"); break;
-        case DOUBLE_LITERAL:
-            printf("double literal"); break;
-        case STRING_LITERAL:
-            printf("str literal"); break;
-        case ID:
-            printf("id"); break;
-        case SEMICOLON:
-            printf(";"); break;
-        case END_OF_FILE:
-            printf("$"); break;
-        default:
-            printf("%d", symbol); break;
-    }
-}
-#endif
-
 void return_token(int token, char *buffer) {
     token_t *temp = malloc(sizeof(token_t));
 
@@ -92,12 +48,6 @@ void return_token(int token, char *buffer) {
     temp->next = token_buffer;
 
     token_buffer = temp;
-
-#ifdef DEBUG
-    printf("SCANNER: returning token ");
-    print_token(token);
-    printf(", %s\n", buffer);
-#endif
 }
 
 int lexer(string *buffer);
@@ -110,13 +60,6 @@ int get_next_token(char **buffer) {
         strInit(&str);
         result = lexer(&str);
         *buffer = str.str;
-
-#ifdef DEBUG
-        printf("SCANNER: sending token ");
-        print_token(result);
-        printf(", %s\n", *buffer);
-#endif
-
         return result;
     }
 
@@ -126,12 +69,6 @@ int get_next_token(char **buffer) {
     token_t *temp = token_buffer;
     token_buffer = token_buffer->next;
     free(temp);
-
-#ifdef DEBUG
-    printf("SCANNER: sending token ");
-    print_token(result);
-    printf(", %s\n", *buffer);
-#endif
 
     return result;
 }
@@ -557,10 +494,8 @@ int lexer(string *buffer) {
 
     case 8: // OPERATORY, SLOZENE OPERATORY, ROZPOZNAVANI ZACATKU KOMENTARU
 
-          if (plus_count == 1 && c == '+')  { return INC; }
-     else if (plus_count == 1 && c != '+')  {ungetc(c, source); return PLUS;} // vrat neplatny znak, je to plus
-     else if (minus_count == 1 && c == '-') { return DEC; }
-     else if (minus_count == 1 && c != '-') {ungetc(c, source);  return MINUS;} // vrat neplatny znak, je to minus
+     if (plus_count == 1 ) {ungetc(c, source); return PLUS;} // vrat neplatny znak, je to plus
+     else if (minus_count == 1) {ungetc(c, source);  return MINUS;} // vrat neplatny znak, je to minus
      else if (less_count == 1 && c == '=')  { return LESS_EQ;}
      else if (less_count == 1 && c != '=')  {ungetc(c, source); return LESS; } // vrat neplatny znak, je to mensi nez
      else if (great_count == 1 && c == '=') {return GREAT_EQ;}

@@ -1,3 +1,14 @@
+/**
+ * Implementace interpretu imperativniho jazyka IFJ16
+ * 
+ * xzarsk03   Jan Zarsky
+ * xvlcek23   David Vlcek
+ * xpelan04   Pelantova Lucie
+ * xmrlik00   Vit Mrlik
+ * xpapla00   Andrei Paplauski
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -5,12 +16,11 @@
 #include <string.h>
 #include <limits.h>
 #include <string.h>
-#include "parser_test.h"
+#include "parser.h"
 #include "instrlist.h"
 #include "expr_parser.h"
 #include "scanner.h"
 #include "symtab.h"
-#include "debug.h"
 #include "error_codes.h"
 
 extern symtab_t *tabulka;
@@ -22,13 +32,6 @@ extern symtab_elem_t *current_class;
 extern tListOfInstr instr_list;
 
 char *token_data_prev;
-
-#ifdef DEBUG
-
-#define DEBUG_PRINT_STACK_WIDTH 40
-int debug_print_cnt = 0;
-
-#endif
 
 enum nonterm_t { NT_EXPR = TOKEN_MAX, NT_MAX };
 enum table_entry_t { T_N = NT_MAX, T_L, T_E, T_R, T_MAX }; // none, <, =, >
@@ -58,104 +61,6 @@ typedef struct stack{
 } stack_t;
 
 stack_t stack = { NULL };
-
-// debugging functions
-#ifdef DEBUG
-void print_type(int type) {
-    switch (type) {
-        case ST_DATATYPE_ERROR:
-            printf("error  "); break;
-        case ST_DATATYPE_VOID:
-            printf("void   "); break;
-        case ST_DATATYPE_INT:
-            printf("int    "); break;
-        case ST_DATATYPE_DOUBLE:
-            printf("double "); break;
-        case ST_DATATYPE_STRING:
-            printf("string "); break;
-        case ST_DATATYPE_BOOL:
-            printf("bool   "); break;
-        default:
-            printf("other  ");
-    }
-}
-
-void print_symbol(int symbol) {
-    debug_print_cnt++;
-
-    switch (symbol) {
-        case PLUS:
-            printf("+"); break;
-        case MINUS:
-            printf("-"); break;
-        case MUL:
-            printf("*"); break;
-        case DIV:
-            printf("/"); break;
-        case LESS:
-            printf("'<'"); debug_print_cnt += 2; break;
-        case GREAT:
-            printf("'>'"); debug_print_cnt += 2; break;
-        case LESS_EQ:
-            printf("'<='"); debug_print_cnt += 3; break;
-        case GREAT_EQ:
-            printf("'>='"); debug_print_cnt += 3; break;
-        case EQUAL:
-            printf("=="); debug_print_cnt += 1; break;
-        case N_EQUAL:
-            printf("!="); debug_print_cnt += 1; break;
-        case LEFT_BRACKET:
-            printf("("); break;
-        case RIGHT_BRACKET:
-            printf(")"); break;
-        case INT_LITERAL:
-            printf("int"); debug_print_cnt += 2; break;
-        case DOUBLE_LITERAL:
-            printf("dbl"); debug_print_cnt += 2; break;
-        case STRING_LITERAL:
-            printf("str"); debug_print_cnt += 2; break;
-        case ID:
-            printf("id"); debug_print_cnt += 1; break;
-        case SEMICOLON:
-            printf(";"); break;
-        case END_OF_FILE:
-            printf("$"); break;
-        case T_L:
-            printf("<"); break;
-        case T_R:
-            printf(">"); break;
-        case NT_EXPR:
-            printf("E"); break;
-        default:
-            printf("%d", symbol); break;
-    }
-}
-
-void print_stack_item(stack_item_t *item) {
-    if (item->next != NULL)
-        print_stack_item(item->next);
-
-    print_symbol(item->symbol);
-}
-
-void print_stack() {
-    debug_print_cnt = 0;
-
-    print_stack_item(stack.top);
-
-    for (int i = debug_print_cnt; i < DEBUG_PRINT_STACK_WIDTH; i++)
-        printf(" ");
-}
-
-void print_symbol_aligned(int symbol) {
-    debug_print_cnt = 0;
-
-    print_symbol(symbol);
-
-    for (int i = debug_print_cnt; i < 6; i++)
-        printf(" ");
-}
-#endif
 
 int map_token(int token) {
     switch (token) {
@@ -326,12 +231,6 @@ int execute_rule(int num, int symbol, int type) {
     // pop additional '<' from stack
     pop_n_times(num + 1);
 
-#ifdef DEBUG
-    debug_printf("pushing type: ");
-    print_type(type);
-    debug_printf("  ");
-#endif
-
     push(symbol, type);
 
     return ER_OK;
@@ -442,36 +341,28 @@ int rules() {
     int result, type;
 
     if (check_rule(3, NT_EXPR, PLUS, NT_EXPR)) {
-        debug_printf("rule: E -> E + E  ");
         type = check_type_arithmetic(IN_ADD);
         result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, MINUS, NT_EXPR)) {
-        debug_printf("rule: E -> E - E  ");
         type = check_type_arithmetic(IN_SUB);
         result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, MUL, NT_EXPR)) {
-        debug_printf("rule: E -> E * E  ");
         type = check_type_arithmetic(IN_MUL);
         result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, DIV, NT_EXPR)) {
-        debug_printf("rule: E -> E / E  ");
         type = check_type_arithmetic(IN_DIV);
         result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, LEFT_BRACKET, NT_EXPR, RIGHT_BRACKET)) {
-        debug_printf("rule: E -> (E)    ");
         type = check_type_brackets();
         result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(1, ID)) {
-        debug_printf("rule: E -> ID     ");
         type = check_type_id();
         result = execute_rule(1, NT_EXPR, type);
-
-        debug_printf("token_data_prev: %s ", token_data_prev);
 
         symtab_elem_t *var = st_find(local_tabulka, token_data_prev);
 
@@ -485,13 +376,11 @@ int rules() {
         add_instr(IN_TAB_PUSH, (void *) var, NULL, NULL);
     }
     else if (check_rule(1, INT_LITERAL)) {
-        debug_printf("rule: E -> INT    ");
         result = execute_rule(1, NT_EXPR, ST_DATATYPE_INT);
         long int value = int_from_token(token_data_prev);
         add_instr(IN_VAL_PUSH, (void *) value, NULL, NULL);
     }
     else if (check_rule(1, DOUBLE_LITERAL)) {
-        debug_printf("rule: E -> DOUBLE ");
         result = execute_rule(1, NT_EXPR, ST_DATATYPE_DOUBLE);
 
         double *value = double_from_token(token_data_prev);
@@ -502,7 +391,6 @@ int rules() {
         add_instr(IN_VAL_PUSH, (void *) value, NULL, NULL);
     }
     else if (check_rule(1, STRING_LITERAL)) {
-        debug_printf("rule: E -> STRING ");
         result = execute_rule(1, NT_EXPR, ST_DATATYPE_STRING);
 
         char *value = string_from_token(token_data_prev);
@@ -513,37 +401,30 @@ int rules() {
         add_instr(IN_VAL_PUSH, (void *) value, NULL, NULL);
     }
     else if (check_rule(3, NT_EXPR, LESS, NT_EXPR)) {
-        debug_printf("rule: E -> E < E  ");
         type = check_type_rel(IN_LESS);
         result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, GREAT, NT_EXPR)) {
-        debug_printf("rule: E -> E > E  ");
         type = check_type_rel(IN_GREAT);
         result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, LESS_EQ, NT_EXPR)) {
-        debug_printf("rule: E -> E <= E ");
         type = check_type_rel(IN_LESS_EQ);
         result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, GREAT_EQ, NT_EXPR)) {
-        debug_printf("rule: E -> E >= E ");
         type = check_type_rel(IN_GREAT_EQ);
         result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3, NT_EXPR, EQUAL, NT_EXPR)) {
-        debug_printf("rule: E -> E == E ");
         type = check_type_rel(IN_EQ);
         result = execute_rule(3, NT_EXPR, type);
     }
     else if (check_rule(3,  NT_EXPR, N_EQUAL, NT_EXPR)) {
-        debug_printf("rule: E -> E != E ");
         type = check_type_rel(IN_N_EQ);
         result = execute_rule(3, NT_EXPR, type);
     }
     else {
-        debug_printf("rule: no matching rule");
         return ER_SYNTAX;
     }
 
@@ -567,25 +448,16 @@ int expr(int expr_type, int *type) {
         return ER_LEX;
     
     do {
-#ifdef DEBUG
-        printf("stack: ");
-        print_stack();
-        printf("    input: ");
-        print_symbol_aligned(token);
-        printf("    token_data_prev: '%s' ", token_data_prev);
-#endif
         if (expr_type == MATH_EXPR && token == SEMICOLON) {
             token = END_OF_FILE;
         }
         else if (expr_type == BOOL_EXPR
             && token == RIGHT_BRACKET && top_term() == END_OF_FILE) {
-            debug_printf("\n");
             break;
         }
 
         switch (table[map_token(top_term())][map_token(token)]) {
             case T_E:
-                debug_printf("op: =    ");
                 push(token, ST_DATATYPE_VOID);
 
                 free(token_data_prev);
@@ -595,7 +467,6 @@ int expr(int expr_type, int *type) {
                     return ER_LEX;
                 break;
             case T_L:
-                debug_printf("op: <    ");
                 insert_after_top_term(T_L);
                 push(token, ST_DATATYPE_VOID);
 
@@ -606,36 +477,19 @@ int expr(int expr_type, int *type) {
                     return ER_LEX;
                 break;
             case T_R:
-                debug_printf("op: >    ");
                 result = rules();
                 if (result != ER_OK) {
-                    debug_printf("\n");
                     *type = ST_DATATYPE_ERROR;
                     return result;
 				}
-                debug_printf("\n");
                 break;
             case T_N:
             default:
-                debug_printf("op: none, \n");
                 *type = ST_DATATYPE_ERROR;
                 return ER_SYNTAX;
         }
 
     } while (top_term() != END_OF_FILE || token != END_OF_FILE);
-
-#ifdef DEBUG
-    printf("********** END OF ALGORITM **********\n");
-    printf("stack: ");
-    print_stack();
-    printf("    input: ");
-    print_symbol(token);
-    printf("\n");
-
-    //printf("\n");
-    //printf("Generated instructions:\n");
-    //print_instr_list();
-#endif
 
     *type = stack.top->type;
 
@@ -683,11 +537,6 @@ int concat() {
         return ER_LEX;
 
     while (token != RIGHT_BRACKET) {
-#ifdef DEBUG
-        printf("    input: ");
-        print_symbol_aligned(token);
-#endif
-
         symtab_elem_t *var;
         long int int_value;
         double *double_value;
@@ -756,44 +605,19 @@ int concat() {
             return ER_LEX;
     }
 
-#ifdef DEBUG
-    printf("********** END OF ALGORITM **********\n");
-    printf("    input: ");
-    print_symbol(token);
-    printf("\n");
-#endif
-
     return ER_OK;
 }
 
 int bool_expr() {
     int type;
 
-    debug_printf("*****\nEXPR_PARSER: function bool_expr()\n");
-
-    int result = expr(BOOL_EXPR, &type);
-
-    debug_printf("*****\n");
-
-    return result;
+    return expr(BOOL_EXPR, &type);
 }
 
 int math_expr(int *type) {
-    debug_printf("*****\nEXPR_PARSER: function math_expr()\n");
-
-    int result = expr(MATH_EXPR, type);
-
-    debug_printf("*****\n");
-    
-    return result;
+    return expr(MATH_EXPR, type);
 }
 
 int string_concat() {
-    debug_printf("*****\nEXPR_PARSER: function string_concat()\n");
-
-    int result = concat();
-
-    debug_printf("*****\n");
-
-    return result;
+    return concat();
 }

@@ -1,11 +1,21 @@
+/**
+ * Implementace interpretu imperativniho jazyka IFJ16
+ * 
+ * xzarsk03   Jan Zarsky
+ * xvlcek23   David Vlcek
+ * xpelan04   Pelantova Lucie
+ * xmrlik00   Vit Mrlik
+ * xpapla00   Andrei Paplauski
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 
-#include "parser_test.h"
+#include "parser.h"
 #include "symtab.h"
-#include "debug.h"
 
 unsigned int hash_function(const char *str, unsigned htab_size) {
     unsigned int h = 0;
@@ -38,14 +48,6 @@ symtab_elem_t *st_add(symtab_t *tabulka, char *token) {
 
     synon->id = strdup(token);
 
- /*   if (tabulka->elements[klic] != NULL) {
-        synon->nextElem = tabulka->elements[klic]->nextElem;
-        tabulka->elements[klic]->nextElem = synon;
-    }
-    else {
-        synon->nextElem = NULL;
-        tabulka->elements[klic] = synon;
-    }*/
     synon->nextElem = tabulka->elements[klic];
     tabulka->elements[klic] = synon;
     
@@ -90,140 +92,6 @@ symtab_elem_t *st_find_global (symtab_t *tabulka, char *token, char *class){
     return ptr;
 }
 
-#ifdef DEBUG
-#define ANSI_COLOR_RED     "\x1b[31m"
-#define ANSI_COLOR_GREEN   "\x1b[32m"
-#define ANSI_COLOR_YELLOW  "\x1b[33m"
-#define ANSI_COLOR_BLUE    "\x1b[34m"
-#define ANSI_COLOR_MAGENTA "\x1b[35m"
-#define ANSI_COLOR_CYAN    "\x1b[36m"
-#define ANSI_COLOR_RESET   "\x1b[0m"
-
-void st_print_elem(symtab_elem_t *elem, bool indent) {
-    switch (elem->elem_type) {
-        case ST_ELEMTYPE_VAR:
-            printf(ANSI_COLOR_YELLOW); break;
-        case ST_ELEMTYPE_FUN:
-            printf(ANSI_COLOR_CYAN); break;
-        case ST_ELEMTYPE_BUILTIN:
-            printf(ANSI_COLOR_MAGENTA); break;
-        case ST_ELEMTYPE_PARAM:
-            printf(ANSI_COLOR_GREEN); break;
-        case ST_ELEMTYPE_CLASS:
-            printf(ANSI_COLOR_BLUE); break;
-        default:
-            printf(ANSI_COLOR_RED); break;
-    }
-
-    if (indent)
-        printf(" ->");
-
-    printf("addr: %p, ", (void *)elem);
-
-    if (!indent)
-        printf("   ");
-
-    printf("id: %-20s, elem_type: ", elem->id);
-
-    switch (elem->elem_type) {
-        case ST_ELEMTYPE_VAR:
-            printf("var    "); break;
-        case ST_ELEMTYPE_FUN:
-            printf("fun    "); break;
-        case ST_ELEMTYPE_BUILTIN:
-            printf("builtin"); break;
-        case ST_ELEMTYPE_PARAM:
-            printf("param  "); break;
-        case ST_ELEMTYPE_CLASS:
-            printf("class  "); break;
-        default:
-            printf("other  "); break;
-    }
-
-    if (elem->is_global)
-        printf(", is global, ");
-    else
-        printf(", is local,  ");
-
-    printf("data_type: ");
-
-    switch (elem->data_type) {
-        case ST_DATATYPE_ERROR:
-            printf("error "); break;
-        case ST_DATATYPE_VOID:
-            printf("void  "); break;
-        case ST_DATATYPE_INT:
-            printf("int,    value: %10d", elem->value.ival); break;
-        case ST_DATATYPE_DOUBLE:
-            if (elem->value.dval != NULL)
-                printf("double, value: %10g", *(elem->value.dval));
-            else
-                printf("double, value:       NULL");
-            break;
-        case ST_DATATYPE_STRING:
-            printf("string, value: %10s", elem->value.strval); break;
-        case ST_DATATYPE_BOOL:
-            printf("bool  "); break;
-        default:
-            printf("other "); break;
-    }
-
-    printf(", local_table: %p, first_instr: %p\n", (void *)elem->local_table, (void *)elem->first_instr);
-
-    printf(ANSI_COLOR_RESET);
-}
-
-void st_print(symtab_t *table) {
-    symtab_elem_t *ptr;
-    symtab_elem_t *ptr2;
-    symtab_elem_t *ptr3;
-
-    for (int i = 0; i < TABLE_SIZE; i++) {
-        if (table->elements[i] != NULL) {
-            ptr = table->elements[i];
-
-            while (ptr != NULL) {
-                printf("i=%4d ", i);
-                st_print_elem(ptr, false);
-
-                ptr3 = ptr->first_param;
-
-                while (ptr3 != NULL) {
-                    printf("param: %s, ", ptr3->id);
-                    ptr3 = ptr3->next_param;
-                }
-
-                ptr3 = ptr->last_param;
-
-                while (ptr3 != NULL) {
-                    printf("lparam: %s, ", ptr3->id);
-                    ptr3 = ptr3->prev_param;
-                }
-
-                if (ptr->first_param != NULL)
-                    printf("\n");
-
-                if (ptr->local_table != NULL) {
-                    for (int j = 0; j < TABLE_SIZE; j++) {
-                        if (ptr->local_table->elements[j] != NULL) {
-                            ptr2 = ptr->local_table->elements[j]; 
-
-                            while (ptr2 != NULL) {
-                                printf("j=%4d ", j);
-                                st_print_elem(ptr2, true);
-                                ptr2 = ptr2->nextElem;
-                            }
-                        }
-                    }
-                }
-
-                ptr = ptr->nextElem;
-            }
-        }
-    }
-}
-#endif
-
 void st_free(symtab_t *table) {
     symtab_elem_t *ptr;
 
@@ -231,8 +99,6 @@ void st_free(symtab_t *table) {
         while (table->elements[i] != NULL) {
             ptr = table->elements[i];
             table->elements[i] = ptr->nextElem;
-
-            debug_printf("freeing element, i: %-4d id: %s\n", i, ptr->id);
 
             if (ptr->local_table != NULL) {
                 st_free(ptr->local_table);

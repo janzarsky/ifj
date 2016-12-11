@@ -1,21 +1,23 @@
+/**
+ * Implementace interpretu imperativniho jazyka IFJ16
+ * 
+ * xzarsk03   Jan Zarsky
+ * xvlcek23   David Vlcek
+ * xpelan04   Pelantova Lucie
+ * xmrlik00   Vit Mrlik
+ * xpapla00   Andrei Paplauski
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "parser_test.h"
+#include "parser.h"
 #include "instrlist.h"
 #include "expr_parser.h"
 #include "symtab.h"
 #include "scanner.h"
 #include "error_codes.h"
-#include "debug.h"
-
-#define ANSI_COLOR_RED     "\x1b[31m"
-#define ANSI_COLOR_GREEN   "\x1b[32m"
-#define ANSI_COLOR_YELLOW  "\x1b[33m"
-#define ANSI_COLOR_BLUE    "\x1b[34m"
-#define ANSI_COLOR_MAGENTA "\x1b[35m"
-#define ANSI_COLOR_CYAN    "\x1b[36m"
-#define ANSI_COLOR_RESET   "\x1b[0m"
 
 int return_args();
 int statement_list();
@@ -27,17 +29,6 @@ int func_args_list();
 int func_args_print();
 int func_params();
 int func_params_list();
-
-/*void generateInstruction(int instType, void *addr1, void *addr2, void *addr3)
-// vlozi novou instrukci do seznamu instrukci
-{
-   tInstr I;
-   I.instType = instType;
-   I.addr1 = addr1;
-   I.addr2 = addr2;
-   I.addr3 = addr3;
-   listInsertLast(list, I);
-}*/
 
 static int pruchod = 0;
 symtab_t *tabulka;
@@ -75,9 +66,6 @@ char * str_conc(char * class_name, char * var_name){
 //-- 3) <prog> -> STATIC [INT/DOUBLE/STRING/VOID] ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list>	//declaration and initialization of function
 // 3) <prog>  -> END_OF_FILE
 int program(){
-	#ifdef DEBUG
-    printf("PARSER: function program()\n");
-    #endif
 	int result;
 //pruchod 1
 	if(pruchod == 0){
@@ -100,11 +88,6 @@ int program(){
 						current_class->declared = 1;
                         current_class->initialized = 1;
                         current_class->is_global = 1;
-						#ifdef DEBUG
-						printf(ANSI_COLOR_YELLOW "\n---------------------------------------------------------------------------------------\n");
-						printf(  "new  class = %s\n" ,current_class->id  );
-						printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-						#endif
 
 						if ( (token = get_next_token(&token_data)) != ER_LEX  && token == LEFT_VINCULUM){
 					 		if( (result = class_dec()) != ER_OK)
@@ -128,12 +111,6 @@ int program(){
 							current_class = st_add(tabulka, token_data);
 							current_class->elem_type = ST_ELEMTYPE_CLASS;
 							current_class->declared = current_class->initialized = 1;
-
-							#ifdef DEBUG
-							printf(ANSI_COLOR_YELLOW "\n---------------------------------------------------------------------------------------\n");
-							printf(  "new  class = %s\n" ,current_class->id  );
-							printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-							#endif
 
 							if ( (token = get_next_token(&token_data)) != ER_LEX  && token == LEFT_VINCULUM){
 						 		if( (result = class_dec()) != ER_OK)
@@ -251,9 +228,6 @@ int program(){
 		6) <st-list>   -> [INT/DOUBLE/SRING] ID [ SEMICOLON / ASSIGN <assign>] <st-list>
 		7) <st-list>   -> ID <func_var>(we must give pointer to ID) <st-list> //it can be function call OR inicialization of var*/
 int statement_list(){
-	#ifdef DEBUG
-    printf("PARSER: function statement_list()\n");
-    #endif
 	int result;
 	int prev_token;
 	tListItem * label1;
@@ -380,11 +354,7 @@ int statement_list(){
 								return ER_SEM;
 
 							local_item = item = st_add(local_tabulka, token_data);
-							#ifdef DEBUG
-							printf(ANSI_COLOR_GREEN "\n---------------------------------------------------------------------------------------\n");
-							printf(  "new local token = %s\n" ,item->id  );
-							printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-							#endif
+
 							switch(prev_token){
 								case INT:
 									item->data_type = ST_DATATYPE_INT;
@@ -447,9 +417,6 @@ int statement_list(){
 // 		1) <func-params> -> RIGHT_BRACKET
 // 		2) <func-params> -> [INT/DOUBLE/SRING] ID <func-params-list>
 int func_params(){
-	#ifdef DEBUG
-    printf("PARSER: function func_params()\n");
-    #endif
 	if ( (token = get_next_token(&token_data)) == ER_LEX )
 		return ER_LEX;
 	int result;
@@ -505,9 +472,6 @@ int func_params(){
 // 		1) <func-params-list> -> RIGHT_BRACKET
 // 		2) <func-params-list> -> COMMA [INT/DOUBLE/SRING] ID <func-params-list>
 int func_params_list(){
-	#ifdef DEBUG
-    printf("PARSER: function func_params_list()\n");
-    #endif
 	int result;
 	int temp_token;
 
@@ -565,9 +529,6 @@ int func_params_list(){
 // 		1) LEFT_BRACKET <func-args> SEMICOLON //its function call
 // 		2) ASSIGN <assign> //its inicialization of var
 int func_var(){
-	#ifdef DEBUG
-    printf("PARSER: function func_var()\n");
-    #endif
 	int result;
 	id = token_data;
 	symtab_elem_t * local_item;
@@ -581,12 +542,6 @@ int func_var(){
 				return ER_SEM; //error type 3 not declarated function
 
 			called_function = item;
-
-			#ifdef DEBUG
-			printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
-			printf(  "func_var current_function = %s\n" ,current_function->id  );
-			printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-			#endif
 
             if (called_function->elem_type == ST_ELEMTYPE_FUN) { // if normal function
 			    if ( (result = func_args()) != ER_OK)
@@ -644,21 +599,12 @@ int func_var(){
 // 		1) <return-args> -> SEMICOLON (ONLY if we in VOID function)
 // 		4) <return-args> -> <math-expr> SEMICOLON
 int return_args(){
-	#ifdef DEBUG
-    printf("PARSER: function return_args()\n");
-    #endif
 	int result;
 	if ( (token = get_next_token(&token_data)) == ER_LEX )
 		return ER_LEX;
 	switch(token){
 // 1) <return-args> -> SEMICOLON (ONLY if we in VOID function)		
 		case SEMICOLON:
-
-			#ifdef DEBUG
-			printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
-			printf(  "return_args current_function = %s\n" ,current_function->id  );
-			printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-			#endif
 
 			if(current_function->data_type != ST_DATATYPE_VOID){
 				return ER_RUN_INIT ; //return nothing from non-VOID function //FIXME
@@ -705,9 +651,6 @@ int return_args(){
 // 		3) <assign>	   -> ID [SEMICOLON/ <math-expr>]
 // 		4) <assign>	   -> <math-expr> SEMICOLON
 int assign(){
-	#ifdef DEBUG
-    printf("PARSER: function assign()\n");
-    #endif
 	int result;
     int temp_token;
     char *temp_token_data;
@@ -720,13 +663,6 @@ int assign(){
 		case ID:
             temp_token = token;
             temp_token_data = strdup(token_data);
-
-            #ifdef DEBUG
-            printf(ANSI_COLOR_CYAN"------------------------------------------------------------------------\n");
-            printf("\ntoken_data: %s\n",temp_token_data);
-            printf("------------------------------------------------------------------------\n"ANSI_COLOR_RESET);
-            #endif
-
 
 	        if( (temp_elem = st_find(local_tabulka,temp_token_data)) == NULL){
                 if( (temp_elem  = st_find_global(tabulka,temp_token_data, current_class->id)) == NULL){
@@ -798,11 +734,6 @@ int assign(){
 
                     if(result == ER_OK){
                         if(item->declared ){
-                        	#ifdef DEBUG
-                        	printf(ANSI_COLOR_CYAN"------------------------------------------------------------------------\n");
-                        	printf("\ntoken_data: %s ; data_type=%d\n",item->id,item->data_type);
-                        	printf("------------------------------------------------------------------------\n"ANSI_COLOR_RESET);
-                        	#endif
                         	switch(item->data_type){
                         		case ST_DATATYPE_INT:
                         				if(type != ST_DATATYPE_INT)
@@ -877,9 +808,6 @@ int func_args(){
 	symtab_elem_t * temp_item;
 	current_param = called_function->first_param;
 
-	#ifdef DEBUG
-    printf("PARSER: function func_args()\n");
-    #endif
 	int result;
 
 	if ( (token = get_next_token(&token_data)) == ER_LEX )
@@ -901,8 +829,6 @@ int func_args(){
 			//argument's type check	
 			if(current_param == NULL)
                 return ER_SEM_TYPES;
-
-            debug_printf("current_param: %s\n", current_param->id);
 
             if (temp_item->data_type != current_param->data_type) {
                 if (temp_item->data_type == ST_DATATYPE_INT &&
@@ -956,10 +882,6 @@ int func_args(){
 // <func-args-print>//function CALL
 		// 1) <func-args> -> STRING_CONCAT RIGHT_BRACKET
 int func_args_print(){
-	#ifdef DEBUG
-    printf("PARSER: function func_args_print()\n");
-    #endif
-
 	return string_concat();
 }
 
@@ -967,9 +889,6 @@ int func_args_print(){
 // 		1) <func-args-list> -> RIGHT_BRACKET
 // 		2) <func-args-list> -> COMMA [ID/INT_LITERAL/DOUBLE_LITERAL/STRING_LITERAL] <func-args-list>
 int func_args_list(){
-	#ifdef DEBUG
-    printf("PARSER: function func_args_list()\n");
-    #endif
 	symtab_elem_t * temp_item;
 	int result;
 	current_param = current_param->next_param;
@@ -997,8 +916,6 @@ int func_args_list(){
 						if (current_param == NULL) {
 							return ER_SEM_TYPES;
 						}		
-
-                        debug_printf("current_param: %s\n", current_param->id);
 
 						add_instr(IN_TAB_PUSH,(void *)temp_item,NULL,NULL);	 //push function argument(ID) to stack
 
@@ -1066,9 +983,6 @@ int func_args_list(){
 // 		2) <class-dec> -> RIGHT_VINCULUM
 // 		3) <class-dec> -> STATIC VOID ID LEFT_BRACKET <func-params>(we MUST give pointer to funtion) LEFT_VINCULUM <st-list> <class-dec>
 int class_dec(){
-	#ifdef DEBUG
-    printf("PARSER: function class_dec()\n");
-    #endif
 	int result;
 	int prev_token;
 	symtab_elem_t * find;
@@ -1124,12 +1038,6 @@ int class_dec(){
 									item->initialized = 0;
 									item->elem_type = ST_ELEMTYPE_VAR;
                                     item->is_global = true;
-									#ifdef DEBUG
-									printf(ANSI_COLOR_MAGENTA"\n---------------------------------------------------------------------------------------\n");
-									printf(  "new global var id = %s\n" ,item->id  );
-									printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-									#endif
-
 
 									if ( (result = class_dec()) != ER_OK)
 										return result;
@@ -1138,11 +1046,6 @@ int class_dec(){
 	// 1) <class-dec> -> STATIC [INT/DOUBLE/SRING] ID  ASSIGN <math-expr> <class-dec>								
 								case ASSIGN:
 									item->elem_type = ST_ELEMTYPE_VAR;
-									#ifdef DEBUG
-									printf(ANSI_COLOR_MAGENTA"\n---------------------------------------------------------------------------------------\n");
-									printf(  "new global var id = %s\n" ,item->id  );
-									printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-									#endif
 
 									if ( (result = math_expr(&type)) != ER_OK)
 										return result;
@@ -1161,11 +1064,6 @@ int class_dec(){
                                     current_function->is_global = true;
                                     st_init(&(current_function->local_table));
                                     local_tabulka = current_function->local_table;
-                                    #ifdef DEBUG
-                                    printf(ANSI_COLOR_MAGENTA"\n---------------------------------------------------------------------------------------\n");
-                                    printf(  "new global function = %s\n" ,current_function->id  );
-                                    printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-                                    #endif
 
 									if ( (result = func_params()) != ER_OK)
 										return result;
@@ -1212,11 +1110,6 @@ int class_dec(){
 								current_function->declared =  1;
                                 st_init(&(current_function->local_table));
                                 local_tabulka = current_function->local_table;
-								#ifdef DEBUG
-								printf(ANSI_COLOR_MAGENTA "\n---------------------------------------------------------------------------------------\n");
-								printf(  "new global function = %s\n" ,current_function->id  );
-								printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-								#endif
 							}
 							id = token_data;
 							if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET){
@@ -1257,11 +1150,6 @@ int class_dec(){
 								current_function->declared =  1;
                                 st_init(&(current_function->local_table));
                                 local_tabulka = current_function->local_table;
-								#ifdef DEBUG
-								printf(ANSI_COLOR_MAGENTA "\n---------------------------------------------------------------------------------------\n");
-								printf(  "new global function = %s\n" ,current_function->id  );
-								printf( "---------------------------------------------------------------------------------------\n" ANSI_COLOR_RESET);
-								#endif
 							}
 							id = token_data;
 							if ( (token = get_next_token(&token_data)) != ER_LEX && token == LEFT_BRACKET){

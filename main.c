@@ -13,13 +13,12 @@
 #include <stdlib.h>
 
 #include "instrlist.h"
-#include "parser_test.h"
+#include "parser.h"
 #include "scanner.h"
 #include "symtab.h"
 #include "frames.h"
 #include "interpret.h"
 #include "error_codes.h"
-#include "debug.h"
 
 extern tListOfInstr *instr_list;
 extern symtab_t *local_tabulka;
@@ -35,23 +34,6 @@ int main(int argc, char** argv) {
     if ((source = fopen(argv[1], "r")) == NULL) {
         return ER_INTERN;
     }
-    
-#ifdef DEBUG
-    printf("MAIN: source code:\n");
-
-    int c;
-
-    while ((c = getc(source)) != EOF)
-        putchar(c);
-    
-    printf("*****\n");
-    
-    fclose(source);
-
-    if ((source = fopen(argv[1], "r")) == NULL) {
-        return ER_INTERN;
-    }
-#endif
 
     // initialize table of symbols
     symtab_t *symtab;
@@ -67,16 +49,7 @@ int main(int argc, char** argv) {
     set_symtable(symtab);
 
     // run parser (first run)
-    debug_printf("MAIN: parse code (first run)\n");
-
     int result = program();
-
-    debug_printf("******************************\n\nfirst run result: %d\n\n", result);
-
-#ifdef DEBUG
-    printf("MAIN: symtab\n");
-    st_print(symtab);
-#endif
 
     if (result != ER_OK)
        goto out;
@@ -94,42 +67,18 @@ int main(int argc, char** argv) {
     set_function_beginning(&(temp->first_instr));
 
     // run parser (second run)
-    debug_printf("\nMAIN: parse code (second run)\n");
-
     rewind(source);
 
     result = program();
-    
-    debug_printf("******************************\n\nsecond run result: %d\n\n", result);
-
-#ifdef DEBUG
-    printf("MAIN: symtab\n");
-    st_print(symtab);
-
-    printf("\nMAIN: generated instructions\n");
-    print_instr_list();
-#endif
 
     if (result != ER_OK)
        goto out;
 
     // run interpret
-    debug_printf("\nMAIN: interpret code\n");
-
     result = interpret(instr_list);
 
-    debug_printf("******************************\n\nresult: %d\n", result);
-
-#ifdef DEBUG
-    printf("MAIN: symtab\n");
-    st_print(symtab);
-#endif
-
-    debug_printf("MAIN: freeing symtab\n");
     st_free(symtab);
-    debug_printf("MAIN: freeing instr_list\n");
     listFree(instr_list);
-    debug_printf("MAIN: closing file\n");
     fclose(source);
 
     return result;
