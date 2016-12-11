@@ -261,9 +261,10 @@ int statement_list(){
 		while(bracket_counter != -1){
 			if( (token = get_next_token(&token_data)) == ER_LEX)
 				return ER_LEX;
-			if(token == RIGHT_VINCULUM)
+
+			if (token == RIGHT_VINCULUM)
 				bracket_counter--;
-			if(token == LEFT_VINCULUM)
+			else if (token == LEFT_VINCULUM)
 				bracket_counter++;
 		}
 		return ER_OK;
@@ -565,18 +566,11 @@ int func_var(){
 	switch(token){
 // 1) LEFT_BRACKET <func-args> SEMICOLON //it's function call	
 		case LEFT_BRACKET:
-			//current_function = item;
-			if( (item = st_find(tabulka, id)) == NULL){ //if function not in symtab
-			    if( (item = st_find(tabulka, id = str_conc(current_class->id, id))) == NULL){ //if function not in symtab
-				    free(id);
-				    return ER_SEM; //error type 3 not declarated function
-                }
-			}
-			else{
-				free(id);
-			}
+			if( (item = st_find_global(tabulka, id, current_class->id)) == NULL) //if function not in symtab
+				return ER_SEM; //error type 3 not declarated function
 
 			called_function = item;
+
 			#ifdef DEBUG
 			printf(ANSI_COLOR_RED "\n---------------------------------------------------------------------------------------\n");
 			printf(  "func_var current_function = %s\n" ,current_function->id  );
@@ -736,20 +730,22 @@ int assign(){
 // 2) <assign>	   -> ID LEFT_BRACKET <func-args> SEMICOLON //function call			
 				case LEFT_BRACKET: 
 					if(temp_elem->elem_type != ST_ELEMTYPE_FUN && temp_elem->elem_type != ST_ELEMTYPE_BUILTIN){
-						return ER_SEM; //FIXME check error type for trying to call not a function
+						return ER_SEM;
 					}
+
 					called_function = temp_elem;
+                    
 					if ( (result = func_args()) != ER_OK)
 						return result;
 
-					//current_function = temp_elem;
 			        add_instr(IN_CALL, NULL, NULL, (void *) temp_elem);
-
 
 					if ( (token = get_next_token(&token_data)) != ER_LEX && token == SEMICOLON)
 						return ER_OK;
+
 					if(token == ER_LEX)
 						return ER_LEX;
+
 					return ER_SYNTAX;	
 					break;
 // 3) <assign>	   -> ID SEMICOLON					
