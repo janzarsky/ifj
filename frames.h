@@ -1,6 +1,7 @@
 #ifndef _FRAMES_H
 #define _FRAMES_H
 
+#include <stdbool.h>
 #include "symtab.h"
 #include "instrlist.h"
 #include "interpret.h"
@@ -10,6 +11,7 @@
 typedef struct frame_item_t {
     symtab_elem_t *var;
     st_value_t value;
+    bool initialized;
     struct frame_item_t *next;
 } frame_item_t;
 

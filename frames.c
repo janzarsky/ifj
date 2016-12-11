@@ -66,11 +66,12 @@ int fr_add_item(frame_t *frame, symtab_elem_t *var) {
     st_value_t null_val;
     null_val.ival = 0;
     temp->value = null_val;
+    temp->initialized = false;
 
     temp->next = frame->first_item;
     frame->first_item = temp;
 
-    return 0;
+    return ER_OK;
 }
 
 frame_item_t *fr_get_item(frame_t *frame, symtab_elem_t *var) {
@@ -88,44 +89,52 @@ frame_item_t *fr_get_item(frame_t *frame, symtab_elem_t *var) {
 
 int fr_set(frame_t *frame, symtab_elem_t *var, st_value_t val) {
     if (frame == NULL)
-        return INTERNAL_ERROR;
+        return ER_INTERN;
 
     frame_item_t *item = fr_get_item(frame, var);
 
     if (item == NULL) {
-        if (fr_add_item(frame, var) == INTERNAL_ERROR)
-            return INTERNAL_ERROR;
+        int result = fr_add_item(frame, var);
+
+        if (result != ER_OK)
+            return result;
 
         item = fr_get_item(frame, var);
 
         if (item == NULL)
-            return INTERNAL_ERROR;
+            return ER_INTERN;
     }
 
     item->value = val;
+    item->initialized = true;
 
-    return 0;
+    return ER_OK;
 }
 
 int fr_get(frame_t *frame, symtab_elem_t *var, st_value_t *val) {
     if (frame == NULL)
-        return INTERNAL_ERROR;
+        return ER_INTERN;
 
     frame_item_t *item = fr_get_item(frame, var);
 
     if (item == NULL) {
-        if (fr_add_item(frame, var) == INTERNAL_ERROR)
-            return INTERNAL_ERROR;
+        int result = fr_add_item(frame, var);
+
+        if (result != ER_OK)
+            return result;
 
         item = fr_get_item(frame, var);
 
         if (item == NULL)
-            return INTERNAL_ERROR;
+            return ER_RUN_OTHER;
     }
+
+    if (!item->initialized)
+        return ER_RUN_INIT;
 
     *val = item->value;
 
-    return 0;
+    return ER_OK;
 }
 
 void fr_free(frame_t **frame) {
@@ -307,7 +316,7 @@ int call_instr(tListOfInstr *instrlist, inter_stack *stack, symtab_elem_t *func)
         new_frame = malloc(sizeof(frame_t));
 
         if (new_frame == NULL)
-            return INTERNAL_ERROR;
+            return ER_INTERN;
 
         new_frame->first_item = NULL;
         
@@ -389,27 +398,34 @@ int return_instr(tListOfInstr *instrlist) {
 }
 
 st_value_t get_value(symtab_elem_t *var) {
-    if (!var->initialized) {
-        ifj_errno = ER_RUN_INIT;
-        st_value_t temp;
-        return temp;
+    if (var->is_global) {
+        if (!var->initialized) {
+            ifj_errno = ER_RUN_INIT;
+            st_value_t temp;
+            return temp;
+        }
+
+        return var->value;
     }
 
-    if (var->is_global)
-        return var->value;
-
     st_value_t val;
-    fr_get(active_frame, var, &val);
+    
+    int result = fr_get(active_frame, var, &val);
+
+    if (result != ER_OK)
+        ifj_errno = result;
+
     return val;
 }
 
 void set_value(symtab_elem_t *var, inter_value *value) {
-    if (var->is_global)
+    if (var->is_global) {
         var->value = value->union_value;
+        var->initialized = true;
+    }
     else
         fr_set(active_frame, var, value->union_value);
 
-    var->initialized = true;
 
 #ifdef DEBUG
     fr_print_frames();
