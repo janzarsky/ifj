@@ -320,7 +320,7 @@ int call_instr(tListOfInstr *instrlist, inter_stack *stack, symtab_elem_t *func)
 
         new_frame->first_item = NULL;
         
-        symtab_elem_t *param = func->first_param;
+        symtab_elem_t *param = func->last_param;
 
         while (param != NULL) {
             fr_add_item(new_frame, param);
@@ -331,7 +331,7 @@ int call_instr(tListOfInstr *instrlist, inter_stack *stack, symtab_elem_t *func)
             fr_set(new_frame, param, param_value.union_value);
 
             debug_printf("INTERPRET: adding param to frame, id: %s\n", param->id);
-            param = param->next_param;
+            param = param->prev_param;
         }
 
         new_frame->next = active_frame;

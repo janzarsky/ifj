@@ -51,7 +51,9 @@ symtab_elem_t *st_add(symtab_t *tabulka, char *token) {
     
     synon->is_global = false;
     synon->first_param = NULL;
+    synon->last_param = NULL;
     synon->next_param = NULL;
+    synon->prev_param = NULL;
     synon->local_table = NULL;
 
     return synon;
@@ -174,6 +176,7 @@ void st_print_elem(symtab_elem_t *elem, bool indent) {
 void st_print(symtab_t *table) {
     symtab_elem_t *ptr;
     symtab_elem_t *ptr2;
+    symtab_elem_t *ptr3;
 
     for (int i = 0; i < TABLE_SIZE; i++) {
         if (table->elements[i] != NULL) {
@@ -182,6 +185,23 @@ void st_print(symtab_t *table) {
             while (ptr != NULL) {
                 printf("i=%4d ", i);
                 st_print_elem(ptr, false);
+
+                ptr3 = ptr->first_param;
+
+                while (ptr3 != NULL) {
+                    printf("param: %s, ", ptr3->id);
+                    ptr3 = ptr3->next_param;
+                }
+
+                ptr3 = ptr->last_param;
+
+                while (ptr3 != NULL) {
+                    printf("lparam: %s, ", ptr3->id);
+                    ptr3 = ptr3->prev_param;
+                }
+
+                if (ptr->first_param != NULL)
+                    printf("\n");
 
                 if (ptr->local_table != NULL) {
                     for (int j = 0; j < TABLE_SIZE; j++) {
@@ -232,6 +252,12 @@ void st_add_builtin_param(symtab_elem_t *elem, char *name, st_datatype_t data_ty
     elem->first_param->elem_type = ST_ELEMTYPE_PARAM;
     elem->first_param->data_type = data_type;
     elem->first_param->next_param = temp;
+    elem->first_param->prev_param = NULL;
+
+    if (temp != NULL)
+        temp->prev_param = elem->first_param;
+    else
+        elem->last_param = elem->first_param;
 }
 
 symtab_elem_t *st_add_builtin(symtab_t *table, char* name, int type) {
@@ -240,6 +266,7 @@ symtab_elem_t *st_add_builtin(symtab_t *table, char* name, int type) {
     temp->data_type = type;
     temp->is_global = true;
     temp->first_param = NULL;
+    temp->last_param = NULL;
 
     return temp;
 }

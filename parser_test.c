@@ -7,6 +7,7 @@
 #include "symtab.h"
 #include "scanner.h"
 #include "error_codes.h"
+#include "debug.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -463,8 +464,10 @@ int func_params(){
 				if(pruchod == 0){
 					item = st_add(current_function->local_table,token_data);	
 					current_function->first_param = item;
+                    current_function->last_param = item;
 					item->elem_type = ST_ELEMTYPE_PARAM;
 					item->next_param = NULL;
+					item->prev_param = NULL;
 					item->declared = 1;
 					switch(temp_token){
 						case INT:
@@ -500,7 +503,6 @@ int func_params_list(){
     #endif
 	int result;
 	int temp_token;
-	symtab_elem_t * prev_item;
 
 	if ( (token = get_next_token(&token_data)) == ER_LEX )
 		return ER_LEX;
@@ -517,11 +519,13 @@ int func_params_list(){
 						if(st_find(current_function->local_table,token_data) != NULL){
 							return ER_SEM;// error number 3 redefenition of defined variable
 						}
-						prev_item = item;
 						item = st_add(current_function->local_table,token_data);	
 						item->elem_type = ST_ELEMTYPE_PARAM;
-						current_function->first_param = item;
-						item->next_param = prev_item;
+
+                        current_function->last_param->next_param = item;
+						item->next_param = NULL;
+                        item->prev_param = current_function->last_param;
+                        current_function->last_param = item;
 						item->declared = 1;
 						switch(temp_token){
 							case INT:
@@ -891,6 +895,8 @@ int func_args(){
 			if(current_param == NULL)
                 return ER_SEM_TYPES;
 
+            debug_printf("current_param: %s\n", current_param->id);
+
             if (temp_item->data_type != current_param->data_type) {
                 if (temp_item->data_type == ST_DATATYPE_INT &&
                     current_param->data_type == ST_DATATYPE_DOUBLE)
@@ -981,10 +987,19 @@ int func_args_list(){
                             }
                         }
 
-						//argument's type check	
-						if(current_param == NULL || (temp_item->data_type != current_param->data_type) ){
-							return ER_SEM_TYPES; //wrong parameter's type  or number
+						if (current_param == NULL) {
+							return ER_SEM_TYPES;
 						}		
+
+                        debug_printf("current_param: %s\n", current_param->id);
+
+                        if (temp_item->data_type != current_param->data_type) {
+                            if (temp_item->data_type == ST_DATATYPE_INT &&
+                                current_param->data_type == ST_DATATYPE_DOUBLE)
+                                add_instr(IN_CONV, NULL, NULL, NULL);
+                            else
+                                return ER_SEM_TYPES;
+                        }
 
 						add_instr(IN_TAB_PUSH,(void *)temp_item,NULL,NULL);	 //push function argument(ID) to stack
 
