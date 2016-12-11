@@ -362,10 +362,14 @@ int statement_list(){
 				case INT:
 				case DOUBLE:
 				case STRING:
-					if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID)
+					if ( (token = get_next_token(&token_data)) != ER_LEX && token == ID) {
+                            // nelze definovat lokalni promennou s teckou v nazvu
+                            if (strstr(token_data, ".") != NULL)
+                                return ER_SEM;
 
 							if(st_find(local_tabulka,token_data) != NULL)
 								return ER_SEM;
+
 							local_item = item = st_add(local_tabulka, token_data);
 							#ifdef DEBUG
 							printf(ANSI_COLOR_GREEN "\n---------------------------------------------------------------------------------------\n");
@@ -409,8 +413,10 @@ int statement_list(){
 								}
 							}
 						}
+                    }
 					if(token == ER_LEX)
 						return ER_LEX;
+
 					return ER_SYNTAX;
 					break;	
 		 // 7) <st-list>   -> ID <func_var>(we must give pointer to ID) <st-list>
