@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 
 #include "instrlist.h"
 #include "string.h"
@@ -143,6 +144,7 @@ int lexer(string *buffer) {
 
     int num_count = 0;
     int E_count = 0;
+    int id_count = 0;
 
     int dbl_dot_count = 0; // promenna pro kontrolu tecky u doublu
     int dot_count = 0; // promenna pro kontrolu spravnosti plne kvalifikovaneho identifikatoru
@@ -231,11 +233,27 @@ int lexer(string *buffer) {
 
         if (isalnum(c) || c == '_' || c == '$' || c == '.'){ // pridana tecka jako znak pouzivany pro plne kvalifikovany identifikator
 
-        if (c == '.' && dot_count == 0) dot_count++; // evidujeme nalezenou tecku
+        if (c == '.' && dot_count == 0) { dot_count++; // evidujeme nalezenou tecku
+					 
+	if (strCmpConstStr(buffer, "boolean") == 0 || strCmpConstStr(buffer, "break") == 0 || strCmpConstStr(buffer, "class") == 0 || strCmpConstStr(buffer, "continue") == 0
+              || strCmpConstStr(buffer, "do") == 0 || strCmpConstStr(buffer, "double") == 0 || strCmpConstStr(buffer, "else") == 0 || strCmpConstStr(buffer, "false") == 0
+              || strCmpConstStr(buffer, "for") == 0 || strCmpConstStr(buffer, "if") == 0 || strCmpConstStr(buffer, "int") == 0 || strCmpConstStr(buffer, "return") == 0
+              || strCmpConstStr(buffer, "String") == 0 || strCmpConstStr(buffer, "static") == 0 || strCmpConstStr(buffer, "true") == 0 || strCmpConstStr(buffer, "void") == 0
+              || strCmpConstStr(buffer, "while") == 0 || strCmpConstStr(buffer, "Main") == 0 || strCmpConstStr(buffer, "run") == 0 )
+
+        {return ER_LEX; break;} // otestuj jestli prvni cast plne kvalifikovaneho identifikatoru neni klicove slovo
+
+        }				 
 
         else if (c == '.' && dot_count > 0 ) {return ER_LEX; break;} // pokud se objevi dalsi tecka jedna se o neplatny identifikator,
+        
+	else if (c != '.' && dot_count > 0) {
 
-        strAddChar(buffer, c); // dokud se jedna o identifikator nebo klicove slovo, naplnuj strukturu
+            id_count = id_count + 1;
+
+        }
+        
+	strAddChar(buffer, c); // dokud se jedna o identifikator nebo klicove slovo, naplnuj strukturu
 
         state = 3; // zustan tady a res identifikatory a klicova slova
 
@@ -246,6 +264,29 @@ int lexer(string *buffer) {
         if (!isspace(c) && !isalnum(c) && c != '_' && c != '$' && c != '.' && c != '(' && c!= ')' && c!= '{' && c!= '}' && c!= '=' && c!= '+' && c!= '-' && c!= '*' && c!= '/' && c!= '<' && c!= '>' && c!='!' && c!= ';' && c != ',') { return ER_LEX; break; } // pokud se neobjevi prazdne misto nebo zavorky nebo operatory ale nejaky nepovoleny znak je to error
 
         ungetc(c, source); // POZOR! Je potreba vratit posledni nacteny znak
+		    
+	 if (dot_count > 0) { // jednalo se o plne kvalifikovany identifikator, potreba zkontrolovat, jestli v jeho druhe casti neni klicove slovo
+
+                int delka = buffer->length +1;
+                int delka2 = delka - (id_count +1);
+                char kontrola [id_count +1];
+
+                for (int i = 0; i < id_count +1; i++){
+
+                    kontrola[i] = buffer->str[delka2];
+                    delka2 = delka2 + 1;
+
+                }
+
+                kontrola[id_count +1] = '\0';
+
+                if (strcmp(kontrola, "boolean") == 0 || strcmp(kontrola, "break") == 0 || strcmp(kontrola, "class") == 0 || strcmp(kontrola, "continue") == 0
+                    || strcmp(kontrola, "do") == 0 || strcmp(kontrola, "double") == 0 || strcmp(kontrola, "else") == 0 || strcmp(kontrola, "false") == 0
+                    || strcmp(kontrola, "for") == 0 || strcmp(kontrola, "if") == 0 || strcmp(kontrola, "int") == 0 || strcmp(kontrola, "return") == 0
+                    || strcmp(kontrola, "String") == 0 || strcmp(kontrola, "static") == 0 || strcmp(kontrola, "true") == 0 || strcmp(kontrola, "void") == 0
+                    || strcmp(kontrola, "while") == 0 || strcmp(kontrola, "Main") == 0 || strcmp(kontrola, "run") == 0 ) return ER_LEX;
+
+        }	    
 
         // kontrola, zda se nejedna o klicove slovo nebo treba povinnou vestavenou fci
 
